@@ -459,6 +459,16 @@
     console.log("Dados armazenados localmente.");
 }
 
+window.onload = () => {
+    if (localStorage.getItem("uploadedData")) {
+        data = JSON.parse(localStorage.getItem("uploadedData"));
+        filteredData = data.slice(1);
+        findColumnIndexes();
+        renderTable();
+    }
+};
+
+
 
     let headerRow = [...data[0]];
     let pesoKgIndex = columnIndexes["peso (kg)"];
