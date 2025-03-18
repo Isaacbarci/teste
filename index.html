@@ -205,63 +205,47 @@
             "identificação 2", "area m²", "peso"
         ];
 
- function confirmUpdate() {
-        const selectedFile = document.getElementById("fileList").value;
-        if (!selectedFile) {
-            alert("Selecione um arquivo da lista para atualizar.");
-            return;
+        function confirmUpdate() {
+            const selectedFile = document.getElementById("fileList").value;
+            if (!selectedFile) {
+                alert("Selecione um arquivo da lista para atualizar.");
+                return;
+            }
+
+            const confirmUpdate = confirm("Deseja realmente atualizar o arquivo? Todas as alterações não salvas serão perdidas.");
+            if (confirmUpdate) {
+                loadSelectedFile(selectedFile);
+            }
         }
 
-        if (!navigator.onLine) {
-            alert("Você está offline. Não é possível carregar um novo arquivo.");
-            return;
+        function loadSelectedFile(fileName) {
+            fetch(fileName)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Erro ao carregar arquivo: ${response.statusText}`);
+                    }
+                    return response.arrayBuffer();
+                })
+                .then(arrayBuffer => {
+                    const workbook = XLSX.read(arrayBuffer, { type: 'array', cellFormula: true });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
+
+                    data = jsonData;
+                    localStorage.setItem("uploadedData", JSON.stringify(data));
+
+                    filteredData = data.slice(1);
+                    editedRows.clear();
+                    localStorage.removeItem("editedRows");
+
+                    findColumnIndexes();
+                    renderTable();
+                })
+                .catch(error => {
+                    console.error("Erro ao carregar o arquivo:", error);
+                    alert("Erro ao carregar o arquivo. Verifique se o nome está correto.");
+                });
         }
-
-        const confirmUpdate = confirm("Deseja realmente atualizar o arquivo? Todas as alterações não salvas serão perdidas?");
-        if (confirmUpdate) {
-            loadSelectedFile(selectedFile);
-        }
-    }
-
-    function loadSelectedFile(fileName) {
-        if (!navigator.onLine) {
-            alert("Você está offline. Não é possível carregar um novo arquivo.");
-            return;
-        }
-
-        fetch(fileName)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Erro ao carregar arquivo: ${response.statusText}`);
-                }
-                return response.arrayBuffer();
-            })
-            .then(arrayBuffer => {
-                const workbook = XLSX.read(arrayBuffer, { type: 'array', cellFormula: true });
-                const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
-
-                data = jsonData;
-                localStorage.setItem("uploadedData", JSON.stringify(data)); // Salva os dados no navegador
-
-                filteredData = data.slice(1);
-                findColumnIndexes();
-                renderTable();
-            })
-            .catch(error => {
-                console.error("Erro ao carregar o arquivo:", error);
-                alert("Erro ao carregar o arquivo. Verifique se o nome está correto.");
-            });
-    }
-
-    function findColumnIndexes() {
-        columnIndexes = {};
-        if (data.length > 0) {
-            data[0].forEach((header, index) => {
-                columnIndexes[header.trim().toLowerCase()] = index;
-            });
-        }
-    }
 
         function formatDate(dateString) {
             if (!dateString) return "";
@@ -293,27 +277,29 @@
             });
         }
 
-      function applyFilter() {
-        const filterValue = document.getElementById("identificacaoFilter").value.trim().toLowerCase();
+        function applyFilter() {
+    const filterValue = document.getElementById("identificacaoFilter").value.trim().toLowerCase();
 
-        if (!data.length) {
-            alert("Nenhum dado disponível para filtrar. Carregue um arquivo primeiro.");
-            return;
-        }
+    // Verifica se as colunas "QR" e "Identificação 1" existem
+    const qrColumnIndex = columnIndexes["qr"];
+    const identificacao1Index = columnIndexes["identificação 1"];
 
-        const identificacao1Index = columnIndexes["identificação 1"];
-        if (identificacao1Index === undefined) {
-            console.error("Coluna 'Identificação 1' não encontrada.");
-            return;
-        }
-
-        filteredData = data.slice(1).filter(row => {
-            const identificacao1Value = String(row[identificacao1Index]).toLowerCase();
-            return identificacao1Value.includes(filterValue);
-        });
-
-        renderTable();
+    if (qrColumnIndex === undefined || identificacao1Index === undefined) {
+        console.error("Coluna 'QR' ou 'Identificação 1' não encontrada.");
+        return;
     }
+
+    // Filtra os dados com base no valor do filtro
+    filteredData = data.slice(1).filter(row => {
+        const qrValue = String(row[qrColumnIndex]).toLowerCase();
+        const identificacao1Value = String(row[identificacao1Index]).toLowerCase();
+
+        // Retorna true se o valor do filtro estiver presente em qualquer uma das colunas
+        return qrValue.includes(filterValue) || identificacao1Value.includes(filterValue);
+    });
+
+    renderTable();
+}
 
         function renderTable() {
             const table = document.getElementById("dataTable");
@@ -428,45 +414,51 @@
         }
 
         function startQrScanner() {
-        document.getElementById("qr-container").style.display = "block";
-        document.getElementById("closeScannerBtn").style.display = "block";
+            document.getElementById("qr-container").style.display = "block";
+            document.getElementById("closeScannerBtn").style.display = "block";
 
-        qrScanner = new Html5Qrcode("qr-reader");
-        qrScanner.start(
-            { facingMode: "environment" },
-            {
-                fps: 10,
-                qrbox: 250
-            },
-            (decodedText) => {
-                document.getElementById("identificacaoFilter").value = decodedText;
-                applyFilter();
-                stopQrScanner();
-            },
-            (errorMessage) => {
-                console.error(errorMessage);
-            }
-        ).catch((err) => {
-            console.error(err);
-        });
-    }
-
-    function stopQrScanner() {
-        if (qrScanner) {
-            qrScanner.stop().then(() => {
-                document.getElementById("qr-container").style.display = "none";
-                document.getElementById("closeScannerBtn").style.display = "none";
-            }).catch((err) => {
+            qrScanner = new Html5Qrcode("qr-reader");
+            qrScanner.start(
+                { facingMode: "environment" },
+                {
+                    fps: 10,
+                    qrbox: 250
+                },
+                (decodedText, decodedResult) => {
+                    document.getElementById("identificacaoFilter").value = decodedText;
+                    applyFilter();
+                    stopQrScanner();
+                },
+                (errorMessage) => {
+                    console.error(errorMessage);
+                }
+            ).catch((err) => {
                 console.error(err);
             });
         }
-    }
+
+        function stopQrScanner() {
+            if (qrScanner) {
+                qrScanner.stop().then(() => {
+                    document.getElementById("qr-container").style.display = "none";
+                    document.getElementById("closeScannerBtn").style.display = "none";
+                }).catch((err) => {
+                    console.error(err);
+                });
+            }
+        }
 
         function downloadExcel() {
     if (!data.length) {
         alert("Nenhum dado carregado para exportar.");
         return;
     }
+
+    function storeDataLocally() {
+    localStorage.setItem("uploadedData", JSON.stringify(data));
+    console.log("Dados armazenados localmente.");
+}
+
 
     let headerRow = [...data[0]];
     let pesoKgIndex = columnIndexes["peso (kg)"];
@@ -606,32 +598,32 @@
 }
 
         document.addEventListener("DOMContentLoaded", () => {
-        const storedData = localStorage.getItem("uploadedData");
-
-        if (!navigator.onLine && !storedData) {
-            alert("Você está offline e nenhum dado foi carregado previamente.");
-            return;
-        }
-
-        if (storedData) {
-            try {
-                data = JSON.parse(storedData);
-                if (!Array.isArray(data) || data.length === 0) {
-                    console.warn("Dados armazenados são inválidos. Limpando localStorage...");
+            const storedData = localStorage.getItem("uploadedData");
+            if (storedData) {
+                try {
+                    data = JSON.parse(storedData);
+                    filteredData = data.slice(1);
+                    findColumnIndexes();
+                } catch (error) {
+                    console.error("Erro ao carregar os dados armazenados:", error);
                     localStorage.removeItem("uploadedData");
-                    return;
                 }
-
-                filteredData = data.slice(1);
-                findColumnIndexes();
-                renderTable();
-            } catch (error) {
-                console.error("Erro ao carregar os dados armazenados:", error);
-                localStorage.removeItem("uploadedData");
             }
-        }
-    });
-    
+
+            const storedEditedRows = localStorage.getItem("editedRows");
+            if (storedEditedRows) {
+                try {
+                    editedRows = new Set(JSON.parse(storedEditedRows));
+                } catch (error) {
+                    console.error("Erro ao carregar as edições armazenadas:", error);
+                    localStorage.removeItem("editedRows");
+                }
+            }
+
+            if (data.length) {
+                renderTable();
+            }
+        });
     </script>
 </body>
 </html>
