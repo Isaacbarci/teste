@@ -204,7 +204,8 @@
             "localização", "status", "peso unitário", "qtde enviada", "obs romaneio", "qtde", "saldo", "tipo de suporte", "tipo estrutura", "id", "serviço",
             "identificação 2", "area m²", "peso"
         ];
-unction confirmUpdate() {
+
+ function confirmUpdate() {
         const selectedFile = document.getElementById("fileList").value;
         if (!selectedFile) {
             alert("Selecione um arquivo da lista para atualizar.");
@@ -253,43 +254,14 @@ unction confirmUpdate() {
             });
     }
 
-document.addEventListener("DOMContentLoaded", () => {
-    const storedData = localStorage.getItem("uploadedData");
-
-    if (!navigator.onLine && !storedData) {
-        alert("Você está offline e nenhum dado foi carregado previamente.");
-        return;
-    }
-
-    if (storedData) {
-        try {
-            data = JSON.parse(storedData);
-            if (!Array.isArray(data) || data.length === 0) {
-                console.warn("Dados armazenados são inválidos. Limpando localStorage...");
-                localStorage.removeItem("uploadedData");
-                return;
-            }
-
-            filteredData = data.slice(1);
-            findColumnIndexes();
-            renderTable();
-        } catch (error) {
-            console.error("Erro ao carregar os dados armazenados:", error);
-            localStorage.removeItem("uploadedData");
+    function findColumnIndexes() {
+        columnIndexes = {};
+        if (data.length > 0) {
+            data[0].forEach((header, index) => {
+                columnIndexes[header.trim().toLowerCase()] = index;
+            });
         }
     }
-});
-
-// Detecta quando o usuário volta para online
-window.addEventListener("online", () => {
-    alert("Você está online novamente! Agora pode carregar novos arquivos.");
-});
-
-// Detecta quando o usuário fica offline
-window.addEventListener("offline", () => {
-    alert("Você está offline. Os dados salvos ainda podem ser usados.");
-});
-
 
         function formatDate(dateString) {
             if (!dateString) return "";
@@ -314,14 +286,12 @@ window.addEventListener("offline", () => {
             return `${year}-${month}-${day}`;
         }
 
-       function findColumnIndexes() {
-        columnIndexes = {};
-        if (data.length > 0) {
+        function findColumnIndexes() {
+            columnIndexes = {};
             data[0].forEach((header, index) => {
                 columnIndexes[header.trim().toLowerCase()] = index;
             });
         }
-    }
 
       function applyFilter() {
         const filterValue = document.getElementById("identificacaoFilter").value.trim().toLowerCase();
@@ -344,7 +314,6 @@ window.addEventListener("offline", () => {
 
         renderTable();
     }
-
 
         function renderTable() {
             const table = document.getElementById("dataTable");
@@ -458,7 +427,7 @@ window.addEventListener("offline", () => {
             document.getElementById("editModal").style.display = "none";
         }
 
-     function startQrScanner() {
+        function startQrScanner() {
         document.getElementById("qr-container").style.display = "block";
         document.getElementById("closeScannerBtn").style.display = "block";
 
@@ -636,7 +605,7 @@ window.addEventListener("offline", () => {
     XLSX.writeFile(newWorkbook, "Romaneio_Suporte.xlsx");
 }
 
-       document.addEventListener("DOMContentLoaded", () => {
+        document.addEventListener("DOMContentLoaded", () => {
         const storedData = localStorage.getItem("uploadedData");
 
         if (!navigator.onLine && !storedData) {
