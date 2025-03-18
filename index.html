@@ -470,64 +470,59 @@ function downloadExcel() {
         return;
     }
 
-    // Índices das colunas necessárias
-    let pesoUnitarioIndex = columnIndexes["peso unitário"];
-    let areaM2UnitarioIndex = columnIndexes["area m² unitário"];
-    let qtdEnviadaIndex = columnIndexes["qtd enviada"];
-    let obsRomaneioIndex = columnIndexes["obs romaneio"];
+    let headerRow = [...data[0]];
     let pesoKgIndex = columnIndexes["peso (kg)"];
     let areaSuperficieIndex = columnIndexes["área superfície"];
+    let pesoUnitarioIndex = columnIndexes["peso unitário"];
+    let areaM2UnitarioIndex = columnIndexes["area m² unitário"];
     let qtdeIndex = columnIndexes["qtde"];
+    let qtdeEnviadaIndex = columnIndexes["qtd enviada"];
     let saldoIndex = columnIndexes["saldo"];
+    let qtdEnviadaIndex = columnIndexes["qtd enviada"];
     let dataRomaneioIndex = columnIndexes["data do romaneio"];
     let statusIndex = columnIndexes["status"];
     let observacaoIndex = columnIndexes["observação"];
     let dataRecebimentoIndex = columnIndexes["data recebimento"];
-    let dataCadastroIndex = columnIndexes["data cadastro"];
+    let dataCadastroIndex = columnIndexes["data cadastro"]; // Índice da coluna "DATA CADASTRO"
 
-    // Adicionar as novas colunas ao cabeçalho
-    let headerRow = [...data[0]];
-    headerRow.splice(obsRomaneioIndex + 1, 0, "PESO ENVIADO", "ÁREA ENVIADA");
+    // Adiciona as novas colunas ao cabeçalho
+    headerRow.push("PESO ENVIADO", "ÁREA ENVIADA");
 
-    // Função para converter valores em números ou retornar undefined se inválido
-    const parseValue = (value) => {
-        const parsed = parseFloat(value);
-        return isNaN(parsed) ? undefined : parsed;
-    };
-
-    // Processar os dados para incluir as novas colunas
     let newData = data.map((row, index) => {
         if (index === 0) {
-            return headerRow; // Retorna o cabeçalho com as novas colunas
+            return headerRow;
         }
 
-        // Converter valores para números (ou undefined se inválidos)
-        const pesoUnitario = parseValue(row[pesoUnitarioIndex]);
-        const areaM2Unitario = parseValue(row[areaM2UnitarioIndex]);
-        const qtdEnviada = parseValue(row[qtdEnviadaIndex]);
+        // Função para converter valores vazios ou nulos para undefined
+        const parseValue = (value) => {
+            if (value === "" || value === null || value === undefined) {
+                return undefined; // Mantém o valor vazio
+            }
+            return parseFloat(value.toString().replace(",", ".")); // Converte para número
+        };
 
-        // Calcular os valores das novas colunas (ou undefined se algum valor for inválido)
-        const pesoEnviado = pesoUnitario !== undefined && qtdEnviada !== undefined
-            ? pesoUnitario * qtdEnviada
-            : undefined;
+        // Obter os valores necessários para os cálculos
+        let pesoUnitario = parseValue(row[pesoUnitarioIndex]);
+        let areaUnitario = parseValue(row[areaM2UnitarioIndex]);
+        let qtdeEnviada = parseValue(row[qtdeEnviadaIndex]);
 
-        const areaEnviada = areaM2Unitario !== undefined && qtdEnviada !== undefined
-            ? areaM2Unitario * qtdEnviada
-            : undefined;
+        // Calcular os valores das novas colunas
+        let pesoEnviado = pesoUnitario !== undefined && qtdeEnviada !== undefined ? (pesoUnitario * qtdeEnviada).toFixed(2) : "";
+        let areaEnviada = areaUnitario !== undefined && qtdeEnviada !== undefined ? (areaUnitario * qtdeEnviada).toFixed(2) : "";
 
-        // Criar uma nova linha com os dados existentes
+        // Criar uma nova linha de dados incluindo as colunas adicionais
         let newRow = [...row];
 
-        // Inserir os valores calculados nas novas colunas (ou vazio se undefined)
-        newRow.splice(obsRomaneioIndex + 1, 0, pesoEnviado ?? "", areaEnviada ?? "");
+        // Adiciona os valores calculados das novas colunas
+        newRow.push(pesoEnviado, areaEnviada);
 
         return newRow;
     });
 
-    // Criar o arquivo Excel
+    // Criar o arquivo Excel com as colunas adicionadas
     const updatedSheet = XLSX.utils.aoa_to_sheet(newData);
 
-    // Ajustar largura das colunas
+    // Ajuste automático de largura das colunas
     updatedSheet["!cols"] = newData[0].map((_, index) => {
         let maxLength = Math.max(...newData.map(row => (row[index] ? row[index].toString().length : 0)));
         return { wch: maxLength + 2 };
