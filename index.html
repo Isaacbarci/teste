@@ -505,9 +505,6 @@ function downloadExcel() {
         const pesoUnitario = parseValue(row[pesoUnitarioIndex]);
         const areaM2Unitario = parseValue(row[areaM2UnitarioIndex]);
         const qtdEnviada = parseValue(row[qtdEnviadaIndex]);
-        const qtde = parseValue(row[qtdeIndex]);
-        const pesoKg = parseValue(row[pesoKgIndex]);
-        const areaSuperficie = parseValue(row[areaSuperficieIndex]);
 
         // Calcular os valores das novas colunas (ou undefined se algum valor for inválido)
         const pesoEnviado = pesoUnitario !== undefined && qtdEnviada !== undefined
@@ -518,35 +515,8 @@ function downloadExcel() {
             ? areaM2Unitario * qtdEnviada
             : undefined;
 
-        // Reordenar as colunas (pular a coluna "DATA CADASTRO")
-        let newRow = [];
-        row.forEach((cell, colIndex) => {
-            // Pular a coluna "DATA CADASTRO"
-            if (colIndex === dataCadastroIndex) {
-                return;
-            }
-
-            // Inserir as colunas reordenadas
-            if (colIndex === pesoUnitarioIndex) {
-                newRow.push(cell !== undefined ? cell : ""); // Mantém vazio
-                if (pesoKgIndex !== undefined) {
-                    newRow.push(row[pesoKgIndex] !== undefined ? row[pesoKgIndex] : ""); // Mantém vazio
-                }
-            } else if (colIndex === areaM2UnitarioIndex) {
-                newRow.push(cell !== undefined ? cell : ""); // Mantém vazio
-                if (areaSuperficieIndex !== undefined) {
-                    newRow.push(row[areaSuperficieIndex] !== undefined ? row[areaSuperficieIndex] : ""); // Mantém vazio
-                }
-            } else if (colIndex === statusIndex) {
-                newRow.push(cell !== undefined ? cell : ""); // Mantém vazio
-                newRow.push(row[dataRomaneioIndex] !== undefined ? row[dataRomaneioIndex] : ""); // Mantém vazio
-            } else if (colIndex === dataRecebimentoIndex) {
-                newRow.push(cell !== undefined ? cell : ""); // Mantém vazio
-                newRow.push(row[observacaoIndex] !== undefined ? row[observacaoIndex] : ""); // Mantém vazio
-            } else if (colIndex !== pesoKgIndex && colIndex !== areaSuperficieIndex && colIndex !== dataRomaneioIndex && colIndex !== observacaoIndex) {
-                newRow.push(cell !== undefined ? cell : ""); // Mantém vazio
-            }
-        });
+        // Criar uma nova linha com os dados existentes
+        let newRow = [...row];
 
         // Inserir os valores calculados nas novas colunas (ou vazio se undefined)
         newRow.splice(obsRomaneioIndex + 1, 0, pesoEnviado ?? "", areaEnviada ?? "");
