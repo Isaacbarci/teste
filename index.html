@@ -205,20 +205,30 @@
             "identificação 2", "area m²", "peso"
         ];
 
-        function confirmUpdate() {
-            const selectedFile = document.getElementById("fileList").value;
-            if (!selectedFile) {
-                alert("Selecione um arquivo da lista para atualizar.");
-                return;
-            }
+       function confirmUpdate() {
+    const selectedFile = document.getElementById("fileList").value;
+    if (!selectedFile) {
+        alert("Selecione um arquivo da lista para atualizar.");
+        return;
+    }
 
-            const confirmUpdate = confirm("Deseja realmente atualizar o arquivo? Todas as alterações não salvas serão perdidas.");
-            if (confirmUpdate) {
-                loadSelectedFile(selectedFile);
-            }
-        }
+    if (!navigator.onLine) {
+        alert("Você está offline. Não é possível carregar um novo arquivo.");
+        return;
+    }
 
-   function loadSelectedFile(fileName) {
+    const confirmUpdate = confirm("Deseja realmente atualizar o arquivo? Todas as alterações não salvas serão perdidas?");
+    if (confirmUpdate) {
+        loadSelectedFile(selectedFile);
+    }
+}
+
+function loadSelectedFile(fileName) {
+    if (!navigator.onLine) {
+        alert("Você está offline. Não é possível carregar um novo arquivo.");
+        return;
+    }
+
     fetch(fileName)
         .then(response => {
             if (!response.ok) {
@@ -232,12 +242,9 @@
             const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
             data = jsonData;
-            localStorage.setItem("uploadedData", JSON.stringify(data)); // Armazena os dados no navegador
+            localStorage.setItem("uploadedData", JSON.stringify(data)); // Salva os dados no navegador
 
             filteredData = data.slice(1);
-            editedRows.clear();
-            localStorage.removeItem("editedRows");
-
             findColumnIndexes();
             renderTable();
         })
@@ -246,6 +253,43 @@
             alert("Erro ao carregar o arquivo. Verifique se o nome está correto.");
         });
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    const storedData = localStorage.getItem("uploadedData");
+
+    if (!navigator.onLine && !storedData) {
+        alert("Você está offline e nenhum dado foi carregado previamente.");
+        return;
+    }
+
+    if (storedData) {
+        try {
+            data = JSON.parse(storedData);
+            if (!Array.isArray(data) || data.length === 0) {
+                console.warn("Dados armazenados são inválidos. Limpando localStorage...");
+                localStorage.removeItem("uploadedData");
+                return;
+            }
+
+            filteredData = data.slice(1);
+            findColumnIndexes();
+            renderTable();
+        } catch (error) {
+            console.error("Erro ao carregar os dados armazenados:", error);
+            localStorage.removeItem("uploadedData");
+        }
+    }
+});
+
+// Detecta quando o usuário volta para online
+window.addEventListener("online", () => {
+    alert("Você está online novamente! Agora pode carregar novos arquivos.");
+});
+
+// Detecta quando o usuário fica offline
+window.addEventListener("offline", () => {
+    alert("Você está offline. Os dados salvos ainda podem ser usados.");
+});
 
 
         function formatDate(dateString) {
@@ -592,11 +636,23 @@
     XLSX.writeFile(newWorkbook, "Romaneio_Suporte.xlsx");
 }
 
-  document.addEventListener("DOMContentLoaded", () => {
+       document.addEventListener("DOMContentLoaded", () => {
     const storedData = localStorage.getItem("uploadedData");
+
+    if (!navigator.onLine && !storedData) {
+        alert("Você está offline e nenhum dado foi carregado previamente.");
+        return;
+    }
+
     if (storedData) {
         try {
             data = JSON.parse(storedData);
+            if (!Array.isArray(data) || data.length === 0) {
+                console.warn("Dados armazenados são inválidos. Limpando localStorage...");
+                localStorage.removeItem("uploadedData");
+                return;
+            }
+
             filteredData = data.slice(1);
             findColumnIndexes();
             renderTable();
@@ -605,22 +661,17 @@
             localStorage.removeItem("uploadedData");
         }
     }
-
-    const storedEditedRows = localStorage.getItem("editedRows");
-    if (storedEditedRows) {
-        try {
-            editedRows = new Set(JSON.parse(storedEditedRows));
-        } catch (error) {
-            console.error("Erro ao carregar as edições armazenadas:", error);
-            localStorage.removeItem("editedRows");
-        }
-    }
-
-    if (data.length) {
-        renderTable();
-    }
 });
 
+// Detecta quando o usuário volta para online
+window.addEventListener("online", () => {
+    alert("Você está online novamente! Agora pode carregar novos arquivos.");
+});
+
+// Detecta quando o usuário fica offline
+window.addEventListener("offline", () => {
+    alert("Você está offline. Os dados salvos ainda podem ser usados.");
+});
     </script>
 </body>
 </html>
