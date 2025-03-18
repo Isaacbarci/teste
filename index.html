@@ -205,18 +205,24 @@
             "identificação 2", "area m²", "peso"
         ];
 
-        function confirmUpdate() {
-            const selectedFile = document.getElementById("fileList").value;
-            if (!selectedFile) {
-                alert("Selecione um arquivo da lista para atualizar.");
-                return;
-            }
+     function confirmUpdate() {
+    // Verifica se o usuário está offline
+    if (!navigator.onLine) {
+        alert("Você está offline. Conecte-se à internet para carregar um novo arquivo.");
+        return;
+    }
 
-            const confirmUpdate = confirm("Deseja realmente atualizar o arquivo? Todas as alterações não salvas serão perdidas.");
-            if (confirmUpdate) {
-                loadSelectedFile(selectedFile);
-            }
-        }
+    const selectedFile = document.getElementById("fileList").value;
+    if (!selectedFile) {
+        alert("Selecione um arquivo da lista para atualizar.");
+        return;
+    }
+
+    const confirmUpdate = confirm("Deseja realmente atualizar o arquivo? Todas as alterações não salvas serão perdidas.");
+    if (confirmUpdate) {
+        loadSelectedFile(selectedFile);
+    }
+}
 
         function loadSelectedFile(fileName) {
             fetch(fileName)
@@ -457,27 +463,6 @@
                     console.error('Erro ao registrar o Service Worker:', error);
                 });
         }
-
-function confirmUpdate() {
-    // Verifica se o usuário está offline
-    if (!navigator.onLine) {
-        alert("Você está offline. Conecte-se à internet para carregar um novo arquivo.");
-        return;
-    }
-
-    const selectedFile = document.getElementById("fileList").value;
-    if (!selectedFile) {
-        alert("Selecione um arquivo da lista para atualizar.");
-        return;
-    }
-
-    const confirmUpdate = confirm("Deseja realmente atualizar o arquivo? Todas as alterações não salvas serão perdidas.");
-    if (confirmUpdate) {
-        loadSelectedFile(selectedFile);
-    }
-}
-
-
 
 
         function downloadExcel() {
