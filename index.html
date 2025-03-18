@@ -448,6 +448,17 @@
             }
         }
 
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then((registration) => {
+                    console.log('Service Worker registrado com sucesso:', registration);
+                })
+                .catch((error) => {
+                    console.error('Erro ao registrar o Service Worker:', error);
+                });
+        }
+
+
         function downloadExcel() {
     if (!data.length) {
         alert("Nenhum dado carregado para exportar.");
@@ -617,19 +628,9 @@
             if (data.length) {
                 renderTable();
             }
-  
-             if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js')
-                .then((registration) => {
-                    console.log('Service Worker registrado com sucesso:', registration);
-                })
-                .catch((error) => {
-                    console.error('Erro ao registrar o Service Worker:', error);
- });
-
-        }
 
 
+        });
     </script>
 </body>
 </html>
