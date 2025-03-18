@@ -454,22 +454,6 @@
         return;
     }
 
-    function storeDataLocally() {
-    localStorage.setItem("uploadedData", JSON.stringify(data));
-    console.log("Dados armazenados localmente.");
-}
-
-window.onload = () => {
-    if (localStorage.getItem("uploadedData")) {
-        data = JSON.parse(localStorage.getItem("uploadedData"));
-        filteredData = data.slice(1);
-        findColumnIndexes();
-        renderTable();
-    }
-};
-
-
-
     let headerRow = [...data[0]];
     let pesoKgIndex = columnIndexes["peso (kg)"];
     let areaSuperficieIndex = columnIndexes["área superfície"];
@@ -633,6 +617,18 @@ window.onload = () => {
             if (data.length) {
                 renderTable();
             }
+
+
+             if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then((registration) => {
+                    console.log('Service Worker registrado com sucesso:', registration);
+                })
+                .catch((error) => {
+                    console.error('Erro ao registrar o Service Worker:', error);
+
+        }
+
         });
     </script>
 </body>
