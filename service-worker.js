@@ -1,4 +1,4 @@
-const CACHE_VERSION = '1742388304'; // 🚀 O GitHub Actions irá substituir esta linha
+const CACHE_VERSION = '__CACHE_VERSION__'; // 🚀 GitHub Actions substituirá essa linha
 const CACHE_NAME = `my-site-cache-${CACHE_VERSION}`;
 
 const CACHE_FILES = [
@@ -7,6 +7,7 @@ const CACHE_FILES = [
     'image.png',
     'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js',
     'https://unpkg.com/html5-qrcode',
+    'version.txt' // 🔥 Adicionado para verificar novas versões do cache
 ];
 
 // 🛠️ **Instalação do Service Worker**
@@ -14,15 +15,13 @@ self.addEventListener('install', (event) => {
     console.log(`Service Worker: Instalando versão ${CACHE_NAME}`);
 
     event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then((cache) => {
-                console.log("Service Worker: Adicionando arquivos ao cache...");
-                return cache.addAll(CACHE_FILES);
-            })
-            .catch((err) => console.error("Erro ao adicionar arquivos ao cache:", err))
+        caches.open(CACHE_NAME).then((cache) => {
+            console.log("Service Worker: Adicionando arquivos ao cache...");
+            return cache.addAll(CACHE_FILES);
+        }).catch((err) => console.error("Erro ao adicionar arquivos ao cache:", err))
     );
 
-    self.skipWaiting(); // Ativa imediatamente a nova versão do Service Worker
+    self.skipWaiting(); // Ativa imediatamente a nova versão do SW
 });
 
 // 🛠️ **Ativação do Service Worker**
@@ -47,36 +46,44 @@ self.addEventListener('activate', (event) => {
 
 // 🛠️ **Interceptação de Requisições**
 self.addEventListener('fetch', (event) => {
-    event.respondWith(
-        caches.match(event.request).then((cachedResponse) => {
-            if (cachedResponse) {
-                return cachedResponse; // Retorna do cache se disponível
-            }
-
-            return fetch(event.request)
-                .then((networkResponse) => {
-                    if (!networkResponse || networkResponse.status !== 200) {
-                        return networkResponse;
-                    }
-
-                    // Atualiza apenas requisições do mesmo domínio
-                    if (event.request.url.startsWith(self.location.origin)) {
-                        caches.open(CACHE_NAME).then((cache) => {
-                            cache.put(event.request, networkResponse.clone());
-                            console.log(`Service Worker: Atualizando cache para ${event.request.url}`);
-                        });
-                    }
-
-                    return networkResponse;
+    if (event.request.mode === 'navigate') {
+        // ⚡ Sempre buscar a versão mais recente do `index.html`
+        event.respondWith(
+            fetch(event.request)
+                .then((response) => {
+                    return caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(event.request, response.clone());
+                        console.log("Service Worker: index.html atualizado no cache.");
+                        return response;
+                    });
                 })
-                .catch(() => caches.match('index.html')); // Se offline, retorna index.html
+                .catch(() => caches.match('index.html')) // Se offline, retorna do cache
+        );
+        return;
+    }
+
+    event.respondWith(
+        caches.match(event.request).then((response) => {
+            return response || fetch(event.request).catch(() => {
+                console.warn("Falha ao buscar recurso e sem cache disponível:", event.request.url);
+            });
         })
     );
 });
 
-// 🛠️ **Forçar Atualização do Service Worker**
-self.addEventListener('message', (event) => {
+// 🔄 **Verificar mudanças no `version.txt` para forçar atualização**
+self.addEventListener('message', async (event) => {
     if (event.data.action === 'skipWaiting') {
         self.skipWaiting();
+    }
+
+    if (event.data.action === 'checkForUpdate') {
+        const response = await fetch('/version.txt');
+        const newVersion = await response.text();
+
+        if (newVersion !== CACHE_VERSION) {
+            console.log("Service Worker: Nova versão detectada. Atualizando...");
+            self.skipWaiting();
+        }
     }
 });
