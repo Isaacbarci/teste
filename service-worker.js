@@ -1,4 +1,4 @@
-const CACHE_VERSION = '__CACHE_VERSION__'; // 🚀 O GitHub Actions irá substituir esta linha
+const CACHE_VERSION = '1742388304'; // 🚀 O GitHub Actions irá substituir esta linha
 const CACHE_NAME = `my-site-cache-${CACHE_VERSION}`;
 
 const CACHE_FILES = [
