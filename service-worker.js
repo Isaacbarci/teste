@@ -1,4 +1,4 @@
-const CACHE_NAME = 'my-site-cache-v40';
+const CACHE_NAME = 'my-site-cache-v41';
 const CACHE_VERSION = Date.now(); // Sempre muda para forçar atualização
 
 // Lista de arquivos para cache
