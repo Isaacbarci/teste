@@ -13,6 +13,12 @@ jobs:
       - name: Checkout do repositório
         uses: actions/checkout@v3
 
+      - name: Garantir que a branch esteja atualizada
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase || echo "Nenhuma atualização necessária"
+
       - name: Gerar novo número de versão baseado no timestamp
         run: |
           CACHE_VERSION=$(date +%s)
@@ -21,7 +27,7 @@ jobs:
 
       - name: Substituir placeholder no `service-worker.js`
         run: |
-          sed -i.bak "s/__CACHE_VERSION__/${{ env.CACHE_VERSION }}/g" service-worker.js && rm service-worker.js.bak
+          sed -i "s/__CACHE_VERSION__/${{ env.CACHE_VERSION }}/g" service-worker.js
           echo "Substituição concluída para a versão ${{ env.CACHE_VERSION }}"
 
       - name: Atualizar `version.txt` para forçar atualização do cache
@@ -31,10 +37,6 @@ jobs:
 
       - name: Commit das alterações e push (se houver mudanças)
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          git pull --rebase
           git add service-worker.js version.txt
           
           if git diff --cached --quiet; then
