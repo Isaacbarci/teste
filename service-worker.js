@@ -1,5 +1,5 @@
 // Gerar versão do cache baseada no timestamp APENAS UMA VEZ
-const CACHE_VERSION = `${Math.floor(Date.now() / 1000)}`;
+const CACHE_VERSION = '1742386636';
 const CACHE_NAME = `my-site-cache-${CACHE_VERSION}`;
 
 const CACHE_FILES = [
