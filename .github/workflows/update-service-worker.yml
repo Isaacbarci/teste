@@ -13,42 +13,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Passo 1: Checkout do código com histórico completo
       - name: Checkout do código
         uses: actions/checkout@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0  # Obtém o histórico completo do repositório
 
-      # Passo 2: Configurar usuário Git para commits
-      - name: Configurar usuário Git
+      - name: Atualizar versão do Service Worker
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          SW_VERSION=$(date +%s)
+          sed -i "s/const CACHE_VERSION = '.*'/const CACHE_VERSION = 'v$SW_VERSION'/" service-worker.js
+          echo "Service Worker atualizado para v$SW_VERSION"
 
-      # Passo 3: Sincronizar com a branch remota para evitar conflitos
-      - name: Sincronizar com o repositório remoto
-        run: |
-          git fetch origin main
-          git reset --hard origin/main  # Garante que estamos com a versão mais recente
-          git pull origin main --rebase  # Puxa as mudanças antes de modificar
-
-      # Passo 4: Atualizar Service Worker (forçando alteração no CACHE_NAME)
-      - name: Atualizar Service Worker
-        run: |
-          echo "Atualizando versão do Service Worker..."
-          sed -i "s/CACHE_NAME = 'my-site-cache-v[0-9]*'/CACHE_NAME = 'my-site-cache-v$GITHUB_RUN_NUMBER'/" service-worker.js
-          echo "Nova versão do CACHE_NAME aplicada."
-
-      # Passo 5: Verificar mudanças antes do commit
-      - name: Verificar se há mudanças antes do commit
+      - name: Verificar mudanças antes do commit
         run: |
           if git diff --quiet; then
             echo "Nenhuma mudança detectada. Finalizando workflow sem erro."
-            exit 0  # Sai do workflow sem erro
+            exit 0
           fi
 
-      # Passo 6: Commit e push das mudanças
       - name: Commit e push das mudanças
         run: |
           git add service-worker.js
