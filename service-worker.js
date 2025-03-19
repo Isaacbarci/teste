@@ -1,10 +1,4 @@
-const CACHE_NAME = 'romaneio-cache-v2'; // Altere a versão do cache
-
-// Função para adicionar um arquivo ao cache
-const addToCache = async (cacheName, file) => {
-    const cache = await caches.open(cacheName);
-    await cache.add(file);
-};
+const CACHE_NAME = `romaneio-cache-${Date.now()}`; // Nome do cache dinâmico
 
 // Instalação do Service Worker
 self.addEventListener('install', (event) => {
@@ -24,16 +18,21 @@ self.addEventListener('install', (event) => {
 // Intercepta as requisições e serve do cache
 self.addEventListener('fetch', (event) => {
     event.respondWith(
-        caches.match(event.request)
-            .then((response) => response || fetch(event.request))
+        caches.match(event.request).then((cachedResponse) => {
+            if (cachedResponse) {
+                // Verifica se há uma nova versão no servidor
+                fetch(event.request).then((networkResponse) => {
+                    if (networkResponse && networkResponse.status === 200) {
+                        caches.open(CACHE_NAME).then((cache) => {
+                            cache.put(event.request, networkResponse.clone());
+                        });
+                    }
+                });
+                return cachedResponse;
+            }
+            return fetch(event.request);
+        })
     );
-});
-
-// Mensagem para adicionar um novo arquivo ao cache
-self.addEventListener('message', (event) => {
-    if (event.data.action === 'addToCache') {
-        addToCache(CACHE_NAME, event.data.file);
-    }
 });
 
 // Atualiza o cache quando houver uma nova versão
