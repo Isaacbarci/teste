@@ -1,18 +1,21 @@
-const CACHE_NAME = 'my-site-cache-v38';
+const CACHE_NAME = 'my-site-cache-v1';
 const CACHE_VERSION = Date.now(); // Sempre muda para forçar atualização
 
-// Instalação do Service Worker
+// Lista de arquivos para cache
+const CACHE_FILES = [
+    '/',
+    'index.html',
+    'image.png',
+    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js',
+    'https://unpkg.com/html5-qrcode',
+];
+
+// Instalação do Service Worker (cache inicial)
 self.addEventListener('install', (event) => {
     self.skipWaiting(); // Força o SW a substituir o antigo imediatamente
     event.waitUntil(
         caches.open(`${CACHE_NAME}-${CACHE_VERSION}`).then((cache) => {
-            return cache.addAll([
-                '/',
-                'index.html?v=' + CACHE_VERSION, // Sempre carregar a versão mais recente
-                'image.png',
-                'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js',
-                'https://unpkg.com/html5-qrcode',
-            ]).catch((err) => console.error("Erro ao adicionar arquivos ao cache", err));
+            return cache.addAll(CACHE_FILES).catch((err) => console.error("Erro ao adicionar arquivos ao cache", err));
         })
     );
 });
@@ -34,14 +37,25 @@ self.addEventListener('activate', (event) => {
     clients.claim(); // Aplica o novo SW sem precisar recarregar a aba
 });
 
-// Intercepta as requisições e sempre busca um HTML novo
+// Intercepta as requisições
 self.addEventListener('fetch', (event) => {
     if (event.request.mode === 'navigate') {
-        // Sempre busca o index.html atualizado
-        event.respondWith(fetch(event.request));
+        // Se o usuário estiver offline, servimos o index.html do cache
+        event.respondWith(
+            fetch(event.request)
+                .then((response) => {
+                    // Atualiza o cache com a versão mais recente do HTML
+                    return caches.open(`${CACHE_NAME}-${CACHE_VERSION}`).then((cache) => {
+                        cache.put(event.request, response.clone());
+                        return response;
+                    });
+                })
+                .catch(() => caches.match('index.html')) // Se offline, retorna a versão do cache
+        );
         return;
     }
 
+    // Para outros arquivos, tenta servir do cache primeiro
     event.respondWith(
         caches.match(event.request).then((response) => {
             return response || fetch(event.request);
