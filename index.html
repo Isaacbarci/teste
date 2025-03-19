@@ -448,15 +448,13 @@
             }
         }
 
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js')
-                .then((registration) => {
-                    console.log('Service Worker registrado com sucesso:', registration);
-                })
-                .catch((error) => {
-                    console.error('Erro ao registrar o Service Worker:', error);
-                });
-        }
+     if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js').then((reg) => {
+            reg.update();
+        });
+    }
+    // Sempre buscar a versão mais recente
+    document.location.href = 'index.html?v=' + Date.now();
 
 
         function downloadExcel() {
