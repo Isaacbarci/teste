@@ -6,18 +6,18 @@ on:
       - main  # Executa o workflow apenas quando houver um push na branch "main"
 
 permissions:
-  contents: write  # Permissão para escrever no repositório
+  contents: write  # Permissão para escrita no repositório
 
 jobs:
   update:
     runs-on: ubuntu-latest
 
     steps:
-      # Passo 1: Checkout do código
+      # Passo 1: Checkout do código com permissões de escrita
       - name: Checkout do código
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}  # Usa o token correto
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       # Passo 2: Atualizar Service Worker
       - name: Atualizar Service Worker
@@ -30,6 +30,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git pull origin main --rebase  # Baixa as alterações mais recentes para evitar conflitos
           git add service-worker.js
           git commit -m "Atualização automática do Service Worker (Build #$GITHUB_RUN_NUMBER)" || echo "Sem alterações para commit"
           git push origin main
