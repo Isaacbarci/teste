@@ -1,4 +1,4 @@
-const CACHE_NAME = 'romaneio-cache-v1'; // Altere a versão do cache
+const CACHE_NAME = 'romaneio-cache-v2'; // Altere a versão do cache
 
 // Função para adicionar um arquivo ao cache
 const addToCache = async (cacheName, file) => {
