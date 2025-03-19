@@ -1,5 +1,5 @@
 // 🚀 O GitHub Actions substituirá esta linha com um número fixo na build
-const CACHE_VERSION = '1742386805'; // 🔥 Isso será atualizado automaticamente
+const CACHE_VERSION = '1742386943'; // 🔥 Isso será atualizado automaticamente
 const CACHE_NAME = `my-site-cache-${CACHE_VERSION}`;
 
 const CACHE_FILES = [
