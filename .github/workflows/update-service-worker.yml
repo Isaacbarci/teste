@@ -21,13 +21,25 @@ jobs:
 
       - name: Substituir placeholder no `service-worker.js`
         run: |
-          sed -i "s/__CACHE_VERSION__/${{ env.CACHE_VERSION }}/g" service-worker.js
+          sed -i.bak "s/__CACHE_VERSION__/${{ env.CACHE_VERSION }}/g" service-worker.js && rm service-worker.js.bak
           echo "Substituição concluída para a versão ${{ env.CACHE_VERSION }}"
+
+      - name: Atualizar `version.txt` para forçar atualização do cache
+        run: |
+          echo "${{ env.CACHE_VERSION }}" > version.txt
+          echo "Arquivo version.txt atualizado para ${{ env.CACHE_VERSION }}"
 
       - name: Commit das alterações e push (se houver mudanças)
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          git add service-worker.js
-          git diff --cached --quiet || (git commit -m "🔄 Atualiza CACHE_VERSION para ${{ env.CACHE_VERSION }}" && git push)
+          git pull --rebase
+          git add service-worker.js version.txt
+          
+          if git diff --cached --quiet; then
+            echo "Nenhuma alteração para commit."
+          else
+            git commit -m "🔄 Atualiza CACHE_VERSION para ${{ env.CACHE_VERSION }}"
+            git push
+          fi
