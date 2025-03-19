@@ -3,53 +3,59 @@ name: Update Service Worker
 on:
   push:
     branches:
-      - main  # Executa o workflow apenas quando houver um push na branch "main"
-
-permissions:
-  contents: write  # Permissão para escrita no repositório
+      - main  # Executa o workflow apenas quando houver um push para a branch "main"
 
 jobs:
   update:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Executa o workflow em um ambiente Ubuntu
 
     steps:
-      # Passo 1: Checkout do código com histórico completo
-      - name: Checkout do código
-        uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0  # Obtém o histórico completo do repositório
+      # Passo 1: Faz o checkout do código do repositório
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-      # Passo 2: Configurar usuário Git para commits
-      - name: Configurar usuário Git
+      # Passo 2: Verifica se o service-worker.js existe
+      - name: Check if service-worker.js exists
+        run: |
+          if [ -f "service-worker.js" ]; then
+            echo "service-worker.js exists."
+          else
+            echo "service-worker.js does not exist."
+            exit 1
+          fi
+
+      # Passo 3: Verifica o conteúdo do service-worker.js
+      - name: Check service-worker.js content
+        run: |
+          cat service-worker.js
+
+      # Passo 4: Atualiza a versão do service worker
+      - name: Update Service Worker Version
+        run: |
+          sed -i 's/my-site-cache-v1/my-site-cache-v2/' service-worker.js
+
+      # Passo 5: Verifica se houve alterações
+      - name: Check changes
+        run: |
+          cat service-worker.js
+          git status
+
+      # Passo 6: Configura o Git para commitar as alterações
+      - name: Configure Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      # Passo 3: Sincronizar com a branch remota para evitar conflitos
-      - name: Sincronizar com o repositório remoto
+      # Passo 7: Adiciona e commita as alterações (se houver)
+      - name: Commit and push changes
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-          git fetch origin main
-          git reset --hard origin/main  # Garante que estamos com a versão mais recente
-          git pull origin main --rebase  # Puxa as mudanças antes de modificar
-
-      # Passo 4: Atualizar Service Worker (se necessário)
-      - name: Atualizar Service Worker
-        run: |
-          echo "Atualizando versão do Service Worker..."
-          sed -i 's/CACHE_NAME = "v[0-9]*"/CACHE_NAME = "v'$GITHUB_RUN_NUMBER'"/' service-worker.js
-
-      # Passo 5: Verificar mudanças antes do commit
-      - name: Verificar se há mudanças antes do commit
-        run: |
-          if git diff --quiet; then
-            echo "Nenhuma mudança detectada. Finalizando workflow sem erro."
-            exit 0  # Sai do workflow sem erro
+          if git diff --quiet service-worker.js; then
+            echo "No changes to commit."
+          else
+            git remote set-url origin https://$GH_TOKEN@github.com/Isaacbarci/teste.git
+            git add service-worker.js
+            git commit -m "Atualização automática do Service Worker (Build #$GITHUB_RUN_NUMBER)"
+            git push origin main --force
           fi
-
-      # Passo 6: Commit e push das mudanças
-      - name: Commit e push das mudanças
-        run: |
-          git add service-worker.js
-          git commit -m "Atualização automática do Service Worker (Build #$GITHUB_RUN_NUMBER)"
-          git push origin main --force  # Força push para garantir que a mudança entre
