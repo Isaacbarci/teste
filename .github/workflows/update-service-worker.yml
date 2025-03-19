@@ -3,35 +3,45 @@ name: Update Service Worker
 on:
   push:
     branches:
-      - main  # Executa o workflow apenas quando houver um push na branch "main"
-
-permissions:
-  contents: write  # Permissão para escrita no repositório
+      - main  # Executa o workflow apenas quando houver um push para a branch "main"
 
 jobs:
   update:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Executa o workflow em um ambiente Ubuntu
 
     steps:
-      # Passo 1: Checkout do código com permissões de escrita
-      - name: Checkout do código
-        uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0  # Garante que o histórico completo do repositório seja baixado
+      # Passo 1: Faz o checkout do código do repositório
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-      # Passo 2: Atualizar Service Worker
-      - name: Atualizar Service Worker
+      # Passo 2: Atualiza a versão do service worker
+      - name: Update Service Worker Version
         run: |
-          echo "Atualizando versão do Service Worker..."
-          sed -i 's/CACHE_NAME = "v[0-9]*"/CACHE_NAME = "v'$GITHUB_RUN_NUMBER'"/' service-worker.js
+          sed -i 's/my-site-cache-v1/my-site-cache-v2/' service-worker.js
 
-      # Passo 3: Commit e push das mudanças
-      - name: Commit e push das mudanças
+      # Passo 3: Verifica se houve alterações
+      - name: Check changes
+        run: |
+          cat service-worker.js
+          git status
+
+      # Passo 4: Configura o Git para commitar as alterações
+      - name: Configure Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git pull origin main --rebase  # Baixa as mudanças mais recentes antes de continuar
-          git add service-worker.js
-          git commit -m "Atualização automática do Service Worker (Build #$GITHUB_RUN_NUMBER)" || echo "Sem alterações para commit"
-          git push origin main --force
+
+      # Passo 5: Adiciona e commita as alterações (se houver)
+      - name: Commit and push changes
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          if git diff --quiet service-worker.js; then
+            echo "No changes to commit."
+          else
+            git remote set-url origin https://$GH_TOKEN@github.com/Isaacbarci/teste.git
+            git add service-worker.js
+            git commit -m "Atualização automática do Service Worker (Build #$GITHUB_RUN_NUMBER)" || echo "Sem alterações para commit"
+            git pull --rebase origin main  # Puxa as alterações remotas
+            git push origin main
+          fi
