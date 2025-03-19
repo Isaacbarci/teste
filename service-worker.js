@@ -1,4 +1,4 @@
-const CACHE_NAME = 'my-site-cache-v44';
+const CACHE_NAME = 'my-site-cache-v1';
 const CACHE_FILES = [
     '/',
     'index.html',
@@ -7,21 +7,24 @@ const CACHE_FILES = [
     'https://unpkg.com/html5-qrcode',
 ];
 
-// Instalação do Service Worker (armazenamento inicial no cache)
+// 🛠️ **Instalação do Service Worker (armazenamento inicial no cache)**
 self.addEventListener('install', (event) => {
     console.log("Service Worker: Instalando...");
+
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
-            console.log("Service Worker: Cache inicial adicionado.");
+            console.log("Service Worker: Adicionando arquivos ao cache...");
             return cache.addAll(CACHE_FILES);
         }).catch((err) => console.error("Erro ao adicionar arquivos ao cache:", err))
     );
+
     self.skipWaiting(); // Força ativação imediata do novo SW
 });
 
-// Ativação do Service Worker (limpa caches antigos)
+// 🛠️ **Ativação do Service Worker (limpa caches antigos)**
 self.addEventListener('activate', (event) => {
     console.log("Service Worker: Ativando e limpando caches antigos...");
+
     event.waitUntil(
         caches.keys().then((cacheNames) => {
             return Promise.all(
@@ -34,17 +37,17 @@ self.addEventListener('activate', (event) => {
             );
         })
     );
+
     self.clients.claim(); // Garante que o novo SW assume o controle imediatamente
 });
 
-// Intercepta requisições para garantir que o site funcione offline
+// 🛠️ **Interceptação de requisições para garantir funcionamento offline**
 self.addEventListener('fetch', (event) => {
     if (event.request.mode === 'navigate') {
         // Sempre buscar a versão mais recente do index.html quando online
         event.respondWith(
             fetch(event.request)
                 .then((response) => {
-                    // Atualiza o cache com a nova versão do HTML
                     return caches.open(CACHE_NAME).then((cache) => {
                         cache.put(event.request, response.clone());
                         console.log("Service Worker: index.html atualizado no cache.");
@@ -66,7 +69,7 @@ self.addEventListener('fetch', (event) => {
     );
 });
 
-// Adiciona arquivos ao cache dinamicamente
+// 🛠️ **Adiciona arquivos ao cache dinamicamente**
 self.addEventListener('message', (event) => {
     if (event.data.action === 'addToCache') {
         caches.open(CACHE_NAME).then((cache) => {
@@ -74,5 +77,12 @@ self.addEventListener('message', (event) => {
                 .then(() => console.log(`Service Worker: ${event.data.file} adicionado ao cache.`))
                 .catch((err) => console.error("Erro ao adicionar ao cache:", err));
         });
+    }
+});
+
+// 🛠️ **Forçar atualização do Service Worker automaticamente**
+self.addEventListener('message', (event) => {
+    if (event.data.action === 'skipWaiting') {
+        self.skipWaiting();
     }
 });
