@@ -15,13 +15,14 @@ jobs:
 
       - name: Gera um novo número de versão baseado no timestamp
         run: |
-          CACHE_VERSION=$(date +%s)
+          export CACHE_VERSION=$(date +%s)
           echo "CACHE_VERSION=$CACHE_VERSION" >> $GITHUB_ENV
           echo "Versão gerada: $CACHE_VERSION"  # Apenas para debug
 
       - name: Substitui o placeholder no ficheiro JavaScript
         run: |
-          sed -i "s/__CACHE_VERSION__/${{ env.CACHE_VERSION }}/g" service-worker.js
+          CACHE_VERSION=$(date +%s)  # Certifica-se que está bem definido
+          sed -i "s/__CACHE_VERSION__/$CACHE_VERSION/g" service-worker.js
           echo "Substituição concluída."
 
       - name: Commit das alterações e push
@@ -29,5 +30,6 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add service-worker.js
-          git commit -m "🔄 Atualiza CACHE_VERSION para ${{ env.CACHE_VERSION }}" || echo "Nenhuma alteração para commitar"
+          git commit -m "🔄 Atualiza CACHE_VERSION para $(date +%s)" || echo "Nenhuma alteração para commitar"
+          git pull --rebase  # Previne conflitos em branches protegidas
           git push || echo "Nada para atualizar"
