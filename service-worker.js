@@ -1,4 +1,4 @@
-const CACHE_NAME = 'my-site-cache-v34'; // Mude a versão para forçar atualização
+const CACHE_NAME = 'my-site-cache-v35'; // Mude a versão para forçar atualização
 
 // Função para adicionar um arquivo ao cache
 const addToCache = async (cacheName, file) => {
