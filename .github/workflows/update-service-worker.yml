@@ -24,9 +24,9 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
 
-      - name: Gerar versão do Cache e atualizar Service Worker
+      - name: Gerar versão automática do cache e atualizar Service Worker
         run: |
-          SW_VERSION=$(date +%s)
+          SW_VERSION=$(date +%s)  # Gera um timestamp automático
           sed -i "s/const CACHE_VERSION = .*/const CACHE_VERSION = '$SW_VERSION';/" service-worker.js
           echo "Service Worker atualizado para versão: $SW_VERSION"
 
