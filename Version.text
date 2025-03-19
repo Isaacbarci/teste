@@ -1,3 +1,0 @@
-git add version.txt
-git commit -m "Atualizando versão automática"
-git push origin main  # Ou outra branch de deploy
