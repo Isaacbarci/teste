@@ -15,22 +15,4 @@ jobs:
         uses: actions/checkout@v2
 
       # Passo 2: Atualiza a versão do service worker
-      - name: Update Service Worker Version
-        run: |
-          sed -i 's/my-site-cache-v1/my-site-cache-v2/' service-worker.js
-
-      # Passo 3: Configura o Git para commitar as alterações
-      - name: Configure Git
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-
-      # Passo 4: Adiciona e commita as alterações
-      - name: Commit and push changes
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          git remote set-url origin https://${{ secrets.GH_TOKEN }}@github.com/Isaacbarci/teste.git
-          git add service-worker.js
-          git commit -m "Automated: Updated Service Worker Version"
-          git push origin main
+      - name
