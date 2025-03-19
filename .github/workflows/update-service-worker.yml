@@ -42,6 +42,6 @@ jobs:
             git remote set-url origin https://$GH_TOKEN@github.com/Isaacbarci/teste.git
             git add service-worker.js
             git commit -m "Atualização automática do Service Worker (Build #$GITHUB_RUN_NUMBER)" || echo "Sem alterações para commit"
-            git pull --rebase origin main  # Puxa as alterações remotas
+            git pull --rebase origin main  # Integra as alterações remotas
             git push origin main
           fi
