@@ -1,5 +1,5 @@
 // Gera automaticamente uma versão do cache baseada no timestamp
-const CACHE_VERSION = '1742386350';
+const CACHE_VERSION = '1742386517';
 const CACHE_NAME = `my-site-cache-${CACHE_VERSION}`;
 
 const CACHE_FILES = [
