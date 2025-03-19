@@ -1,4 +1,5 @@
-const CACHE_VERSION = 'v1742385854'; // Atualize apenas quando necessário
+// Gerar automaticamente uma versão do cache baseada no timestamp do build
+const CACHE_VERSION = new Date().toISOString().replace(/[-:.TZ]/g, "");
 const CACHE_NAME = `my-site-cache-${CACHE_VERSION}`;
 
 const CACHE_FILES = [
@@ -9,9 +10,9 @@ const CACHE_FILES = [
     'https://unpkg.com/html5-qrcode',
 ];
 
-// 🛠️ **Instalação do Service Worker (Armazenamento Inicial)**
+// 🛠️ **Instalação do Service Worker (Armazena os arquivos iniciais no cache)**
 self.addEventListener('install', (event) => {
-    console.log("Service Worker: Instalando versão", CACHE_VERSION);
+    console.log("Service Worker: Instalando versão", CACHE_NAME);
 
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
@@ -20,10 +21,10 @@ self.addEventListener('install', (event) => {
         }).catch((err) => console.error("Erro ao adicionar arquivos ao cache:", err))
     );
 
-    self.skipWaiting(); // Ativa o novo SW imediatamente
+    self.skipWaiting(); // Ativa o novo Service Worker imediatamente
 });
 
-// 🛠️ **Ativação do Service Worker (Remove Caches Antigos)**
+// 🛠️ **Ativação do Service Worker (Remove Caches Antigos Automaticamente)**
 self.addEventListener('activate', (event) => {
     console.log("Service Worker: Ativando e limpando caches antigos...");
 
