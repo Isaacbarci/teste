@@ -3,7 +3,7 @@ name: Update Cache Version
 on:
   push:
     branches:
-      - main  # Define a branch que ativa a atualização
+      - main  # Executa apenas na branch `main`
 
 jobs:
   update-cache:
@@ -13,22 +13,21 @@ jobs:
       - name: Checkout do repositório
         uses: actions/checkout@v3
 
-      - name: Gera um novo número de versão baseado no timestamp
+      - name: Gerar novo número de versão baseado no timestamp
         run: |
           CACHE_VERSION=$(date +%s)
           echo "CACHE_VERSION=$CACHE_VERSION" >> $GITHUB_ENV
-          echo "Versão gerada: $CACHE_VERSION"  # Apenas para debug
+          echo "Nova versão gerada: $CACHE_VERSION"
 
-      - name: Substitui o placeholder no ficheiro JavaScript
+      - name: Substituir placeholder no `service-worker.js`
         run: |
           sed -i "s/__CACHE_VERSION__/${{ env.CACHE_VERSION }}/g" service-worker.js
-          echo "Substituição concluída para versão ${{ env.CACHE_VERSION }}."
+          echo "Substituição concluída para a versão ${{ env.CACHE_VERSION }}"
 
-      - name: Commit das alterações e push
+      - name: Commit das alterações e push (se houver mudanças)
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
           git add service-worker.js
-          git commit -m "🔄 Atualiza CACHE_VERSION para ${{ env.CACHE_VERSION }}" || echo "Nenhuma alteração para commitar"
-          git pull --rebase || echo "Nenhuma atualização necessária"
-          git push || echo "Nada para atualizar"
+          git diff --cached --quiet || (git commit -m "🔄 Atualiza CACHE_VERSION para ${{ env.CACHE_VERSION }}" && git push)
