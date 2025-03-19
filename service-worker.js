@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v45'; // Atualize apenas quando necessário
+const CACHE_VERSION = 'v1742385854'; // Atualize apenas quando necessário
 const CACHE_NAME = `my-site-cache-${CACHE_VERSION}`;
 
 const CACHE_FILES = [
