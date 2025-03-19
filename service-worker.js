@@ -1,4 +1,4 @@
-const CACHE_NAME = 'romaneio-cache-v1';
+const CACHE_NAME = 'romaneio-cache-v1'; // Altere a versão do cache
 
 // Função para adicionar um arquivo ao cache
 const addToCache = async (cacheName, file) => {
@@ -17,6 +17,7 @@ self.addEventListener('install', (event) => {
                 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js',
                 'https://unpkg.com/html5-qrcode',
             ]))
+            .then(() => self.skipWaiting()) // Força o novo Service Worker a se tornar ativo
     );
 });
 
@@ -46,6 +47,6 @@ self.addEventListener('activate', (event) => {
                     }
                 })
             );
-        })
+        }).then(() => self.clients.claim()) // Assume o controle de todas as páginas
     );
 });
