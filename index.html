@@ -450,14 +450,23 @@
 
 
 if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js')
-                .then((registration) => {
-                    console.log('Service Worker registrado com sucesso:', registration);
-                })
-                .catch((error) => {
-                    console.error('Erro ao registrar o Service Worker:', error);
+    navigator.serviceWorker.register('/service-worker.js').then((registration) => {
+        fetch('/version.txt')
+            .then(response => response.text())
+            .then(serverVersion => {
+                caches.match('/version.txt').then(cachedResponse => {
+                    if (cachedResponse) {
+                        cachedResponse.text().then(cachedVersion => {
+                            if (cachedVersion !== serverVersion) {
+                                console.log('Nova versão detectada! Atualizando...');
+                                registration.unregister().then(() => location.reload());
+                            }
+                        });
+                    }
                 });
-        }
+            });
+    });
+}
 
    
        function downloadExcel() {
