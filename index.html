@@ -142,7 +142,7 @@
  <!-- Cabeçalho com Logo e Título -->
   <h2 style="display: flex; align-items: center;">
     <img src="image.png" alt="Logo" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;">
-    <span style="font-size: 23px;">ROMANEIO DE SUPORTE</span>
+    <span style="font-size: 23px;">ROMANEIO Isaac</span>
 </h2>
 <p style="font-size: 6px; color: white; margin-left: 17px; margin-top: -14px;">
     Developed by Isaac Dutra
@@ -448,8 +448,7 @@
             }
         }
 
-
-if ('serviceWorker' in navigator) {
+        if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('service-worker.js')
                 .then((registration) => {
                     console.log('Service Worker registrado com sucesso:', registration);
@@ -458,6 +457,7 @@ if ('serviceWorker' in navigator) {
                     console.error('Erro ao registrar o Service Worker:', error);
                 });
         }
+
 
         function downloadExcel() {
     if (!data.length) {
@@ -628,6 +628,8 @@ if ('serviceWorker' in navigator) {
             if (data.length) {
                 renderTable();
             }
+
+
         });
     </script>
 </body>
