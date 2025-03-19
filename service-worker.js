@@ -1,5 +1,5 @@
-// Gerar versão do cache baseada no timestamp APENAS UMA VEZ
-const CACHE_VERSION = '1742386636';
+// 🚀 O GitHub Actions substituirá esta linha com um número fixo na build
+const CACHE_VERSION = '__CACHE_VERSION__'; // 🔥 Isso será atualizado automaticamente
 const CACHE_NAME = `my-site-cache-${CACHE_VERSION}`;
 
 const CACHE_FILES = [
@@ -10,7 +10,7 @@ const CACHE_FILES = [
     'https://unpkg.com/html5-qrcode',
 ];
 
-// 🛠️ **Instalação do Service Worker (Armazena os arquivos iniciais no cache)**
+// 🛠️ **Instalação do Service Worker**
 self.addEventListener('install', (event) => {
     console.log(`Service Worker: Instalando versão ${CACHE_NAME}`);
 
@@ -24,7 +24,7 @@ self.addEventListener('install', (event) => {
     self.skipWaiting(); // Ativa o novo Service Worker imediatamente
 });
 
-// 🛠️ **Ativação do Service Worker (Remove Caches Antigos Automaticamente)**
+// 🛠️ **Ativação do Service Worker**
 self.addEventListener('activate', (event) => {
     console.log("Service Worker: Ativando e limpando caches antigos...");
 
@@ -44,7 +44,7 @@ self.addEventListener('activate', (event) => {
     self.clients.claim(); // Assume o controle imediato das abas abertas
 });
 
-// 🛠️ **Interceptação de Requisições (Offline First)**
+// 🛠️ **Interceptação de Requisições**
 self.addEventListener('fetch', (event) => {
     if (event.request.mode === 'navigate') {
         event.respondWith(
@@ -68,17 +68,6 @@ self.addEventListener('fetch', (event) => {
             });
         })
     );
-});
-
-// 🛠️ **Adiciona Arquivos ao Cache Dinamicamente**
-self.addEventListener('message', (event) => {
-    if (event.data.action === 'addToCache') {
-        caches.open(CACHE_NAME).then((cache) => {
-            cache.add(event.data.file)
-                .then(() => console.log(`Service Worker: ${event.data.file} adicionado ao cache.`))
-                .catch((err) => console.error("Erro ao adicionar ao cache:", err));
-        });
-    }
 });
 
 // 🛠️ **Forçar Atualização do Service Worker**
