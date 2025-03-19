@@ -1,46 +1,28 @@
-name: Update Service Worker
+name: Update Cache Version
 
 on:
   push:
     branches:
-      - main  # Executa o workflow apenas quando houver um push na branch "main"
-
-permissions:
-  contents: write  # Permissão para escrita no repositório
+      - main  # Ou a branch que desejas monitorizar
 
 jobs:
-  update:
+  update-cache:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout do código
+      - name: Checkout do repositório
         uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0  # Obtém o histórico completo do repositório
 
-      - name: Configurar identidade do Git
+      - name: Gera um novo número de versão baseado no timestamp
+        run: echo "CACHE_VERSION=$(date +%s)" >> $GITHUB_ENV
+
+      - name: Substitui o placeholder no ficheiro JavaScript
+        run: sed -i "s/__CACHE_VERSION__/$CACHE_VERSION/g" service-worker.js
+
+      - name: Commit das alterações
         run: |
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
-
-      - name: Gerar nova versão do Cache e forçar mudança no Service Worker
-        run: |
-          SW_VERSION=$(date +%s)  # Gera um timestamp automático único
-          sed -i "s|const CACHE_VERSION = '.*';|const CACHE_VERSION = '$SW_VERSION';|" service-worker.js
-          echo "" >> service-worker.js  # 🔥 Adiciona uma linha vazia para forçar uma mudança no arquivo
-          echo "Service Worker atualizado para versão: $SW_VERSION"
-
-      - name: Verificar mudanças antes do commit
-        run: |
-          if git diff --quiet; then
-            echo "Nenhuma mudança detectada. Forçando modificação para evitar erro."
-            echo "# Forçar atualização - $(date)" >> service-worker.js  # 🔥 Adiciona um comentário para forçar uma alteração real
-            git add service-worker.js
-          fi
-
-      - name: Commit e push das mudanças
-        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add service-worker.js
-          git commit -m "Atualização automática do Service Worker (Build #$GITHUB_RUN_NUMBER)"
-          git push origin main --force  # Força push para garantir que a mudança entre
+          git commit -m "Atualiza CACHE_VERSION para $CACHE_VERSION" || echo "Nada para atualizar"
+          git push
