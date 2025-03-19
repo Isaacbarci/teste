@@ -1,4 +1,6 @@
-const CACHE_NAME = 'my-site-cache-v45';
+const CACHE_VERSION = 'v45'; // Atualize apenas quando necessário
+const CACHE_NAME = `my-site-cache-${CACHE_VERSION}`;
+
 const CACHE_FILES = [
     '/',
     'index.html',
@@ -7,9 +9,9 @@ const CACHE_FILES = [
     'https://unpkg.com/html5-qrcode',
 ];
 
-// 🛠️ **Instalação do Service Worker (armazenamento inicial no cache)**
+// 🛠️ **Instalação do Service Worker (Armazenamento Inicial)**
 self.addEventListener('install', (event) => {
-    console.log("Service Worker: Instalando...");
+    console.log("Service Worker: Instalando versão", CACHE_VERSION);
 
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
@@ -18,10 +20,10 @@ self.addEventListener('install', (event) => {
         }).catch((err) => console.error("Erro ao adicionar arquivos ao cache:", err))
     );
 
-    self.skipWaiting(); // Força ativação imediata do novo SW
+    self.skipWaiting(); // Ativa o novo SW imediatamente
 });
 
-// 🛠️ **Ativação do Service Worker (limpa caches antigos)**
+// 🛠️ **Ativação do Service Worker (Remove Caches Antigos)**
 self.addEventListener('activate', (event) => {
     console.log("Service Worker: Ativando e limpando caches antigos...");
 
@@ -38,13 +40,12 @@ self.addEventListener('activate', (event) => {
         })
     );
 
-    self.clients.claim(); // Garante que o novo SW assume o controle imediatamente
+    self.clients.claim(); // Assume o controle imediato das abas abertas
 });
 
-// 🛠️ **Interceptação de requisições para garantir funcionamento offline**
+// 🛠️ **Interceptação de Requisições (Offline First)**
 self.addEventListener('fetch', (event) => {
     if (event.request.mode === 'navigate') {
-        // Sempre buscar a versão mais recente do index.html quando online
         event.respondWith(
             fetch(event.request)
                 .then((response) => {
@@ -54,12 +55,11 @@ self.addEventListener('fetch', (event) => {
                         return response;
                     });
                 })
-                .catch(() => caches.match('index.html')) // Se offline, retorna a versão do cache
+                .catch(() => caches.match('index.html')) // Se offline, retorna do cache
         );
         return;
     }
 
-    // Para outros arquivos, tenta servir do cache primeiro
     event.respondWith(
         caches.match(event.request).then((response) => {
             return response || fetch(event.request).catch(() => {
@@ -69,7 +69,7 @@ self.addEventListener('fetch', (event) => {
     );
 });
 
-// 🛠️ **Adiciona arquivos ao cache dinamicamente**
+// 🛠️ **Adiciona Arquivos ao Cache Dinamicamente**
 self.addEventListener('message', (event) => {
     if (event.data.action === 'addToCache') {
         caches.open(CACHE_NAME).then((cache) => {
@@ -80,7 +80,7 @@ self.addEventListener('message', (event) => {
     }
 });
 
-// 🛠️ **Forçar atualização do Service Worker automaticamente**
+// 🛠️ **Forçar Atualização do Service Worker**
 self.addEventListener('message', (event) => {
     if (event.data.action === 'skipWaiting') {
         self.skipWaiting();
