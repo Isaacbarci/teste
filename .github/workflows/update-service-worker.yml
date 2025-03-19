@@ -27,7 +27,7 @@ jobs:
       - name: Gerar versão automática do cache e atualizar Service Worker
         run: |
           SW_VERSION=$(date +%s)  # Gera um timestamp automático
-          sed -i "s/const CACHE_VERSION = .*/const CACHE_VERSION = '$SW_VERSION';/" service-worker.js
+          sed -i "s/^const CACHE_VERSION = .*;/const CACHE_VERSION = '$SW_VERSION';/" service-worker.js
           echo "Service Worker atualizado para versão: $SW_VERSION"
 
       - name: Verificar mudanças antes do commit
