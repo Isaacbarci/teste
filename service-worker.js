@@ -1,5 +1,5 @@
-// Gerar automaticamente uma versão do cache baseada no timestamp do build
-const CACHE_VERSION = '1742386101';
+// Gera automaticamente uma versão do cache baseada no timestamp
+const CACHE_VERSION = new Date().toISOString().replace(/[-:.TZ]/g, "");
 const CACHE_NAME = `my-site-cache-${CACHE_VERSION}`;
 
 const CACHE_FILES = [
@@ -12,7 +12,7 @@ const CACHE_FILES = [
 
 // 🛠️ **Instalação do Service Worker (Armazena os arquivos iniciais no cache)**
 self.addEventListener('install', (event) => {
-    console.log("Service Worker: Instalando versão", CACHE_NAME);
+    console.log(`Service Worker: Instalando versão ${CACHE_NAME}`);
 
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
