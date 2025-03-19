@@ -479,7 +479,7 @@ function downloadExcel() {
 
     // Verifique se os índices foram encontrados
     if (pesoUnitarioIndex === undefined || areaM2UnitarioIndex === undefined || qtdEnviadaIndex === undefined || obsRomaneioIndex === undefined) {
-        alert("Erro: Colunas necessárias não encontradas.");
+        alert("Erro: Colunas necessárias não encontradas. Verifique os nomes das colunas no arquivo.");
         return;
     }
 
@@ -532,64 +532,65 @@ function downloadExcel() {
     XLSX.utils.book_append_sheet(newWorkbook, updatedSheet, "Planilha1");
     XLSX.writeFile(newWorkbook, "Romaneio_Suporte.xlsx");
 }
-    document.addEventListener("DOMContentLoaded", () => {
-        const storedData = localStorage.getItem("uploadedData");
-        if (storedData) {
-            try {
-                data = JSON.parse(storedData);
-                filteredData = data.slice(1);
-                findColumnIndexes();
-            } catch (error) {
-                console.error("Erro ao carregar os dados armazenados:", error);
-                localStorage.removeItem("uploadedData");
-            }
-        }
 
-        const storedEditedRows = localStorage.getItem("editedRows");
-        if (storedEditedRows) {
-            try {
-                editedRows = new Set(JSON.parse(storedEditedRows));
-            } catch (error) {
-                console.error("Erro ao carregar as edições armazenadas:", error);
-                localStorage.removeItem("editedRows");
-            }
-        }
+// Função para encontrar os índices das colunas
+function findColumnIndexes() {
+    columnIndexes = {};
+    data[0].forEach((header, index) => {
+        columnIndexes[header.trim().toLowerCase()] = index;
+    });
 
-        if (data.length) {
-            renderTable();
+    // Verifique se os índices das colunas necessárias foram encontrados
+    console.log("Índices das colunas:", columnIndexes);
+}
+
+// Função para renderizar a tabela
+function renderTable() {
+    const table = document.getElementById("dataTable");
+    table.innerHTML = "";
+
+    if (!data.length) return;
+
+    const fragment = document.createDocumentFragment();
+    const headerRow = document.createElement("tr");
+
+    data[0].forEach((header, colIndex) => {
+        if (!hiddenColumns.includes(header.trim().toLowerCase())) {
+            const th = document.createElement("th");
+            th.textContent = header;
+            headerRow.appendChild(th);
         }
     });
-</script>
-      
-        document.addEventListener("DOMContentLoaded", () => {
-            const storedData = localStorage.getItem("uploadedData");
-            if (storedData) {
-                try {
-                    data = JSON.parse(storedData);
-                    filteredData = data.slice(1);
-                    findColumnIndexes();
-                } catch (error) {
-                    console.error("Erro ao carregar os dados armazenados:", error);
-                    localStorage.removeItem("uploadedData");
+
+    fragment.appendChild(headerRow);
+
+    filteredData.slice(0, rowsPerPage).forEach((row, index) => {
+        const originalIndex = data.indexOf(row);
+        if (originalIndex === -1) return;
+
+        const tr = document.createElement("tr");
+        tr.onclick = () => openEditModal(originalIndex);
+
+        row.forEach((cell, colIndex) => {
+            if (!hiddenColumns.includes(data[0][colIndex].trim().toLowerCase())) {
+                const td = document.createElement("td");
+
+                if (data[0][colIndex].toLowerCase() === "data do romaneio") {
+                    td.textContent = formatDate(cell);
+                } else {
+                    td.textContent = cell || "";
                 }
+
+                tr.appendChild(td);
             }
-
-            const storedEditedRows = localStorage.getItem("editedRows");
-            if (storedEditedRows) {
-                try {
-                    editedRows = new Set(JSON.parse(storedEditedRows));
-                } catch (error) {
-                    console.error("Erro ao carregar as edições armazenadas:", error);
-                    localStorage.removeItem("editedRows");
-                }
-            }
-
-            if (data.length) {
-                renderTable();
-            }
-
-
         });
-    </script>
-</body>
-</html>
+
+        if (editedRows.has(originalIndex)) {
+            tr.classList.add("edited-row");
+        }
+
+        fragment.appendChild(tr);
+    });
+
+    table.appendChild(fragment);
+}
