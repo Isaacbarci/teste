@@ -1,7 +1,4 @@
-const CACHE_NAME = 'my-site-cache-v43';
-const CACHE_VERSION = Date.now(); // Sempre muda para forçar atualização
-
-// Lista de arquivos para cache
+const CACHE_NAME = 'my-site-cache-v1';
 const CACHE_FILES = [
     '/',
     'index.html',
@@ -10,43 +7,47 @@ const CACHE_FILES = [
     'https://unpkg.com/html5-qrcode',
 ];
 
-// Instalação do Service Worker (cache inicial)
+// Instalação do Service Worker (armazenamento inicial no cache)
 self.addEventListener('install', (event) => {
-    self.skipWaiting(); // Força o SW a substituir o antigo imediatamente
+    console.log("Service Worker: Instalando...");
     event.waitUntil(
-        caches.open(`${CACHE_NAME}-${CACHE_VERSION}`).then((cache) => {
-            return cache.addAll(CACHE_FILES).catch((err) => console.error("Erro ao adicionar arquivos ao cache", err));
-        })
+        caches.open(CACHE_NAME).then((cache) => {
+            console.log("Service Worker: Cache inicial adicionado.");
+            return cache.addAll(CACHE_FILES);
+        }).catch((err) => console.error("Erro ao adicionar arquivos ao cache:", err))
     );
+    self.skipWaiting(); // Força ativação imediata do novo SW
 });
 
 // Ativação do Service Worker (limpa caches antigos)
 self.addEventListener('activate', (event) => {
+    console.log("Service Worker: Ativando e limpando caches antigos...");
     event.waitUntil(
         caches.keys().then((cacheNames) => {
             return Promise.all(
                 cacheNames.map((cache) => {
-                    if (!cache.includes(`${CACHE_NAME}-${CACHE_VERSION}`)) {
-                        console.log("Removendo cache antigo:", cache);
+                    if (cache !== CACHE_NAME) {
+                        console.log("Service Worker: Removendo cache antigo:", cache);
                         return caches.delete(cache);
                     }
                 })
             );
         })
     );
-    clients.claim(); // Aplica o novo SW sem precisar recarregar a aba
+    self.clients.claim(); // Garante que o novo SW assume o controle imediatamente
 });
 
-// Intercepta as requisições
+// Intercepta requisições para garantir que o site funcione offline
 self.addEventListener('fetch', (event) => {
     if (event.request.mode === 'navigate') {
-        // Se o usuário estiver offline, servimos o index.html do cache
+        // Sempre buscar a versão mais recente do index.html quando online
         event.respondWith(
             fetch(event.request)
                 .then((response) => {
-                    // Atualiza o cache com a versão mais recente do HTML
-                    return caches.open(`${CACHE_NAME}-${CACHE_VERSION}`).then((cache) => {
+                    // Atualiza o cache com a nova versão do HTML
+                    return caches.open(CACHE_NAME).then((cache) => {
                         cache.put(event.request, response.clone());
+                        console.log("Service Worker: index.html atualizado no cache.");
                         return response;
                     });
                 })
@@ -58,7 +59,9 @@ self.addEventListener('fetch', (event) => {
     // Para outros arquivos, tenta servir do cache primeiro
     event.respondWith(
         caches.match(event.request).then((response) => {
-            return response || fetch(event.request);
+            return response || fetch(event.request).catch(() => {
+                console.warn("Falha ao buscar recurso e sem cache disponível:", event.request.url);
+            });
         })
     );
 });
@@ -66,8 +69,10 @@ self.addEventListener('fetch', (event) => {
 // Adiciona arquivos ao cache dinamicamente
 self.addEventListener('message', (event) => {
     if (event.data.action === 'addToCache') {
-        caches.open(`${CACHE_NAME}-${CACHE_VERSION}`).then((cache) => {
-            cache.add(event.data.file).catch((err) => console.error("Erro ao adicionar ao cache:", err));
+        caches.open(CACHE_NAME).then((cache) => {
+            cache.add(event.data.file)
+                .then(() => console.log(`Service Worker: ${event.data.file} adicionado ao cache.`))
+                .catch((err) => console.error("Erro ao adicionar ao cache:", err));
         });
     }
 });
