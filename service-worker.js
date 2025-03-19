@@ -1,4 +1,4 @@
-const CACHE_NAME = 'my-site-cache-v1';
+const CACHE_NAME = 'my-site-cache-v37';
 const CACHE_VERSION = Date.now(); // Sempre muda para forçar atualização
 
 // Instalação do Service Worker
