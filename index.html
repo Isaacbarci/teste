@@ -142,7 +142,7 @@
  <!-- Cabeçalho com Logo e Título -->
   <h2 style="display: flex; align-items: center;">
     <img src="image.png" alt="Logo" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;">
-    <span style="font-size: 23px;">ROMANEIO DE SUPORTE</span>
+    <span style="font-size: 23px;">ROMANEIO DE SUPORTE TESTE</span>
 </h2>
 <p style="font-size: 6px; color: white; margin-left: 17px; margin-top: -14px;">
     Developed by Isaac Dutra
@@ -459,7 +459,7 @@ if ('serviceWorker' in navigator) {
                 });
         }
 
-        function downloadExcel() {
+function downloadExcel() {
     if (!data.length) {
         alert("Nenhum dado carregado para exportar.");
         return;
@@ -478,39 +478,15 @@ if ('serviceWorker' in navigator) {
     let statusIndex = columnIndexes["status"];
     let observacaoIndex = columnIndexes["observação"];
     let dataRecebimentoIndex = columnIndexes["data recebimento"];
-    let dataCadastroIndex = columnIndexes["data cadastro"]; // Índice da coluna "DATA CADASTRO"
+    let dataCadastroIndex = columnIndexes["data cadastro"];
+    let obsRomaneioIndex = columnIndexes["obs romaneio"];
+
+    // Adicionar as novas colunas ao cabeçalho
+    headerRow.splice(obsRomaneioIndex + 1, 0, "PESO ENVIADO", "ÁREA ENVIADA");
 
     let newData = data.map((row, index) => {
         if (index === 0) {
-            let reorderedHeader = [];
-            headerRow.forEach((header, colIndex) => {
-                // Pular a coluna "DATA CADASTRO"
-                if (colIndex === dataCadastroIndex) {
-                    return;
-                }
-
-                if (colIndex === pesoUnitarioIndex) {
-                    reorderedHeader.push(header);
-                    if (pesoKgIndex !== undefined) {
-                        reorderedHeader.push("PESO TOTAL");
-                    }
-                } else if (colIndex === areaM2UnitarioIndex) {
-                    reorderedHeader.push(header);
-                    if (areaSuperficieIndex !== undefined) {
-                        reorderedHeader.push("ÁREA M² TOTAL");
-                    }
-                } else if (colIndex === statusIndex) {
-                    reorderedHeader.push(header);
-                    reorderedHeader.push(headerRow[dataRomaneioIndex]);
-                } else if (colIndex === dataRecebimentoIndex) {
-                    reorderedHeader.push(header);
-                    reorderedHeader.push(headerRow[observacaoIndex]);
-                } else if (colIndex !== pesoKgIndex && colIndex !== areaSuperficieIndex && colIndex !== dataRomaneioIndex && colIndex !== observacaoIndex) {
-                    reorderedHeader.push(header);
-                }
-            });
-
-            return reorderedHeader;
+            return headerRow;
         }
 
         // Função para converter valores vazios ou nulos para undefined
@@ -528,6 +504,12 @@ if ('serviceWorker' in navigator) {
         let qtdEnviada = parseValue(row[qtdEnviadaIndex]);
         let pesoKg = parseValue(row[pesoKgIndex]);
         let areaSuperficie = parseValue(row[areaSuperficieIndex]);
+        let pesoUnitario = parseValue(row[pesoUnitarioIndex]);
+        let areaM2Unitario = parseValue(row[areaM2UnitarioIndex]);
+
+        // Calcular PESO ENVIADO e ÁREA ENVIADA
+        let pesoEnviado = pesoUnitario !== undefined && qtdEnviada !== undefined ? pesoUnitario * qtdEnviada : undefined;
+        let areaEnviada = areaM2Unitario !== undefined && qtdEnviada !== undefined ? areaM2Unitario * qtdEnviada : undefined;
 
         // Atualizar valores das colunas (apenas se não forem vazios)
         if (qtde !== undefined && qtde > 0) {
@@ -586,6 +568,9 @@ if ('serviceWorker' in navigator) {
             }
         });
 
+        // Adicionar PESO ENVIADO e ÁREA ENVIADA ao lado de OBS ROMANEIO
+        reorderedRow.splice(obsRomaneioIndex + 1, 0, pesoEnviado !== undefined ? pesoEnviado : "", areaEnviada !== undefined ? areaEnviada : "");
+
         return reorderedRow;
     });
 
@@ -600,7 +585,6 @@ if ('serviceWorker' in navigator) {
     const newWorkbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(newWorkbook, updatedSheet, "Planilha1");
     XLSX.writeFile(newWorkbook, "Romaneio_Suporte.xlsx");
-}
 
         document.addEventListener("DOMContentLoaded", () => {
             const storedData = localStorage.getItem("uploadedData");
