@@ -459,50 +459,160 @@ if ('serviceWorker' in navigator) {
                 });
         }
 
-function downloadExcel() {
+  function downloadExcel() {
     if (!data.length) {
         alert("Nenhum dado carregado para exportar.");
         return;
     }
 
-    // Índices das colunas necessárias
+    let headerRow = [...data[0]];
     let pesoKgIndex = columnIndexes["peso (kg)"];
     let areaSuperficieIndex = columnIndexes["área superfície"];
     let pesoUnitarioIndex = columnIndexes["peso unitário"];
     let areaM2UnitarioIndex = columnIndexes["area m² unitário"];
     let qtdeIndex = columnIndexes["qtde"];
+    let qtdeEnviadaIndex = columnIndexes["qtde enviada"];
+    let saldoIndex = columnIndexes["saldo"];
     let qtdEnviadaIndex = columnIndexes["qtd enviada"];
-    let obsRomaneioIndex = columnIndexes["obs romaneio"];
+    let dataRomaneioIndex = columnIndexes["data do romaneio"];
+    let statusIndex = columnIndexes["status"];
+    let observacaoIndex = columnIndexes["observação"];
+    let dataRecebimentoIndex = columnIndexes["data recebimento"];
+    let dataCadastroIndex = columnIndexes["data cadastro"]; // Índice da coluna "DATA CADASTRO"
 
-    // Criar uma cópia dos dados para não modificar o original
-    let newData = data.map(row => [...row]);
+    let newData = data.map((row, index) => {
+        if (index === 0) {
+            let reorderedHeader = [];
+            headerRow.forEach((header, colIndex) => {
+                // Pular a coluna "DATA CADASTRO"
+                if (colIndex === dataCadastroIndex) {
+                    return;
+                }
 
-    // Adicionar as novas colunas ao cabeçalho
-    if (newData[0]) {
-        newData[0].splice(obsRomaneioIndex + 1, 0, "PESO ENVIADO", "ÁREA ENVIADA");
-    }
+                if (colIndex === pesoUnitarioIndex) {
+                    reorderedHeader.push(header);
+                    if (pesoKgIndex !== undefined) {
+                        reorderedHeader.push("PESO TOTAL");
+                    }
+                } else if (colIndex === areaM2UnitarioIndex) {
+                    reorderedHeader.push(header);
+                    if (areaSuperficieIndex !== undefined) {
+                        reorderedHeader.push("ÁREA M² TOTAL");
+                    }
+                } else if (colIndex === statusIndex) {
+                    reorderedHeader.push(header);
+                    reorderedHeader.push(headerRow[dataRomaneioIndex]);
 
-    // Calcular e adicionar os valores das novas colunas
-    for (let i = 1; i < newData.length; i++) {
-        let row = newData[i];
+             } else if (colIndex === dataRecebimentoIndex) {
+    reorderedRow.push(cell !== undefined ? cell : "");
+    const obsRomaneioValue = row[observacaoIndex] !== undefined ? row[observacaoIndex] : "";
+    reorderedRow.push(obsRomaneioValue);
 
-        // Obter os valores necessários
-        let pesoUnitario = parseFloat(row[pesoUnitarioIndex]) || 0;
-        let areaM2Unitario = parseFloat(row[areaM2UnitarioIndex]) || 0;
-        let qtdEnviada = parseFloat(row[qtdEnviadaIndex]) || 0;
+    const pesoUnit = parseValue(row[pesoUnitarioIndex]);
+    const areaUnit = parseValue(row[areaM2UnitarioIndex]);
+    const qtdEnv = parseValue(row[qtdEnviadaIndex]);
 
-        // Calcular PESO ENVIADO e ÁREA ENVIADA
-        let pesoEnviado = pesoUnitario * qtdEnviada;
-        let areaEnviada = areaM2Unitario * qtdEnviada;
+    const pesoEnviado = (pesoUnit !== undefined && qtdEnv !== undefined)
+        ? parseFloat((pesoUnit * qtdEnv).toFixed(2)) : "";
 
-        // Inserir os valores calculados na posição correta
-        row.splice(obsRomaneioIndex + 1, 0, pesoEnviado, areaEnviada);
-    }
+    const areaEnviada = (areaUnit !== undefined && qtdEnv !== undefined)
+        ? parseFloat((areaUnit * qtdEnv).toFixed(2)) : "";
+
+    reorderedRow.push(pesoEnviado);
+    reorderedRow.push(areaEnviada);
+
+                } else if (colIndex !== pesoKgIndex && colIndex !== areaSuperficieIndex && colIndex !== dataRomaneioIndex && colIndex !== observacaoIndex) {
+                    reorderedHeader.push(header);
+                }
+            });
+
+            return reorderedHeader;
+        }
+
+        // Função para converter valores vazios ou nulos para undefined
+        const parseValue = (value) => {
+            if (value === "" || value === null || value === undefined) {
+                return undefined; // Mantém o valor vazio
+            }
+            return parseFloat(value.toString().replace(",", ".")); // Converte para número
+        };
+
+        // Converter valores para números (ou manter vazio)
+        let qtde = parseValue(row[qtdeIndex]);
+        let qtdeEnviada = parseValue(row[qtdeEnviadaIndex]);
+        let saldo = parseValue(row[saldoIndex]);
+        let qtdEnviada = parseValue(row[qtdEnviadaIndex]);
+        let pesoKg = parseValue(row[pesoKgIndex]);
+        let areaSuperficie = parseValue(row[areaSuperficieIndex]);
+
+        // Atualizar valores das colunas (apenas se não forem vazios)
+        if (qtde !== undefined && qtde > 0) {
+            row[pesoUnitarioIndex] = parseFloat((pesoKg / qtde).toFixed(2)); // Número
+            row[areaM2UnitarioIndex] = parseFloat((areaSuperficie / qtde).toFixed(2)); // Número
+        } else {
+            row[pesoUnitarioIndex] = undefined; // Mantém vazio
+            row[areaM2UnitarioIndex] = undefined; // Mantém vazio
+        }
+
+        row[pesoKgIndex] = pesoKg !== undefined ? pesoKg : undefined; // Mantém vazio
+        row[areaSuperficieIndex] = areaSuperficie !== undefined ? areaSuperficie : undefined; // Mantém vazio
+        row[qtdeIndex] = qtde !== undefined ? qtde : undefined; // Mantém vazio
+        row[qtdeEnviadaIndex] = qtdeEnviada !== undefined ? qtdeEnviada : undefined; // Mantém vazio
+        row[saldoIndex] = saldo !== undefined ? saldo : undefined; // Mantém vazio
+        row[qtdEnviadaIndex] = qtdEnviada !== undefined ? qtdEnviada : undefined; // Mantém vazio
+
+        // Formatar datas
+        Object.entries(columnIndexes).forEach(([colName, colIndex]) => {
+            if (colName.includes("data") && colName !== "data cadastro") {
+                let dateValue = row[colIndex];
+                if (dateValue && !isNaN(new Date(dateValue))) {
+                    let dateObj = new Date(dateValue);
+                    dateObj.setDate(dateObj.getDate() + 1);
+                    row[colIndex] = dateObj.toLocaleDateString("pt-BR");
+                }
+            }
+        });
+
+        // Reordenar as colunas (pular a coluna "DATA CADASTRO")
+        let reorderedRow = [];
+        row.forEach((cell, colIndex) => {
+            // Pular a coluna "DATA CADASTRO"
+            if (colIndex === dataCadastroIndex) {
+                return;
+            }
+
+            if (colIndex === pesoUnitarioIndex) {
+                reorderedRow.push(cell !== undefined ? cell : ""); // Mantém vazio
+                if (pesoKgIndex !== undefined) {
+                    reorderedRow.push(row[pesoKgIndex] !== undefined ? row[pesoKgIndex] : ""); // Mantém vazio
+                }
+            } else if (colIndex === areaM2UnitarioIndex) {
+                reorderedRow.push(cell !== undefined ? cell : ""); // Mantém vazio
+                if (areaSuperficieIndex !== undefined) {
+                    reorderedRow.push(row[areaSuperficieIndex] !== undefined ? row[areaSuperficieIndex] : ""); // Mantém vazio
+                }
+            } else if (colIndex === statusIndex) {
+                reorderedRow.push(cell !== undefined ? cell : ""); // Mantém vazio
+                reorderedRow.push(row[dataRomaneioIndex] !== undefined ? row[dataRomaneioIndex] : ""); // Mantém vazio
+
+           } else if (colIndex === dataRecebimentoIndex) {
+    reorderedHeader.push(header);
+    reorderedHeader.push(headerRow[observacaoIndex]);
+    reorderedHeader.push("PESO ENVIADO");
+    reorderedHeader.push("ÁREA ENVIADA");
+
+
+            } else if (colIndex !== pesoKgIndex && colIndex !== areaSuperficieIndex && colIndex !== dataRomaneioIndex && colIndex !== observacaoIndex) {
+                reorderedRow.push(cell !== undefined ? cell : ""); // Mantém vazio
+            }
+        });
+
+        return reorderedRow;
+    });
 
     // Criar o arquivo Excel
     const updatedSheet = XLSX.utils.aoa_to_sheet(newData);
 
-    // Ajustar largura das colunas
     updatedSheet["!cols"] = newData[0].map((_, index) => {
         let maxLength = Math.max(...newData.map(row => (row[index] ? row[index].toString().length : 0)));
         return { wch: maxLength + 2 };
