@@ -504,6 +504,16 @@ function downloadExcel() {
         return parseFloat(value.toString().replace(",", "."));
     };
 
+    // Função para formatar datas
+    const formatDate = (dateValue) => {
+        if (dateValue && !isNaN(new Date(dateValue))) {
+            const dateObj = new Date(dateValue);
+            dateObj.setDate(dateObj.getDate() + 1); // Ajustar para o dia seguinte
+            return dateObj.toLocaleDateString("pt-BR");
+        }
+        return "";
+    };
+
     // Processar os dados
     const newData = data.map((row, index) => {
         if (index === 0) {
@@ -513,12 +523,30 @@ function downloadExcel() {
         // Converter valores para números (ou manter vazio)
         const qtde = parseValue(row[columnIndexes.qtde]);
         const qtdEnviada = parseValue(row[columnIndexes.qtdEnviada]);
+        const pesoKg = parseValue(row[columnIndexes.pesoKg]);
+        const areaSuperficie = parseValue(row[columnIndexes.areaSuperficie]);
         const pesoUnitario = parseValue(row[columnIndexes.pesoUnitario]);
         const areaM2Unitario = parseValue(row[columnIndexes.areaM2Unitario]);
 
         // Calcular PESO ENVIADO e ÁREA ENVIADA
         const pesoEnviado = pesoUnitario !== undefined && qtdEnviada !== undefined ? pesoUnitario * qtdEnviada : undefined;
         const areaEnviada = areaM2Unitario !== undefined && qtdEnviada !== undefined ? areaM2Unitario * qtdEnviada : undefined;
+
+        // Atualizar valores das colunas
+        if (qtde !== undefined && qtde > 0) {
+            row[columnIndexes.pesoUnitario] = parseFloat((pesoKg / qtde).toFixed(2));
+            row[columnIndexes.areaM2Unitario] = parseFloat((areaSuperficie / qtde).toFixed(2));
+        } else {
+            row[columnIndexes.pesoUnitario] = undefined;
+            row[columnIndexes.areaM2Unitario] = undefined;
+        }
+
+        // Formatar datas
+        Object.entries(columnIndexes).forEach(([key, colIndex]) => {
+            if (key.includes("data") && key !== "dataCadastro") {
+                row[colIndex] = formatDate(row[colIndex]);
+            }
+        });
 
         // Criar uma nova linha com as colunas reordenadas
         const reorderedRow = [...row];
