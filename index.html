@@ -459,7 +459,7 @@ if ('serviceWorker' in navigator) {
                 });
         }
 
-function downloadExcel() {
+        function downloadExcel() {
     if (!data.length) {
         alert("Nenhum dado carregado para exportar.");
         return;
@@ -478,15 +478,39 @@ function downloadExcel() {
     let statusIndex = columnIndexes["status"];
     let observacaoIndex = columnIndexes["observação"];
     let dataRecebimentoIndex = columnIndexes["data recebimento"];
-    let dataCadastroIndex = columnIndexes["data cadastro"];
-    let obsRomaneioIndex = columnIndexes["obs romaneio"];
-
-    // Adicionar as novas colunas ao cabeçalho
-    headerRow.splice(obsRomaneioIndex + 1, 0, "PESO ENVIADO", "ÁREA ENVIADA");
+    let dataCadastroIndex = columnIndexes["data cadastro"]; // Índice da coluna "DATA CADASTRO"
 
     let newData = data.map((row, index) => {
         if (index === 0) {
-            return headerRow;
+            let reorderedHeader = [];
+            headerRow.forEach((header, colIndex) => {
+                // Pular a coluna "DATA CADASTRO"
+                if (colIndex === dataCadastroIndex) {
+                    return;
+                }
+
+                if (colIndex === pesoUnitarioIndex) {
+                    reorderedHeader.push(header);
+                    if (pesoKgIndex !== undefined) {
+                        reorderedHeader.push("PESO TOTAL");
+                    }
+                } else if (colIndex === areaM2UnitarioIndex) {
+                    reorderedHeader.push(header);
+                    if (areaSuperficieIndex !== undefined) {
+                        reorderedHeader.push("ÁREA M² TOTAL");
+                    }
+                } else if (colIndex === statusIndex) {
+                    reorderedHeader.push(header);
+                    reorderedHeader.push(headerRow[dataRomaneioIndex]);
+                } else if (colIndex === dataRecebimentoIndex) {
+                    reorderedHeader.push(header);
+                    reorderedHeader.push(headerRow[observacaoIndex]);
+                } else if (colIndex !== pesoKgIndex && colIndex !== areaSuperficieIndex && colIndex !== dataRomaneioIndex && colIndex !== observacaoIndex) {
+                    reorderedHeader.push(header);
+                }
+            });
+
+            return reorderedHeader;
         }
 
         // Função para converter valores vazios ou nulos para undefined
@@ -504,12 +528,6 @@ function downloadExcel() {
         let qtdEnviada = parseValue(row[qtdEnviadaIndex]);
         let pesoKg = parseValue(row[pesoKgIndex]);
         let areaSuperficie = parseValue(row[areaSuperficieIndex]);
-        let pesoUnitario = parseValue(row[pesoUnitarioIndex]);
-        let areaM2Unitario = parseValue(row[areaM2UnitarioIndex]);
-
-        // Calcular PESO ENVIADO e ÁREA ENVIADA
-        let pesoEnviado = pesoUnitario !== undefined && qtdEnviada !== undefined ? pesoUnitario * qtdEnviada : undefined;
-        let areaEnviada = areaM2Unitario !== undefined && qtdEnviada !== undefined ? areaM2Unitario * qtdEnviada : undefined;
 
         // Atualizar valores das colunas (apenas se não forem vazios)
         if (qtde !== undefined && qtde > 0) {
@@ -568,9 +586,6 @@ function downloadExcel() {
             }
         });
 
-        // Adicionar PESO ENVIADO e ÁREA ENVIADA ao lado de OBS ROMANEIO
-        reorderedRow.splice(obsRomaneioIndex + 1, 0, pesoEnviado !== undefined ? pesoEnviado : "", areaEnviada !== undefined ? areaEnviada : "");
-
         return reorderedRow;
     });
 
@@ -585,6 +600,7 @@ function downloadExcel() {
     const newWorkbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(newWorkbook, updatedSheet, "Planilha1");
     XLSX.writeFile(newWorkbook, "Romaneio_Suporte.xlsx");
+}
 
         document.addEventListener("DOMContentLoaded", () => {
             const storedData = localStorage.getItem("uploadedData");
