@@ -478,6 +478,7 @@ function downloadExcel() {
     let statusIndex = columnIndexes["status"];
     let observacaoIndex = columnIndexes["observação"];
     let dataRecebimentoIndex = columnIndexes["data recebimento"];
+    let obsRomaneioIndex = columnIndexes["obs romaneio"];
     let dataCadastroIndex = columnIndexes["data cadastro"];
 
     let newData = data.map((row, index) => {
@@ -495,16 +496,14 @@ function downloadExcel() {
                 } else if (colIndex === statusIndex) {
                     reorderedHeader.push(header);
                     reorderedHeader.push(headerRow[dataRomaneioIndex]);
-                } else if (colIndex === dataRecebimentoIndex) {
+                } else if (colIndex === obsRomaneioIndex) {
                     reorderedHeader.push(header);
-                    reorderedHeader.push(headerRow[observacaoIndex]);
                     reorderedHeader.push("PESO ENVIADO");
                     reorderedHeader.push("ÁREA ENVIADA");
                 } else if (
                     colIndex !== pesoKgIndex &&
                     colIndex !== areaSuperficieIndex &&
-                    colIndex !== dataRomaneioIndex &&
-                    colIndex !== observacaoIndex
+                    colIndex !== dataRomaneioIndex
                 ) {
                     reorderedHeader.push(header);
                 }
@@ -531,13 +530,6 @@ function downloadExcel() {
             row[pesoUnitarioIndex] = undefined;
             row[areaM2UnitarioIndex] = undefined;
         }
-
-        row[pesoKgIndex] = pesoKg !== undefined ? pesoKg : undefined;
-        row[areaSuperficieIndex] = areaSuperficie !== undefined ? areaSuperficie : undefined;
-        row[qtdeIndex] = qtde !== undefined ? qtde : undefined;
-        row[qtdeEnviadaIndex] = qtdeEnviada !== undefined ? qtdeEnviada : undefined;
-        row[saldoIndex] = saldo !== undefined ? saldo : undefined;
-        row[qtdEnviadaIndex] = qtdEnviada !== undefined ? qtdEnviada : undefined;
 
         Object.entries(columnIndexes).forEach(([colName, colIndex]) => {
             if (colName.includes("data") && colName !== "data cadastro") {
@@ -567,32 +559,25 @@ function downloadExcel() {
             } else if (colIndex === statusIndex) {
                 reorderedRow.push(cell !== undefined ? cell : "");
                 reorderedRow.push(row[dataRomaneioIndex] !== undefined ? row[dataRomaneioIndex] : "");
-            } else if (colIndex === dataRecebimentoIndex) {
+            } else if (colIndex === obsRomaneioIndex) {
                 reorderedRow.push(cell !== undefined ? cell : "");
-                const obsRomaneioValue = row[observacaoIndex] !== undefined ? row[observacaoIndex] : "";
-                reorderedRow.push(obsRomaneioValue);
 
                 const pesoUnit = parseValue(row[pesoUnitarioIndex]);
                 const areaUnit = parseValue(row[areaM2UnitarioIndex]);
                 const qtdEnv = parseValue(row[qtdEnviadaIndex]);
 
-                const pesoEnviado =
-                    pesoUnit !== undefined && qtdEnv !== undefined
-                        ? parseFloat((pesoUnit * qtdEnv).toFixed(2))
-                        : "";
+                const pesoEnviado = (pesoUnit !== undefined && qtdEnv !== undefined)
+                    ? parseFloat((pesoUnit * qtdEnv).toFixed(2)) : "";
 
-                const areaEnviada =
-                    areaUnit !== undefined && qtdEnv !== undefined
-                        ? parseFloat((areaUnit * qtdEnv).toFixed(2))
-                        : "";
+                const areaEnviada = (areaUnit !== undefined && qtdEnv !== undefined)
+                    ? parseFloat((areaUnit * qtdEnv).toFixed(2)) : "";
 
                 reorderedRow.push(pesoEnviado);
                 reorderedRow.push(areaEnviada);
             } else if (
                 colIndex !== pesoKgIndex &&
                 colIndex !== areaSuperficieIndex &&
-                colIndex !== dataRomaneioIndex &&
-                colIndex !== observacaoIndex
+                colIndex !== dataRomaneioIndex
             ) {
                 reorderedRow.push(cell !== undefined ? cell : "");
             }
@@ -612,7 +597,6 @@ function downloadExcel() {
     XLSX.utils.book_append_sheet(newWorkbook, updatedSheet, "Planilha1");
     XLSX.writeFile(newWorkbook, "Romaneio_Suporte.xlsx");
 }
-
 
         document.addEventListener("DOMContentLoaded", () => {
             const storedData = localStorage.getItem("uploadedData");
