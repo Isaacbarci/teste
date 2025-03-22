@@ -617,9 +617,9 @@ if ('serviceWorker' in navigator) {
 
         // Ajusta a largura das colunas
         updatedSheet["!cols"] = newData[0].map((_, index) => {
-            let maxLength = Math.max(...newData.map(row => (row[index] ? row[index].toString().length : 0));
-            return { wch: maxLength + 2 };
-        });
+    let maxLength = Math.max(...newData.map(row => (row[index] ? row[index].toString().length : 0)));
+    return { wch: maxLength + 2 };
+});
 
         const newWorkbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(newWorkbook, updatedSheet, "Planilha1");
