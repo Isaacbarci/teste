@@ -588,6 +588,27 @@ function downloadExcel() {
 
     const updatedSheet = XLSX.utils.aoa_to_sheet(newData);
 
+// Formatar colunas numéricas
+const numericColumns = [
+    "qtde", "qtde enviada", "saldo", "qtd enviada",
+    "peso enviado", "área enviada",
+    "peso unitário", "peso total",
+    "area m² unitário", "área m² total"
+];
+
+const header = newData[0];
+header.forEach((colName, colIndex) => {
+    if (numericColumns.includes(colName.toLowerCase())) {
+        for (let row = 1; row < newData.length; row++) {
+            const cellRef = XLSX.utils.encode_cell({ c: colIndex, r: row });
+            if (updatedSheet[cellRef] && typeof updatedSheet[cellRef].v === "number") {
+                updatedSheet[cellRef].t = "n";
+                updatedSheet[cellRef].z = "#,##0.00";
+            }
+        }
+    }
+});
+
     updatedSheet["!cols"] = newData[0].map((_, index) => {
         let maxLength = Math.max(...newData.map(row => (row[index] ? row[index].toString().length : 0)));
         return { wch: maxLength + 2 };
