@@ -472,9 +472,10 @@ function downloadExcel() {
     };
 
     const numericCols = [
-        "qtde", "qtde enviada", "saldo", "qtd enviada",
-        "peso unitário", "peso total", "peso enviado",
-        "area m² unitário", "área m² total", "área enviada"
+        "Qtde", "Qtde Enviada", "Saldo", "QTD ENVIADA",
+        "PESO ENVIADO", "ÁREA ENVIADA",
+        "PESO Unitário", "PESO TOTAL",
+        "AREA M² Unitário", "ÁREA M² TOTAL"
     ];
 
     const obsRomaneioIndex = columnIndexes["obs romaneio"];
@@ -489,15 +490,16 @@ function downloadExcel() {
     const newData = data.map((row, rowIndex) => {
         const rowCopy = [...row];
 
-        // Cálculos e conversões
         if (rowIndex > 0) {
             const qtde = parseNumber(row[qtdeIndex]);
             const pesoKg = parseNumber(row[pesoKgIndex]);
             const areaSup = parseNumber(row[areaSupIndex]);
 
+            // Recalcula valores unitários
             rowCopy[pesoUnitarioIndex] = (qtde && pesoKg) ? parseFloat((pesoKg / qtde).toFixed(2)) : "";
             rowCopy[areaM2UnitarioIndex] = (qtde && areaSup) ? parseFloat((areaSup / qtde).toFixed(2)) : "";
 
+            // Calcula PESO ENVIADO e ÁREA ENVIADA
             const pesoUnit = parseNumber(rowCopy[pesoUnitarioIndex]);
             const areaUnit = parseNumber(rowCopy[areaM2UnitarioIndex]);
             const qtdEnv = parseNumber(row[qtdEnviadaIndex]);
@@ -508,54 +510,58 @@ function downloadExcel() {
             const areaEnviada = (areaUnit !== undefined && qtdEnv !== undefined)
                 ? parseFloat((areaUnit * qtdEnv).toFixed(2)) : "";
 
-            // Remover "DATA DE CADASTRO"
+            // Remove "DATA DE CADASTRO"
             if (dataCadastroIndex !== undefined) {
                 rowCopy.splice(dataCadastroIndex, 1);
             }
 
-            // Inserir PESO ENVIADO e ÁREA ENVIADA após OBS ROMANEIO
+            // Insere colunas calculadas após OBS ROMANEIO
             rowCopy.splice(obsRomaneioIndex + 1, 0, pesoEnviado, areaEnviada);
 
-            // Garantir números reais para Excel
+            // Garante que valores numéricos sejam tratados corretamente
             return rowCopy.map(cell => {
                 const num = parseNumber(cell);
                 return num !== undefined ? num : cell;
             });
-        } else {
-            // Cabeçalho (linha 0)
-            const headers = [...row];
 
-            // Remover "DATA DE CADASTRO"
+        } else {
+            // Cabeçalho
+            const headers = [...row];
             if (dataCadastroIndex !== undefined) {
                 headers.splice(dataCadastroIndex, 1);
             }
-
-            // Inserir títulos das novas colunas após OBS ROMANEIO
             headers.splice(obsRomaneioIndex + 1, 0, "PESO ENVIADO", "ÁREA ENVIADA");
-
             return headers;
         }
     });
 
-    // Criar a planilha
+    // Cria a planilha
     const sheet = XLSX.utils.aoa_to_sheet(newData);
-    const header = newData[0];
 
-    // Formatar colunas como numéricas
+    // Autoajuste da largura das colunas
+    sheet["!cols"] = newData[0].map((_, colIndex) => {
+        const maxLen = Math.max(
+            ...newData.map(row => (row[colIndex] ? row[colIndex].toString().length : 0))
+        );
+        return { wch: maxLen + 2 };
+    });
+
+    // Formata as colunas numéricas com vírgula como separador decimal
+    const header = newData[0];
     header.forEach((colName, colIndex) => {
-        if (numericCols.includes(colName.toLowerCase())) {
+        if (numericCols.includes(colName)) {
             for (let row = 1; row < newData.length; row++) {
                 const ref = XLSX.utils.encode_cell({ c: colIndex, r: row });
                 const cell = sheet[ref];
                 if (cell && typeof cell.v === "number") {
                     cell.t = "n";
-                    cell.z = "#,##0.00"; // vírgula decimal
+                    cell.z = "#,##0.00";
                 }
             }
         }
     });
 
-    // Gerar e baixar o Excel
+    // Cria e baixa o arquivo
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, sheet, "Planilha1");
     XLSX.writeFile(wb, "Romaneio_Suporte.xlsx");
