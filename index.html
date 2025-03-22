@@ -465,107 +465,101 @@ function downloadExcel() {
         return;
     }
 
-    const parseValue = (value) => {
-        if (value === "" || value === null || value === undefined) return undefined;
-        return parseFloat(value.toString().replace(",", "."));
+    const parseNumber = (val) => {
+        if (val === "" || val === null || val === undefined) return undefined;
+        const parsed = parseFloat(val.toString().replace(",", "."));
+        return isNaN(parsed) ? undefined : parsed;
     };
 
-    let newData = data.map((row, index) => {
-        if (index === 0) {
-            let header = [];
-            row.forEach((col, i) => {
-                if (i === columnIndexes["data cadastro"]) return;
-                if (i === columnIndexes["peso unitário"]) {
-                    header.push(col); header.push("PESO TOTAL");
-                } else if (i === columnIndexes["area m² unitário"]) {
-                    header.push(col); header.push("ÁREA M² TOTAL");
-                } else if (i === columnIndexes["status"]) {
-                    header.push(col); header.push(data[0][columnIndexes["data do romaneio"]]);
-                } else if (i === columnIndexes["obs romaneio"]) {
-                    header.push(col); header.push("PESO ENVIADO"); header.push("ÁREA ENVIADA");
-                } else if (
-                    i !== columnIndexes["peso (kg)"] &&
-                    i !== columnIndexes["área superfície"] &&
-                    i !== columnIndexes["data do romaneio"]
-                ) {
-                    header.push(col);
-                }
-            });
-            return header;
-        }
-
-        let qtde = parseValue(row[columnIndexes["qtde"]]);
-        let qtdEnviada = parseValue(row[columnIndexes["qtd enviada"]]);
-        let pesoKg = parseValue(row[columnIndexes["peso (kg)"]]);
-        let areaSup = parseValue(row[columnIndexes["área superfície"]]);
-
-        if (qtde) {
-            row[columnIndexes["peso unitário"]] = parseFloat((pesoKg / qtde).toFixed(2));
-            row[columnIndexes["area m² unitário"]] = parseFloat((areaSup / qtde).toFixed(2));
-        }
-
-        let out = [];
-
-        row.forEach((cell, i) => {
-            if (i === columnIndexes["data cadastro"]) return;
-
-            if (i === columnIndexes["peso unitário"]) {
-                out.push(parseValue(cell));
-                out.push(parseValue(row[columnIndexes["peso (kg)"]]));
-            } else if (i === columnIndexes["area m² unitário"]) {
-                out.push(parseValue(cell));
-                out.push(parseValue(row[columnIndexes["área superfície"]]));
-            } else if (i === columnIndexes["status"]) {
-                out.push(cell);
-                out.push(row[columnIndexes["data do romaneio"]]);
-            } else if (i === columnIndexes["obs romaneio"]) {
-                out.push(cell);
-                const pesoUnit = parseValue(row[columnIndexes["peso unitário"]]);
-                const areaUnit = parseValue(row[columnIndexes["area m² unitário"]]);
-                const qtdEnv = parseValue(row[columnIndexes["qtd enviada"]]);
-
-                out.push((pesoUnit && qtdEnv) ? parseFloat((pesoUnit * qtdEnv).toFixed(2)) : "");
-                out.push((areaUnit && qtdEnv) ? parseFloat((areaUnit * qtdEnv).toFixed(2)) : "");
-            } else if (
-                i !== columnIndexes["peso (kg)"] &&
-                i !== columnIndexes["área superfície"] &&
-                i !== columnIndexes["data do romaneio"]
-            ) {
-                const val = parseValue(cell);
-                out.push(typeof val === "number" ? val : cell);
-            }
-        });
-
-        return out;
-    });
-
-    const sheet = XLSX.utils.aoa_to_sheet(newData);
-
-    const header = newData[0];
-    const numericColumns = [
+    const numericCols = [
         "qtde", "qtde enviada", "saldo", "qtd enviada",
         "peso unitário", "peso total", "peso enviado",
         "area m² unitário", "área m² total", "área enviada"
     ];
 
-    header.forEach((col, i) => {
-        if (numericColumns.includes(col.toLowerCase())) {
-            for (let r = 1; r < newData.length; r++) {
-                const ref = XLSX.utils.encode_cell({ c: i, r });
+    const obsRomaneioIndex = columnIndexes["obs romaneio"];
+    const pesoKgIndex = columnIndexes["peso (kg)"];
+    const areaSupIndex = columnIndexes["área superfície"];
+    const pesoUnitarioIndex = columnIndexes["peso unitário"];
+    const areaM2UnitarioIndex = columnIndexes["area m² unitário"];
+    const qtdeIndex = columnIndexes["qtde"];
+    const qtdEnviadaIndex = columnIndexes["qtd enviada"];
+    const dataCadastroIndex = columnIndexes["data cadastro"];
+
+    const newData = data.map((row, rowIndex) => {
+        const rowCopy = [...row];
+
+        // Cálculos e conversões
+        if (rowIndex > 0) {
+            const qtde = parseNumber(row[qtdeIndex]);
+            const pesoKg = parseNumber(row[pesoKgIndex]);
+            const areaSup = parseNumber(row[areaSupIndex]);
+
+            rowCopy[pesoUnitarioIndex] = (qtde && pesoKg) ? parseFloat((pesoKg / qtde).toFixed(2)) : "";
+            rowCopy[areaM2UnitarioIndex] = (qtde && areaSup) ? parseFloat((areaSup / qtde).toFixed(2)) : "";
+
+            const pesoUnit = parseNumber(rowCopy[pesoUnitarioIndex]);
+            const areaUnit = parseNumber(rowCopy[areaM2UnitarioIndex]);
+            const qtdEnv = parseNumber(row[qtdEnviadaIndex]);
+
+            const pesoEnviado = (pesoUnit !== undefined && qtdEnv !== undefined)
+                ? parseFloat((pesoUnit * qtdEnv).toFixed(2)) : "";
+
+            const areaEnviada = (areaUnit !== undefined && qtdEnv !== undefined)
+                ? parseFloat((areaUnit * qtdEnv).toFixed(2)) : "";
+
+            // Remover "DATA DE CADASTRO"
+            if (dataCadastroIndex !== undefined) {
+                rowCopy.splice(dataCadastroIndex, 1);
+            }
+
+            // Inserir PESO ENVIADO e ÁREA ENVIADA após OBS ROMANEIO
+            rowCopy.splice(obsRomaneioIndex + 1, 0, pesoEnviado, areaEnviada);
+
+            // Garantir números reais para Excel
+            return rowCopy.map(cell => {
+                const num = parseNumber(cell);
+                return num !== undefined ? num : cell;
+            });
+        } else {
+            // Cabeçalho (linha 0)
+            const headers = [...row];
+
+            // Remover "DATA DE CADASTRO"
+            if (dataCadastroIndex !== undefined) {
+                headers.splice(dataCadastroIndex, 1);
+            }
+
+            // Inserir títulos das novas colunas após OBS ROMANEIO
+            headers.splice(obsRomaneioIndex + 1, 0, "PESO ENVIADO", "ÁREA ENVIADA");
+
+            return headers;
+        }
+    });
+
+    // Criar a planilha
+    const sheet = XLSX.utils.aoa_to_sheet(newData);
+    const header = newData[0];
+
+    // Formatar colunas como numéricas
+    header.forEach((colName, colIndex) => {
+        if (numericCols.includes(colName.toLowerCase())) {
+            for (let row = 1; row < newData.length; row++) {
+                const ref = XLSX.utils.encode_cell({ c: colIndex, r: row });
                 const cell = sheet[ref];
                 if (cell && typeof cell.v === "number") {
                     cell.t = "n";
-                    cell.z = "#.##0,00";
+                    cell.z = "#,##0.00"; // vírgula decimal
                 }
             }
         }
     });
 
+    // Gerar e baixar o Excel
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, sheet, "Planilha1");
     XLSX.writeFile(wb, "Romaneio_Suporte.xlsx");
 }
-
         document.addEventListener("DOMContentLoaded", () => {
             const storedData = localStorage.getItem("uploadedData");
             if (storedData) {
