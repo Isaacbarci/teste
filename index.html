@@ -495,11 +495,9 @@ function downloadExcel() {
             const pesoKg = parseNumber(row[pesoKgIndex]);
             const areaSup = parseNumber(row[areaSupIndex]);
 
-            // Recalcula valores unitários
             rowCopy[pesoUnitarioIndex] = (qtde && pesoKg) ? parseFloat((pesoKg / qtde).toFixed(2)) : "";
             rowCopy[areaM2UnitarioIndex] = (qtde && areaSup) ? parseFloat((areaSup / qtde).toFixed(2)) : "";
 
-            // Calcula PESO ENVIADO e ÁREA ENVIADA
             const pesoUnit = parseNumber(rowCopy[pesoUnitarioIndex]);
             const areaUnit = parseNumber(rowCopy[areaM2UnitarioIndex]);
             const qtdEnv = parseNumber(row[qtdEnviadaIndex]);
@@ -510,22 +508,18 @@ function downloadExcel() {
             const areaEnviada = (areaUnit !== undefined && qtdEnv !== undefined)
                 ? parseFloat((areaUnit * qtdEnv).toFixed(2)) : "";
 
-            // Remove "DATA DE CADASTRO"
             if (dataCadastroIndex !== undefined) {
                 rowCopy.splice(dataCadastroIndex, 1);
             }
 
-            // Insere colunas calculadas após OBS ROMANEIO
             rowCopy.splice(obsRomaneioIndex + 1, 0, pesoEnviado, areaEnviada);
 
-            // Garante que valores numéricos sejam tratados corretamente
             return rowCopy.map(cell => {
                 const num = parseNumber(cell);
                 return num !== undefined ? num : cell;
             });
 
         } else {
-            // Cabeçalho
             const headers = [...row];
             if (dataCadastroIndex !== undefined) {
                 headers.splice(dataCadastroIndex, 1);
@@ -535,10 +529,9 @@ function downloadExcel() {
         }
     });
 
-    // Cria a planilha
     const sheet = XLSX.utils.aoa_to_sheet(newData);
 
-    // Autoajuste da largura das colunas
+    // Autoajuste das colunas
     sheet["!cols"] = newData[0].map((_, colIndex) => {
         const maxLen = Math.max(
             ...newData.map(row => (row[colIndex] ? row[colIndex].toString().length : 0))
@@ -546,7 +539,7 @@ function downloadExcel() {
         return { wch: maxLen + 2 };
     });
 
-    // Formata as colunas numéricas com vírgula como separador decimal
+    // Formatar apenas as 10 colunas desejadas como número
     const header = newData[0];
     header.forEach((colName, colIndex) => {
         if (numericCols.includes(colName)) {
@@ -561,7 +554,6 @@ function downloadExcel() {
         }
     });
 
-    // Cria e baixa o arquivo
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, sheet, "Planilha1");
     XLSX.writeFile(wb, "Romaneio_Suporte.xlsx");
