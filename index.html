@@ -251,6 +251,14 @@ function loadExcelFromDirectory() {
 
             localStorage.removeItem("servicoFiltrado");
         })
+
+        function confirmUpdate() {
+    loadExcelFromDirectory();
+}
+
+
+
+
         .catch(error => {
             console.error("Erro ao carregar Excel:", error);
             alert("Não foi possível carregar o arquivo do diretório.");
