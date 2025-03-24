@@ -193,6 +193,9 @@
         let editedRows = new Set();
         let qrScanner;
 
+const localExcelPath = "TESTE.xlsx"; // ou ajuste o caminho correto se estiver em outra pasta
+
+
         const rowsPerPage = 500; // Número de linhas por página
 
         const hiddenColumns = [
@@ -223,6 +226,34 @@
     };
     reader.readAsArrayBuffer(file);
 }
+
+function loadExcelFromDirectory() {
+    fetch(localExcelPath)
+        .then(response => {
+            if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
+            return response.arrayBuffer();
+        })
+        .then(arrayBuffer => {
+            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
+
+            data = jsonData;
+            filteredData = data.slice(1);
+            findColumnIndexes();
+            populateServicoOptions();
+            renderTable();
+        })
+        .catch(error => {
+            console.error("Erro ao carregar Excel:", error);
+            alert("Não foi possível carregar o arquivo do diretório.");
+        });
+}
+
+
+
+
+
 
 
 function populateServicoOptions() {
