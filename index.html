@@ -148,12 +148,11 @@
     Developed by Isaac Dutra
 </p>
 
-    <select id="fileList" style="margin-left: 5px;">
-    <option value="">Selecione um arquivo</option>
-    <option value="Compressores.xlsx">Compressores</option>
-    <option value="Raizen.xlsx">Raizen</option>
-     <option value="Patio de Madeira.xlsx">Patio de Madeira</option>
-         <option value="Eldorado.xlsx">Eldorado</option>
+  <input type="file" id="fileInput" accept=".xlsx" onchange="handleFileUpload(event)" />
+<select id="servicoFilter" onchange="filterByServico()" style="margin-left: 5px;">
+    <option value="">Todos os Serviços</option>
+</select>
+
 
 
 
@@ -205,47 +204,63 @@
             "identificação 2", "area m²", "peso"
         ];
 
-        function confirmUpdate() {
-            const selectedFile = document.getElementById("fileList").value;
-            if (!selectedFile) {
-                alert("Selecione um arquivo da lista para atualizar.");
-                return;
-            }
+       function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
 
-            const confirmUpdate = confirm("Deseja realmente atualizar o arquivo? Todas as alterações não salvas serão perdidas.");
-            if (confirmUpdate) {
-                loadSelectedFile(selectedFile);
-            }
-        }
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const arrayBuffer = e.target.result;
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
-        function loadSelectedFile(fileName) {
-            fetch(fileName)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Erro ao carregar arquivo: ${response.statusText}`);
-                    }
-                    return response.arrayBuffer();
-                })
-                .then(arrayBuffer => {
-                    const workbook = XLSX.read(arrayBuffer, { type: 'array', cellFormula: true });
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
+        data = jsonData;
+        filteredData = data.slice(1);
+        findColumnIndexes();
+        populateServicoOptions();
+        renderTable();
+    };
+    reader.readAsArrayBuffer(file);
+}
 
-                    data = jsonData;
-                    localStorage.setItem("uploadedData", JSON.stringify(data));
 
-                    filteredData = data.slice(1);
-                    editedRows.clear();
-                    localStorage.removeItem("editedRows");
+function populateServicoOptions() {
+    const servicoIndex = columnIndexes["serviço"];
+    if (servicoIndex === undefined) return;
 
-                    findColumnIndexes();
-                    renderTable();
-                })
-                .catch(error => {
-                    console.error("Erro ao carregar o arquivo:", error);
-                    alert("Erro ao carregar o arquivo. Verifique se o nome está correto.");
-                });
-        }
+    const uniqueServicos = new Set();
+
+    data.slice(1).forEach(row => {
+        const value = row[servicoIndex];
+        if (value) uniqueServicos.add(value);
+    });
+
+    const servicoFilter = document.getElementById("servicoFilter");
+    servicoFilter.innerHTML = '<option value="">Todos os Serviços</option>';
+
+    [...uniqueServicos].sort().forEach(servico => {
+        const option = document.createElement("option");
+        option.value = servico;
+        option.textContent = servico;
+        servicoFilter.appendChild(option);
+    });
+}
+
+function filterByServico() {
+    const servicoSelecionado = document.getElementById("servicoFilter").value;
+    const servicoIndex = columnIndexes["serviço"];
+
+    if (!data.length || servicoIndex === undefined) return;
+
+    filteredData = data.slice(1).filter(row => {
+        if (!servicoSelecionado) return true;
+        return row[servicoIndex] === servicoSelecionado;
+    });
+
+    renderTable();
+}
+
 
         function formatDate(dateString) {
             if (!dateString) return "";
