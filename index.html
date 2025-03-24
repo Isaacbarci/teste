@@ -18,7 +18,7 @@
             padding: 20px;
             margin: 0;
         }
-        input[type="text"], button, select, input[type="file"] {
+        input[type="text"], button, select {
             margin: 5px;
             padding: 10px;
             border-radius: 5px;
@@ -133,14 +133,10 @@
             color: green;
             font-weight: bold;
         }
-        .file-input-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .file-input-label {
+        .loading {
             color: white;
-            font-size: 14px;
+            padding: 20px;
+            font-size: 18px;
         }
     </style>
 </head>
@@ -154,41 +150,40 @@
         Developed by Isaac Dutra
     </p>
 
-    <div class="file-input-container">
-        <label class="file-input-label">Carregar Excel:</label>
-        <input type="file" id="fileInput" accept=".xlsx, .xls" />
-    </div>
+    <div id="loading" class="loading">Carregando dados...</div>
 
-    <select id="servicoFilter">
-        <option value="">Todos os serviços</option>
-    </select>
+    <div id="content" style="display: none;">
+        <select id="servicoFilter">
+            <option value="">Todos os serviços</option>
+        </select>
 
-    <input type="text" id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação" onkeyup="applyFilter()">
-    <button onclick="downloadExcel()">Download Excel</button>
-    <button onclick="startQrScanner()">Escanear QR Code</button>
+        <input type="text" id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação" onkeyup="applyFilter()">
+        <button onclick="downloadExcel()">Download Excel</button>
+        <button onclick="startQrScanner()">Escanear QR Code</button>
 
-    <div id="qr-container" style="display: none;">
-        <div id="qr-reader" style="width:300px; margin-top:10px;"></div>
-        <button class="close-btn" id="closeScannerBtn" style="display: none;" onclick="stopQrScanner()">Fechar Scanner</button>
-    </div>
+        <div id="qr-container" style="display: none;">
+            <div id="qr-reader" style="width:300px; margin-top:10px;"></div>
+            <button class="close-btn" id="closeScannerBtn" style="display: none;" onclick="stopQrScanner()">Fechar Scanner</button>
+        </div>
 
-    <div class="table-container">
-        <table id="dataTable"></table>
-    </div>
+        <div class="table-container">
+            <table id="dataTable"></table>
+        </div>
 
-    <div id="editModal" class="modal">
-        <input type="hidden" id="editIndex">
-        <label>Posição / TAG: <input type="text" id="POSICAOTAG" readonly></label>
-        <label>Identificação 1: <input type="text" id="IDENTIFICACAO1" readonly></label>
-        <label>Identificação 2: <input type="text" id="IDENTIFICACAO2" readonly></label>
-        <label>Peso (kg): <input type="text" id="PesoKg" readonly></label>
-        <label>Data do Romaneio: <input type="date" id="DATADOROMANEIO"></label>
-        <label>Qtd Enviada: <input type="text" id="QTDENVIADA"></label>
-        <label>Obs Romaneio: <input type="text" id="OBSROMANEIO"></label>
-        <label>Qtde: <input type="text" id="Qtde" readonly></label>
-        <label>Saldo: <input type="text" id="Saldo" readonly></label>
-        <button class="save-btn" onclick="saveEdit()">Salvar</button>
-        <button class="close-btn" onclick="closeModal()">Fechar</button>
+        <div id="editModal" class="modal">
+            <input type="hidden" id="editIndex">
+            <label>Posição / TAG: <input type="text" id="POSICAOTAG" readonly></label>
+            <label>Identificação 1: <input type="text" id="IDENTIFICACAO1" readonly></label>
+            <label>Identificação 2: <input type="text" id="IDENTIFICACAO2" readonly></label>
+            <label>Peso (kg): <input type="text" id="PesoKg" readonly></label>
+            <label>Data do Romaneio: <input type="date" id="DATADOROMANEIO"></label>
+            <label>Qtd Enviada: <input type="text" id="QTDENVIADA"></label>
+            <label>Obs Romaneio: <input type="text" id="OBSROMANEIO"></label>
+            <label>Qtde: <input type="text" id="Qtde" readonly></label>
+            <label>Saldo: <input type="text" id="Saldo" readonly></label>
+            <button class="save-btn" onclick="saveEdit()">Salvar</button>
+            <button class="close-btn" onclick="closeModal()">Fechar</button>
+        </div>
     </div>
 
     <script>
@@ -200,6 +195,7 @@
         let servicosDisponiveis = new Set();
 
         const rowsPerPage = 500; // Número de linhas por página
+        const EXCEL_FILE_URL = 'teste.xlsx'; // Nome do arquivo Excel que será carregado automaticamente
 
         const hiddenColumns = [
             "desenho suporte", "informações", "isométrico", "peso (kg)", "cond. pintura",
@@ -210,21 +206,29 @@
             "identificação 2", "area m²", "peso"
         ];
 
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
+        // Função para carregar o arquivo Excel automaticamente
+        function loadExcelFile() {
+            fetch(EXCEL_FILE_URL)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Erro ao carregar arquivo: ${response.statusText}`);
+                    }
+                    return response.arrayBuffer();
+                })
+                .then(arrayBuffer => {
+                    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: "", raw: false });
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: "", raw: false });
-
-                processExcelData(jsonData);
-            };
-            reader.readAsArrayBuffer(file);
-        });
+                    processExcelData(jsonData);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('content').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error("Erro ao carregar o arquivo:", error);
+                    document.getElementById('loading').textContent = 'Erro ao carregar o arquivo. Verifique se o nome está correto.';
+                });
+        }
 
         function processExcelData(jsonData) {
             data = jsonData;
@@ -653,7 +657,11 @@
             XLSX.writeFile(newWorkbook, "Romaneio_Suporte.xlsx");
         }
 
+        // Carrega o arquivo Excel automaticamente quando a página é aberta
         document.addEventListener("DOMContentLoaded", () => {
+            loadExcelFile();
+
+            // Verifica se há dados salvos localmente
             const storedData = localStorage.getItem("uploadedData");
             if (storedData) {
                 try {
