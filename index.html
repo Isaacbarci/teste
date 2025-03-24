@@ -525,7 +525,7 @@ function downloadExcel() {
         ];
 
         // Filtra e ordena as colunas
-        const filteredHeaders = newData[0].filter((header, index) => {
+        const filteredHeaders = newData[0].filter((header, index)) => {
             const headerName = header.trim().toLowerCase();
             return !hiddenColumns.includes(headerName) || columnsOrder.includes(headerName);
         });
@@ -588,6 +588,7 @@ function downloadExcel() {
         console.error('Erro ao gerar o Excel:', error);
         alert('Ocorreu um erro ao gerar o arquivo Excel: ' + error.message);
     }
+
 
         document.addEventListener("DOMContentLoaded", () => {
             const storedData = localStorage.getItem("uploadedData");
