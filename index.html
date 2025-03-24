@@ -193,9 +193,11 @@
     <script>
         let data = [];
         let filteredData = [];
+         let excelTempData = [];
         let columnIndexes = {};
         let editedRows = new Set();
         let qrScanner;
+
 
 const localExcelPath = "TESTE.xlsx"; // ou ajuste o caminho correto se estiver em outra pasta
 
@@ -231,41 +233,31 @@ const localExcelPath = "TESTE.xlsx"; // ou ajuste o caminho correto se estiver e
     reader.readAsArrayBuffer(file);
 }
 
-function loadExcelFromDirectory() {
-    fetch(localExcelPath)
-        .then(response => {
-            if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
-            return response.arrayBuffer();
-        })
-        .then(arrayBuffer => {
-            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
+ function loadExcelFromDirectory() {
+        fetch("TESTE.xlsx")
+            .then(response => {
+                if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
+                return response.arrayBuffer();
+            })
+            .then(arrayBuffer => {
+                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
-            excelTempData = jsonData; // ⬅️ Apenas temporário
-            findColumnIndexes(excelTempData);
-            populateServicoOptions(excelTempData);
+                excelTempData = jsonData;
+                findColumnIndexes(excelTempData);
+                populateServicoOptions(excelTempData);
 
-            document.getElementById("dataTable").innerHTML = "";
-            document.getElementById("servicoFilter").value = "";
+                document.getElementById("dataTable").innerHTML = "";
+                document.getElementById("servicoFilter").value = "";
 
-            localStorage.removeItem("servicoFiltrado");
-        })
-
-        function confirmUpdate() {
-    loadExcelFromDirectory();
-}
-
-
-
-
-        .catch(error => {
-            console.error("Erro ao carregar Excel:", error);
-            alert("Não foi possível carregar o arquivo do diretório.");
-        });
-}
-
-
+                localStorage.removeItem("servicoFiltrado");
+            })
+            .catch(error => {
+                console.error("Erro ao carregar Excel:", error);
+                alert("Não foi possível carregar o arquivo do diretório.");
+            });
+    }
 
 
 
@@ -723,21 +715,29 @@ function downloadExcel() {
 }
 
 
-  document.addEventListener("DOMContentLoaded", () => {
+   document.addEventListener("DOMContentLoaded", () => {
     const saved = localStorage.getItem("servicoFiltrado");
+
     if (saved) {
         try {
             const parsed = JSON.parse(saved);
             data = [parsed.headers, ...parsed.rows];
             filteredData = parsed.rows;
-            findColumnIndexes(data);
+            findColumnIndexes();
             renderTable();
         } catch (error) {
             console.error("Erro ao restaurar serviço salvo:", error);
         }
+    } else {
+        document.getElementById("dataTable").innerHTML = "";
     }
+
+
 });
 
+function confirmUpdate() {
+        loadExcelFromDirectory();
+    }
 
 
 
