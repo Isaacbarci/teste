@@ -459,8 +459,6 @@ if ('serviceWorker' in navigator) {
                 });
         }
 
-
-
 function downloadExcel() {
     if (!data.length) {
         alert("Nenhum dado carregado para exportar.");
@@ -515,19 +513,14 @@ function downloadExcel() {
 
         const parseValue = (value) => {
             if (value === "" || value === null || value === undefined) return undefined;
-            // Converte para número, tratando tanto ponto quanto vírgula como separador decimal
-            const numStr = value.toString().replace(",", ".");
-            return isNaN(numStr) ? undefined : parseFloat(numStr);
+            return parseFloat(value.toString().replace(",", "."));
         };
 
         const formatNumber = (value) => {
             if (value === undefined || value === null || value === "") return "";
-            // Garante que é um número antes de formatar
-            const num = typeof value === 'number' ? value : parseValue(value);
-            return num !== undefined ? num.toString().replace(".", ",") : "";
+            return value.toString().replace(".", ",");
         };
 
-        // Parse dos valores básicos
         let qtde = parseValue(row[qtdeIndex]);
         let qtdeEnviada = parseValue(row[qtdeEnviadaIndex]);
         let saldo = parseValue(row[saldoIndex]);
@@ -535,16 +528,14 @@ function downloadExcel() {
         let pesoKg = parseValue(row[pesoKgIndex]);
         let areaSuperficie = parseValue(row[areaSuperficieIndex]);
 
-        // Cálculo dos valores unitários
         if (qtde !== undefined && qtde > 0) {
-            row[pesoUnitarioIndex] = pesoKg !== undefined ? parseFloat((pesoKg / qtde).toFixed(2)) : undefined;
-            row[areaM2UnitarioIndex] = areaSuperficie !== undefined ? parseFloat((areaSuperficie / qtde).toFixed(2)) : undefined;
+            row[pesoUnitarioIndex] = parseFloat((pesoKg / qtde).toFixed(2));
+            row[areaM2UnitarioIndex] = parseFloat((areaSuperficie / qtde).toFixed(2));
         } else {
             row[pesoUnitarioIndex] = undefined;
             row[areaM2UnitarioIndex] = undefined;
         }
 
-        // Formatação de datas
         Object.entries(columnIndexes).forEach(([colName, colIndex]) => {
             if (colName.includes("data") && colName !== "data cadastro") {
                 let dateValue = row[colIndex];
@@ -556,28 +547,25 @@ function downloadExcel() {
             }
         });
 
-        // Reordena as colunas conforme o cabeçalho
         let reorderedRow = [];
-        let currentColIndex = 0;
-
         row.forEach((cell, colIndex) => {
             if (colIndex === dataCadastroIndex) return;
 
             if (colIndex === pesoUnitarioIndex) {
-                reorderedRow.push(formatNumber(row[pesoUnitarioIndex]));
+                reorderedRow.push(cell !== undefined ? formatNumber(cell) : "");
                 if (pesoKgIndex !== undefined) {
-                    reorderedRow.push(formatNumber(row[pesoKgIndex]));
+                    reorderedRow.push(row[pesoKgIndex] !== undefined ? formatNumber(row[pesoKgIndex]) : "");
                 }
             } else if (colIndex === areaM2UnitarioIndex) {
-                reorderedRow.push(formatNumber(row[areaM2UnitarioIndex]));
+                reorderedRow.push(cell !== undefined ? formatNumber(cell) : "");
                 if (areaSuperficieIndex !== undefined) {
-                    reorderedRow.push(formatNumber(row[areaSuperficieIndex]));
+                    reorderedRow.push(row[areaSuperficieIndex] !== undefined ? formatNumber(row[areaSuperficieIndex]) : "");
                 }
             } else if (colIndex === statusIndex) {
-                reorderedRow.push(row[statusIndex] !== undefined ? row[statusIndex] : "");
+                reorderedRow.push(cell !== undefined ? cell : "");
                 reorderedRow.push(row[dataRomaneioIndex] !== undefined ? row[dataRomaneioIndex] : "");
             } else if (colIndex === obsRomaneioIndex) {
-                reorderedRow.push(row[obsRomaneioIndex] !== undefined ? row[obsRomaneioIndex] : "");
+                reorderedRow.push(cell !== undefined ? cell : "");
 
                 const pesoUnit = parseValue(row[pesoUnitarioIndex]);
                 const areaUnit = parseValue(row[areaM2UnitarioIndex]);
@@ -585,22 +573,24 @@ function downloadExcel() {
 
                 const pesoEnviado = (pesoUnit !== undefined && qtdEnv !== undefined)
                     ? parseFloat((pesoUnit * qtdEnv).toFixed(2)) : "";
+
                 const areaEnviada = (areaUnit !== undefined && qtdEnv !== undefined)
                     ? parseFloat((areaUnit * qtdEnv).toFixed(2)) : "";
 
-                reorderedRow.push(formatNumber(pesoEnviado));
-                reorderedRow.push(formatNumber(areaEnviada));
+                reorderedRow.push(pesoEnviado !== "" ? formatNumber(pesoEnviado) : "");
+                reorderedRow.push(areaEnviada !== "" ? formatNumber(areaEnviada) : "");
             } else if (
                 colIndex !== pesoKgIndex &&
                 colIndex !== areaSuperficieIndex &&
                 colIndex !== dataRomaneioIndex
             ) {
-                // Verifica se a coluna atual é numérica
-                const currentHeader = newData[0][reorderedRow.length];
+                // Formata as colunas numéricas específicas
+                const headerName = newData[0][reorderedRow.length];
                 const numericColumns = ["Qtde", "Qtde Enviada", "Saldo", "QTD ENVIADA"];
 
-                if (currentHeader && numericColumns.includes(currentHeader)) {
-                    reorderedRow.push(formatNumber(cell));
+                if (numericColumns.includes(headerName)) {
+
+                    reorderedRow.push(cell !== undefined ? formatNumber(cell) : "");
                 } else {
                     reorderedRow.push(cell !== undefined ? cell : "");
                 }
@@ -618,7 +608,7 @@ function downloadExcel() {
         return { wch: maxLength + 2 };
     });
 
-    // Define o tipo e formatação das colunas numéricas
+    // Define o tipo das colunas numéricas como 'n' (número)
     const numberColumns = [
         "Qtde", "Qtde Enviada", "Saldo", "QTD ENVIADA", "PESO ENVIADO",
         "ÁREA ENVIADA", "PESO Unitário", "PESO TOTAL", "AREA M² Unitário", "ÁREA M² TOTAL"
@@ -630,12 +620,13 @@ function downloadExcel() {
             newData.slice(1).forEach((row, rowIndex) => {
                 const cellAddress = XLSX.utils.encode_cell({ r: rowIndex + 1, c: colIndex });
                 if (updatedSheet[cellAddress] && row[colIndex] !== "") {
-                    // Converte para número (substitui vírgula por ponto)
+                    // Converte a string com vírgula para número
                     const numValue = parseFloat(row[colIndex].toString().replace(",", "."));
                     if (!isNaN(numValue)) {
                         updatedSheet[cellAddress].v = numValue;
-                        updatedSheet[cellAddress].t = 'n'; // Tipo número
-                        updatedSheet[cellAddress].z = '#,##0.00'; // Formato brasileiro
+                        updatedSheet[cellAddress].t = 'n';
+                        // Define formatação para exibir com vírgula
+                        updatedSheet[cellAddress].z = '#,##0.00';
                     }
                 }
             });
@@ -646,6 +637,8 @@ function downloadExcel() {
     XLSX.utils.book_append_sheet(newWorkbook, updatedSheet, "Planilha1");
     XLSX.writeFile(newWorkbook, "Romaneio_Suporte.xlsx");
 }
+
+
 
 
         document.addEventListener("DOMContentLoaded", () => {
