@@ -559,7 +559,7 @@ if ('serviceWorker' in navigator) {
                     if (areaSuperficieIndex !== undefined) {
                         reorderedRow.push(row[areaSuperficieIndex] !== undefined ? row[areaSuperficieIndex] : "");
                     }
-                } else if (colIndex === statusIndex) {
+              } else if (colIndex === statusIndex) {
     reorderedRow.push(cell !== undefined ? cell : "");
     reorderedRow.push(row[observacaoIndex] !== undefined ? row[observacaoIndex] : "");
     reorderedRow.push(row[dataRomaneioIndex] !== undefined ? row[dataRomaneioIndex] : "");
@@ -601,7 +601,7 @@ if ('serviceWorker' in navigator) {
         ];
 
         // Formatação das colunas numéricas
-                numberColumns.forEach(colName => {
+             numberColumns.forEach(colName => {
             const colIndex = newData[0].indexOf(colName);
             if (colIndex !== -1) {
                 for (let i = 1; i < newData.length; i++) {
