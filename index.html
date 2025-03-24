@@ -515,14 +515,19 @@ function downloadExcel() {
 
         const parseValue = (value) => {
             if (value === "" || value === null || value === undefined) return undefined;
-            return parseFloat(value.toString().replace(",", "."));
+            // Converte para número, tratando tanto ponto quanto vírgula como separador decimal
+            const numStr = value.toString().replace(",", ".");
+            return isNaN(numStr) ? undefined : parseFloat(numStr);
         };
 
         const formatNumber = (value) => {
             if (value === undefined || value === null || value === "") return "";
-            return value.toString().replace(".", ",");
+            // Garante que é um número antes de formatar
+            const num = typeof value === 'number' ? value : parseValue(value);
+            return num !== undefined ? num.toString().replace(".", ",") : "";
         };
 
+        // Parse dos valores básicos
         let qtde = parseValue(row[qtdeIndex]);
         let qtdeEnviada = parseValue(row[qtdeEnviadaIndex]);
         let saldo = parseValue(row[saldoIndex]);
@@ -530,14 +535,16 @@ function downloadExcel() {
         let pesoKg = parseValue(row[pesoKgIndex]);
         let areaSuperficie = parseValue(row[areaSuperficieIndex]);
 
+        // Cálculo dos valores unitários
         if (qtde !== undefined && qtde > 0) {
-            row[pesoUnitarioIndex] = parseFloat((pesoKg / qtde).toFixed(2));
-            row[areaM2UnitarioIndex] = parseFloat((areaSuperficie / qtde).toFixed(2));
+            row[pesoUnitarioIndex] = pesoKg !== undefined ? parseFloat((pesoKg / qtde).toFixed(2)) : undefined;
+            row[areaM2UnitarioIndex] = areaSuperficie !== undefined ? parseFloat((areaSuperficie / qtde).toFixed(2)) : undefined;
         } else {
             row[pesoUnitarioIndex] = undefined;
             row[areaM2UnitarioIndex] = undefined;
         }
 
+        // Formatação de datas
         Object.entries(columnIndexes).forEach(([colName, colIndex]) => {
             if (colName.includes("data") && colName !== "data cadastro") {
                 let dateValue = row[colIndex];
@@ -549,25 +556,28 @@ function downloadExcel() {
             }
         });
 
+        // Reordena as colunas conforme o cabeçalho
         let reorderedRow = [];
+        let currentColIndex = 0;
+
         row.forEach((cell, colIndex) => {
             if (colIndex === dataCadastroIndex) return;
 
             if (colIndex === pesoUnitarioIndex) {
-                reorderedRow.push(cell !== undefined ? formatNumber(cell) : "");
+                reorderedRow.push(formatNumber(row[pesoUnitarioIndex]));
                 if (pesoKgIndex !== undefined) {
-                    reorderedRow.push(row[pesoKgIndex] !== undefined ? formatNumber(row[pesoKgIndex]) : "");
+                    reorderedRow.push(formatNumber(row[pesoKgIndex]));
                 }
             } else if (colIndex === areaM2UnitarioIndex) {
-                reorderedRow.push(cell !== undefined ? formatNumber(cell) : "");
+                reorderedRow.push(formatNumber(row[areaM2UnitarioIndex]));
                 if (areaSuperficieIndex !== undefined) {
-                    reorderedRow.push(row[areaSuperficieIndex] !== undefined ? formatNumber(row[areaSuperficieIndex]) : "");
+                    reorderedRow.push(formatNumber(row[areaSuperficieIndex]));
                 }
             } else if (colIndex === statusIndex) {
-                reorderedRow.push(cell !== undefined ? cell : "");
+                reorderedRow.push(row[statusIndex] !== undefined ? row[statusIndex] : "");
                 reorderedRow.push(row[dataRomaneioIndex] !== undefined ? row[dataRomaneioIndex] : "");
             } else if (colIndex === obsRomaneioIndex) {
-                reorderedRow.push(cell !== undefined ? cell : "");
+                reorderedRow.push(row[obsRomaneioIndex] !== undefined ? row[obsRomaneioIndex] : "");
 
                 const pesoUnit = parseValue(row[pesoUnitarioIndex]);
                 const areaUnit = parseValue(row[areaM2UnitarioIndex]);
@@ -575,23 +585,22 @@ function downloadExcel() {
 
                 const pesoEnviado = (pesoUnit !== undefined && qtdEnv !== undefined)
                     ? parseFloat((pesoUnit * qtdEnv).toFixed(2)) : "";
-
                 const areaEnviada = (areaUnit !== undefined && qtdEnv !== undefined)
                     ? parseFloat((areaUnit * qtdEnv).toFixed(2)) : "";
 
-                reorderedRow.push(pesoEnviado !== "" ? formatNumber(pesoEnviado) : "");
-                reorderedRow.push(areaEnviada !== "" ? formatNumber(areaEnviada) : "");
+                reorderedRow.push(formatNumber(pesoEnviado));
+                reorderedRow.push(formatNumber(areaEnviada));
             } else if (
                 colIndex !== pesoKgIndex &&
                 colIndex !== areaSuperficieIndex &&
                 colIndex !== dataRomaneioIndex
             ) {
-                // Formata as colunas numéricas específicas
-                const headerName = newData[0][reorderedRow.length];
+                // Verifica se a coluna atual é numérica
+                const currentHeader = newData[0][reorderedRow.length];
                 const numericColumns = ["Qtde", "Qtde Enviada", "Saldo", "QTD ENVIADA"];
 
-                if (numericColumns.includes(headerName) {
-                    reorderedRow.push(cell !== undefined ? formatNumber(cell) : "");
+                if (currentHeader && numericColumns.includes(currentHeader)) {
+                    reorderedRow.push(formatNumber(cell));
                 } else {
                     reorderedRow.push(cell !== undefined ? cell : "");
                 }
@@ -609,7 +618,7 @@ function downloadExcel() {
         return { wch: maxLength + 2 };
     });
 
-    // Define o tipo das colunas numéricas como 'n' (número)
+    // Define o tipo e formatação das colunas numéricas
     const numberColumns = [
         "Qtde", "Qtde Enviada", "Saldo", "QTD ENVIADA", "PESO ENVIADO",
         "ÁREA ENVIADA", "PESO Unitário", "PESO TOTAL", "AREA M² Unitário", "ÁREA M² TOTAL"
@@ -621,13 +630,12 @@ function downloadExcel() {
             newData.slice(1).forEach((row, rowIndex) => {
                 const cellAddress = XLSX.utils.encode_cell({ r: rowIndex + 1, c: colIndex });
                 if (updatedSheet[cellAddress] && row[colIndex] !== "") {
-                    // Converte a string com vírgula para número
+                    // Converte para número (substitui vírgula por ponto)
                     const numValue = parseFloat(row[colIndex].toString().replace(",", "."));
                     if (!isNaN(numValue)) {
                         updatedSheet[cellAddress].v = numValue;
-                        updatedSheet[cellAddress].t = 'n';
-                        // Define formatação para exibir com vírgula
-                        updatedSheet[cellAddress].z = '#,##0.00';
+                        updatedSheet[cellAddress].t = 'n'; // Tipo número
+                        updatedSheet[cellAddress].z = '#,##0.00'; // Formato brasileiro
                     }
                 }
             });
@@ -638,7 +646,6 @@ function downloadExcel() {
     XLSX.utils.book_append_sheet(newWorkbook, updatedSheet, "Planilha1");
     XLSX.writeFile(newWorkbook, "Romaneio_Suporte.xlsx");
 }
-
 
 
         document.addEventListener("DOMContentLoaded", () => {
