@@ -493,9 +493,12 @@ if ('serviceWorker' in navigator) {
                     } else if (colIndex === areaM2UnitarioIndex) {
                         reorderedHeader.push(header);
                         if (areaSuperficieIndex !== undefined) reorderedHeader.push("ÁREA M² TOTAL");
-                    } else if (colIndex === statusIndex) {
-                        reorderedHeader.push(header);
-                        reorderedHeader.push(headerRow[dataRomaneioIndex]);
+                   } else if (colIndex === statusIndex) {
+    reorderedHeader.push(header);
+    reorderedHeader.push(headerRow[observacaoIndex]);
+    reorderedHeader.push(headerRow[dataRomaneioIndex]);
+}
+
                     } else if (colIndex === obsRomaneioIndex) {
                         reorderedHeader.push(header);
                         reorderedHeader.push("PESO ENVIADO");
@@ -556,11 +559,12 @@ if ('serviceWorker' in navigator) {
                     if (areaSuperficieIndex !== undefined) {
                         reorderedRow.push(row[areaSuperficieIndex] !== undefined ? row[areaSuperficieIndex] : "");
                     }
-                } else if (colIndex === statusIndex) {
-                    reorderedRow.push(cell !== undefined ? cell : "");
-                    reorderedRow.push(row[dataRomaneioIndex] !== undefined ? row[dataRomaneioIndex] : "");
-                } else if (colIndex === obsRomaneioIndex) {
-                    reorderedRow.push(cell !== undefined ? cell : "");
+              } else if (colIndex === statusIndex) {
+    reorderedRow.push(cell !== undefined ? cell : "");
+    reorderedRow.push(row[observacaoIndex] !== undefined ? row[observacaoIndex] : "");
+    reorderedRow.push(row[dataRomaneioIndex] !== undefined ? row[dataRomaneioIndex] : "");
+}
+
 
                     const pesoUnit = parseValue(row[pesoUnitarioIndex]);
                     const areaUnit = parseValue(row[areaM2UnitarioIndex]);
