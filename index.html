@@ -161,7 +161,9 @@
     <input type="text" id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação" onkeyup="applyFilter()">
     <button onclick="downloadExcel()">Download Excel</button>
     <button onclick="startQrScanner()">Escanear QR Code</button>
- <button onclick="loadExcelFromDirectory()">Carregar Arquivo</button>
+ <button onclick="loadExcelFromDirectory()">Atualizar Arquivo</button>
+
+
 
 
     <div id="qr-container" style="display: none;">
@@ -245,6 +247,11 @@ function loadExcelFromDirectory() {
             findColumnIndexes();
             populateServicoOptions();
             renderTable();
+
+            // Salva os dados carregados
+            localStorage.setItem("uploadedData", JSON.stringify(data));
+            localStorage.removeItem("editedRows");
+            editedRows.clear();
         })
         .catch(error => {
             console.error("Erro ao carregar Excel:", error);
