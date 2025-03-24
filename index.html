@@ -213,7 +213,7 @@
         ];
 
         function loadTesteFile() {
-            fetch("TESTE.xlsx")
+            fetch("teste.xlsx")
                 .then(response => {
                     if (!response.ok) throw new Error(`Erro ao carregar arquivo: ${response.statusText}`);
                     return response.arrayBuffer();
@@ -237,7 +237,7 @@
                 })
                 .catch(error => {
                     console.error("Erro ao carregar o arquivo:", error);
-                    alert("Erro ao carregar o arquivo TESTE.xlsx Verifique se o arquivo existe.");
+                    alert("Erro ao carregar o arquivo teste.xlsx Verifique se o arquivo existe.");
                 });
         }
 
