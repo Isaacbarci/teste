@@ -605,29 +605,29 @@ function downloadExcel() {
 
     const updatedSheet = XLSX.utils.aoa_to_sheet(newData);
 
-    const numberColumns = [
-        "Qtde", "Qtde Enviada", "Saldo", "QTD ENVIADA", "PESO ENVIADO",
-        "ÁREA ENVIADA", "PESO Unitário", "PESO TOTAL", "AREA M² Unitário", "ÁREA M² TOTAL"
+    const integerColumns = ["Qtde", "Qtde Enviada", "Saldo", "QTD ENVIADA"];
+    const decimalColumns = [
+        "PESO ENVIADO", "ÁREA ENVIADA", "PESO Unitário",
+        "PESO TOTAL", "AREA M² Unitário", "ÁREA M² TOTAL"
     ];
 
- numberColumns.forEach(colName => {
-    const colIndex = newData[0].indexOf(colName);
-    if (colIndex !== -1) {
-        for (let i = 1; i < newData.length; i++) {
-            let value = newData[i][colIndex];
-            if (value !== undefined && value !== null && value !== "") {
-                let num = parseFloat(value.toString().replace(",", "."));
-                if (!isNaN(num)) {
-                    const cellAddress = XLSX.utils.encode_cell({ r: i, c: colIndex });
-                    updatedSheet[cellAddress].v = num;
-                    updatedSheet[cellAddress].t = 'n';
-                    updatedSheet[cellAddress].z = "#,##0.00";
+    [...integerColumns, ...decimalColumns].forEach(colName => {
+        const colIndex = newData[0].indexOf(colName);
+        if (colIndex !== -1) {
+            for (let i = 1; i < newData.length; i++) {
+                let value = newData[i][colIndex];
+                if (value !== undefined && value !== null && value !== "") {
+                    let num = parseFloat(value.toString().replace(",", "."));
+                    if (!isNaN(num)) {
+                        const cellAddress = XLSX.utils.encode_cell({ r: i, c: colIndex });
+                        updatedSheet[cellAddress].v = num;
+                        updatedSheet[cellAddress].t = 'n';
+                        updatedSheet[cellAddress].z = integerColumns.includes(colName) ? "0" : "#,##0.00";
+                    }
                 }
             }
         }
-    }
-});
-
+    });
 
     updatedSheet["!cols"] = newData[0].map((_, index) => {
         let maxLength = Math.max(...newData.map(row => (row[index] ? row[index].toString().length : 0)));
@@ -638,7 +638,6 @@ function downloadExcel() {
     XLSX.utils.book_append_sheet(newWorkbook, updatedSheet, "Planilha1");
     XLSX.writeFile(newWorkbook, "Romaneio_Suporte.xlsx");
 }
-
 
 
         document.addEventListener("DOMContentLoaded", () => {
