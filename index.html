@@ -213,37 +213,91 @@
         ];
 
         function loadTesteFile() {
-    // Tenta ambos os nomes (maiúsculas/minúsculas)
-    const filesToTry = ['teste.xlsx', 'TESTE.xlsx'];
+    // Tenta vários nomes possíveis para o arquivo
+    const possibleFiles = [
+        'teste.xlsx',
+        'TESTE.xlsx',
+        './teste.xlsx',
+        './TESTE.xlsx'
+    ];
 
-    // Verifica qual arquivo existe primeiro
-    Promise.any(filesToTry.map(file =>
+    // Cria uma lista de promessas para tentar todos os nomes
+    const fetchPromises = possibleFiles.map(file =>
         fetch(file)
-            .then(res => res.ok ? file : Promise.reject())
-            .catch(() => Promise.reject())
-    ))
-    .then(existingFile => {
-        console.log("Arquivo encontrado:", existingFile);
-        return fetch(existingFile);
-    })
-    .then(response => response.arrayBuffer())
-    .then(arrayBuffer => {
-        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+            .then(response => {
+                if (!response.ok) throw new Error(`${file} não encontrado`);
+                return response.arrayBuffer();
+            })
+            .then(arrayBuffer => {
+                return { file, arrayBuffer };
+            })
+    );
 
-        localStorage.setItem("uploadedData", JSON.stringify(data));
+    // Tenta todos os nomes até achar um que funcione
+    Promise.any(fetchPromises)
+        .then(({ file, arrayBuffer }) => {
+            console.log(`Arquivo carregado: ${file}`);
+            processExcel(arrayBuffer);
+        })
+        .catch(error => {
+            console.error("Todos os arquivos falharam:", error);
+            showFileError();
+        });
+}
+
+function processExcel(arrayBuffer) {
+    try {
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: "" });
+
+        // Atualiza os dados da aplicação
+        data = jsonData;
         filteredData = data.slice(1);
+        editedRows.clear();
+
+        // Salva no localStorage
+        localStorage.setItem("uploadedData", JSON.stringify(data));
+        localStorage.removeItem("editedRows");
+
+        // Atualiza a interface
         findColumnIndexes();
         loadServicos();
         renderTable();
-        alert("Dados carregados com sucesso!");
-    })
-    .catch(error => {
-        const errorMsg = `ERRO CRÍTICO:\n\n1. Verifique se 'teste.xlsx' está na mesma pasta\n2. Confira se está usando um servidor local\n3. O arquivo deve ser .xlsx válido\n\n(Dica: Abra o console para detalhes [F12])`;
-        console.error("Erro técnico:", error);
-        alert(errorMsg);
-    });
+
+        showSuccessMessage("Arquivo carregado com sucesso!");
+    } catch (e) {
+        showFileError("Erro ao processar o arquivo Excel. Pode estar corrompido.");
+    }
+}
+
+function showFileError(message = "Verifique:") {
+    const fullMessage = `
+        ${message}
+        1. O arquivo está na mesma pasta
+        2. O nome é teste.xlsx (sem espaços)
+        3. Você está usando um servidor local
+        4. O arquivo não está aberto em outro programa
+    `;
+    alert(fullMessage);
+}
+
+function showSuccessMessage(msg) {
+    const alertBox = document.createElement('div');
+    alertBox.style = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px;
+        background: #4CAF50;
+        color: white;
+        border-radius: 5px;
+        z-index: 1000;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    `;
+    alertBox.textContent = msg;
+    document.body.appendChild(alertBox);
+    setTimeout(() => alertBox.remove(), 3000);
 }
 
         function loadServicos() {
