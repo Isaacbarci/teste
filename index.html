@@ -227,12 +227,19 @@
                 });
         }
 
-        function loadServicos() {
+      function loadServicos() {
             const servicoIndex = columnIndexes["serviço"];
-            if (servicoIndex === undefined) return;
+            if (servicoIndex === undefined) {
+                console.error("Coluna 'serviço' não encontrada no arquivo.");
+                return;
+            }
 
-            // Extrai todos os serviços únicos
-            servicos = [...new Set(data.slice(1).map(row => row[servicoIndex]).filter(Boolean)];
+            // Extrai todos os serviços únicos, tratando valores vazios/nulos
+            servicos = [...new Set(
+                data.slice(1)
+                    .map(row => String(row[servicoIndex] || "").trim())
+                    .filter(servico => servico !== "")
+            )].sort();
 
             const select = document.getElementById("servicoFilter");
             select.innerHTML = '<option value="">Todos os Serviços</option>';
@@ -243,6 +250,7 @@
                 option.textContent = servico;
                 select.appendChild(option);
             });
+
         }
 
         function applyFilter() {
@@ -630,7 +638,7 @@
             XLSX.writeFile(newWorkbook, "Romaneio_Suporte.xlsx");
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
+   document.addEventListener("DOMContentLoaded", () => {
             // Carrega automaticamente o arquivo TESTE.xlsx
             loadTesteFile();
 
@@ -642,19 +650,10 @@
                     filteredData = data.slice(1);
                     findColumnIndexes();
                     loadServicos();
+                    renderTable();
                 } catch (error) {
                     console.error("Erro ao carregar os dados armazenados:", error);
                     localStorage.removeItem("uploadedData");
-                }
-            }
-
-            const storedEditedRows = localStorage.getItem("editedRows");
-            if (storedEditedRows) {
-                try {
-                    editedRows = new Set(JSON.parse(storedEditedRows));
-                } catch (error) {
-                    console.error("Erro ao carregar as edições armazenadas:", error);
-                    localStorage.removeItem("editedRows");
                 }
             }
         });
