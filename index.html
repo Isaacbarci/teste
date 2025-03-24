@@ -322,11 +322,13 @@ function filterByServico() {
         }
 
         function findColumnIndexes() {
-            columnIndexes = {};
-            data[0].forEach((header, index) => {
-                columnIndexes[header.trim().toLowerCase()] = index;
-            });
-        }
+    columnIndexes = {};
+    data[0].forEach((header, index) => {
+        const normalizedHeader = header.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // remove acentos
+        columnIndexes[normalizedHeader] = index;
+    });
+}
+
 
         function applyFilter() {
     const filterValue = document.getElementById("identificacaoFilter").value.trim().toLowerCase();
