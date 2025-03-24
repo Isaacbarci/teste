@@ -691,18 +691,15 @@ function downloadExcel() {
 }
 
 
-        document.addEventListener("DOMContentLoaded", () => {
-            const storedData = localStorage.getItem("uploadedData");
-            if (storedData) {
-                try {
-                    data = JSON.parse(storedData);
-                    filteredData = data.slice(1);
-                    findColumnIndexes();
-                } catch (error) {
-                    console.error("Erro ao carregar os dados armazenados:", error);
-                    localStorage.removeItem("uploadedData");
-                }
-            }
+     document.addEventListener("DOMContentLoaded", () => {
+    ...
+    if (data.length) {
+        renderTable();
+    }
+
+    loadExcelFromDirectory(); // <-- Carrega automaticamente
+});
+
 
             const storedEditedRows = localStorage.getItem("editedRows");
             if (storedEditedRows) {
