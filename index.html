@@ -595,7 +595,7 @@ if ('serviceWorker' in navigator) {
         ];
 
         // Formatação das colunas numéricas
-        numberColumns.forEach(colName => {
+                numberColumns.forEach(colName => {
             const colIndex = newData[0].indexOf(colName);
             if (colIndex !== -1) {
                 for (let i = 1; i < newData.length; i++) {
@@ -603,15 +603,16 @@ if ('serviceWorker' in navigator) {
                     if (value !== undefined && value !== null && value !== "") {
                         let num = parseFloat(value.toString().replace(",", "."));
                         if (!isNaN(num)) {
-                            let stringFormatted = num.toFixed(2).replace(".", ",");
                             const cellAddress = XLSX.utils.encode_cell({ r: i, c: colIndex });
-                            updatedSheet[cellAddress].v = stringFormatted;
-                            updatedSheet[cellAddress].t = 's';
+                            updatedSheet[cellAddress].v = num;
+                            updatedSheet[cellAddress].t = 'n'; // número
+                            updatedSheet[cellAddress].z = "#,##0.00"; // formatação numérica com vírgula
                         }
                     }
                 }
             }
         });
+
 
 
         // Ajusta a largura das colunas
