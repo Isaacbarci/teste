@@ -610,23 +610,24 @@ function downloadExcel() {
         "ÁREA ENVIADA", "PESO Unitário", "PESO TOTAL", "AREA M² Unitário", "ÁREA M² TOTAL"
     ];
 
-    numberColumns.forEach(colName => {
-        const colIndex = newData[0].indexOf(colName);
-        if (colIndex !== -1) {
-            for (let i = 1; i < newData.length; i++) {
-                let value = newData[i][colIndex];
-                if (value !== undefined && value !== null && value !== "") {
-                    let num = parseFloat(value.toString().replace(",", "."));
-                    if (!isNaN(num)) {
-                        let stringFormatted = num.toFixed(2).replace(".", ",");
-                        const cellAddress = XLSX.utils.encode_cell({ r: i, c: colIndex });
-                        updatedSheet[cellAddress].v = stringFormatted;
-                        updatedSheet[cellAddress].t = 's';
-                    }
+ numberColumns.forEach(colName => {
+    const colIndex = newData[0].indexOf(colName);
+    if (colIndex !== -1) {
+        for (let i = 1; i < newData.length; i++) {
+            let value = newData[i][colIndex];
+            if (value !== undefined && value !== null && value !== "") {
+                let num = parseFloat(value.toString().replace(",", "."));
+                if (!isNaN(num)) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: i, c: colIndex });
+                    updatedSheet[cellAddress].v = num;
+                    updatedSheet[cellAddress].t = 'n';
+                    updatedSheet[cellAddress].z = "#,##0.00";
                 }
             }
         }
-    });
+    }
+});
+
 
     updatedSheet["!cols"] = newData[0].map((_, index) => {
         let maxLength = Math.max(...newData.map(row => (row[index] ? row[index].toString().length : 0)));
