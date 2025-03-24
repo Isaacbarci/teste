@@ -262,7 +262,8 @@ function loadExcelFromDirectory() {
 
 
 function populateServicoOptions() {
-    const servicoIndex = columnIndexes["serviço"];
+    const servicoIndex = columnIndexes["servico"]; // sem acento, tudo minúsculo
+
     if (servicoIndex === undefined) return;
 
     const uniqueServicos = new Set();
@@ -285,7 +286,8 @@ function populateServicoOptions() {
 
 function filterByServico() {
     const servicoSelecionado = document.getElementById("servicoFilter").value;
-    const servicoIndex = columnIndexes["serviço"];
+    const servicoIndex = columnIndexes["servico"]; // sem acento, tudo minúsculo
+
 
     if (!data.length || servicoIndex === undefined) return;
 
