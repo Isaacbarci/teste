@@ -145,6 +145,7 @@
         Developed by Isaac Dutra
     </p>
 
+    <button onclick="loadTesteFile()">Atualizar Arquivo</button>
     <select id="servicoFilter" style="margin-left: 5px;">
         <option value="">Todos os Serviços</option>
     </select>
@@ -218,6 +219,7 @@
                     findColumnIndexes();
                     loadServicos();
                     renderTable();
+                    alert("Arquivo atualizado com sucesso!");
                 })
                 .catch(error => {
                     console.error("Erro ao carregar o arquivo:", error);
