@@ -564,7 +564,10 @@ function downloadExcel() {
                     const cellRef = XLSX.utils.encode_cell({ r: i, c: colIndex });
                     if (ws[cellRef] && ws[cellRef].v !== '') {
                         ws[cellRef].t = 'n';
-                        ws[cellRef].v = parseFloat(ws[cellRef].v.toString().replace(',', '.'));
+                       ws[cellRef].v = parseFloat(
+    ws[cellRef].v.toString().replace(/\./g, '').replace(',', '.')
+);
+
                         ws[cellRef].z = '#,##0.00';
                     }
                 }
