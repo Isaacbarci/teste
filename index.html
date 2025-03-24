@@ -18,7 +18,7 @@
             padding: 20px;
             margin: 0;
         }
-        input[type="text"], button {
+        input[type="text"], button, select {
             margin: 5px;
             padding: 10px;
             border-radius: 5px;
@@ -124,46 +124,33 @@
         }
         .edited-row {
             background-color: darkgray !important;
-
-   }
-           .saldo-negativo {
+        }
+        .saldo-negativo {
             color: red;
             font-weight: bold;
         }
-
         .saldo-positivo {
             color: green;
             font-weight: bold;
         }
-
     </style>
 </head>
 <body>
- <!-- Cabeçalho com Logo e Título -->
-  <h2 style="display: flex; align-items: center;">
-    <img src="image.png" alt="Logo" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;">
-    <span style="font-size: 23px;">ROMANEIO DE SUPORTE TESTE</span>
-</h2>
-<p style="font-size: 6px; color: white; margin-left: 17px; margin-top: -14px;">
-    Developed by Isaac Dutra
-</p>
+    <h2 style="display: flex; align-items: center;">
+        <img src="image.png" alt="Logo" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;">
+        <span style="font-size: 23px;">ROMANEIO DE SUPORTE TESTE</span>
+    </h2>
+    <p style="font-size: 6px; color: white; margin-left: 17px; margin-top: -14px;">
+        Developed by Isaac Dutra
+    </p>
 
-
-
-</select>
-
-
-
-
-</select>
-    <button onclick="confirmUpdate()">Atualizar Arquivo</button>
+    <select id="servicoFilter" style="margin-left: 5px;">
+        <option value="">Selecione um serviço</option>
+    </select>
+    <button onclick="loadServicoData()">Carregar Serviço</button>
     <input type="text" id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação" onkeyup="applyFilter()">
     <button onclick="downloadExcel()">Download Excel</button>
     <button onclick="startQrScanner()">Escanear QR Code</button>
-
-
-
-
 
     <div id="qr-container" style="display: none;">
         <div id="qr-reader" style="width:300px; margin-top:10px;"></div>
@@ -174,7 +161,7 @@
         <table id="dataTable"></table>
     </div>
 
-   <div id="editModal" class="modal">
+    <div id="editModal" class="modal">
         <input type="hidden" id="editIndex">
         <label>Posição / TAG: <input type="text" id="POSICAOTAG" readonly></label>
         <label>Identificação 1: <input type="text" id="IDENTIFICACAO1" readonly></label>
@@ -192,16 +179,11 @@
     <script>
         let data = [];
         let filteredData = [];
-         let excelTempData = [];
         let columnIndexes = {};
         let editedRows = new Set();
         let qrScanner;
-
-
-const localExcelPath = "TESTE.xlsx"; // ou ajuste o caminho correto se estiver em outra pasta
-
-
-        const rowsPerPage = 500; // Número de linhas por página
+        const excelFileURL = "TESTE.xlsx";
+        const rowsPerPage = 500;
 
         const hiddenColumns = [
             "desenho suporte", "informações", "isométrico", "peso (kg)", "cond. pintura",
@@ -212,168 +194,119 @@ const localExcelPath = "TESTE.xlsx"; // ou ajuste o caminho correto se estiver e
             "identificação 2", "area m²", "peso"
         ];
 
-       function handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+        // Carrega a lista de serviços disponíveis
+        function loadServicos() {
+            fetch(excelFileURL)
+                .then(response => {
+                    if (!response.ok) throw new Error("Erro ao carregar o arquivo.");
+                    return response.arrayBuffer();
+                })
+                .then(arrayBuffer => {
+                    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
-    const reader = new FileReader();
-    reader.onload = function (e) {
-        const arrayBuffer = e.target.result;
-        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
+                    const servicoIndex = getColumnIndex(jsonData[0], "serviço");
+                    if (servicoIndex === -1) return;
 
-        data = jsonData;
-        filteredData = data.slice(1);
-        findColumnIndexes();
-        populateServicoOptions();
-        renderTable();
-    };
-    reader.readAsArrayBuffer(file);
-}
+                    const servicos = [...new Set(jsonData.slice(1).map(row => row[servicoIndex]).filter(Boolean)];
+                    const select = document.getElementById("servicoFilter");
 
- function loadExcelFromDirectory() {
-        fetch("TESTE.xlsx")
-            .then(response => {
-                if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
-                return response.arrayBuffer();
-            })
-            .then(arrayBuffer => {
-                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-                const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
+                    servicos.sort().forEach(servico => {
+                        const option = document.createElement("option");
+                        option.value = servico;
+                        option.textContent = servico;
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error("Erro ao carregar serviços:", error);
+                    alert("Não foi possível carregar a lista de serviços.");
+                });
+        }
 
-                excelTempData = jsonData;
-                findColumnIndexes(excelTempData);
-                populateServicoOptions(excelTempData);
+        // Carrega os dados de um serviço específico
+        function loadServicoData() {
+            const servicoSelecionado = document.getElementById("servicoFilter").value;
+            if (!servicoSelecionado) {
+                alert("Selecione um serviço primeiro!");
+                return;
+            }
 
-                document.getElementById("dataTable").innerHTML = "";
-                document.getElementById("servicoFilter").value = "";
+            fetch(excelFileURL)
+                .then(response => {
+                    if (!response.ok) throw new Error("Erro ao carregar o arquivo.");
+                    return response.arrayBuffer();
+                })
+                .then(arrayBuffer => {
+                    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
-                localStorage.removeItem("servicoFiltrado");
-            })
-            .catch(error => {
-                console.error("Erro ao carregar Excel:", error);
-                alert("Não foi possível carregar o arquivo do diretório.");
-            });
-    }
+                    const servicoIndex = getColumnIndex(jsonData[0], "serviço");
+                    if (servicoIndex === -1) return;
 
+                    const filteredRows = jsonData.slice(1).filter(row => row[servicoIndex] === servicoSelecionado);
 
+                    data = [jsonData[0], ...filteredRows];
+                    filteredData = filteredData = filteredRows;
 
-function populateServicoOptions(dataset) {
-    const index = getColumnIndex(dataset[0], "serviço");
-    if (index === -1) return;
+                    findColumnIndexes();
+                    renderTable();
+                })
+                .catch(error => {
+                    console.error("Erro ao carregar dados do serviço:", error);
+                    alert("Não foi possível carregar os dados do serviço.");
+                });
+        }
 
-    const unique = [...new Set(dataset.slice(1).map(row => row[index]).filter(Boolean))];
-
-    const select = document.getElementById("servicoFilter");
-    select.innerHTML = '<option value="">Todos os Serviços</option>';
-
-    unique.sort().forEach(servico => {
-        const option = document.createElement("option");
-        option.value = servico;
-        option.textContent = servico;
-        select.appendChild(option);
-    });
-}
-
-function getColumnIndex(headerRow, name) {
-    const normalized = name.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    return headerRow.findIndex(h =>
-        h.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === normalized
-    );
-}
-
-
-
-
-
-
-
-function filterByServico() {
-    const servicoSelecionado = document.getElementById("servicoFilter").value;
-    if (!excelTempData.length) return;
-
-    const servicoIndex = getColumnIndex(excelTempData[0], "serviço");
-
-    if (servicoIndex === -1 || !servicoSelecionado) {
-        document.getElementById("dataTable").innerHTML = "";
-        localStorage.removeItem("servicoFiltrado");
-        return;
-    }
-
-    const headers = excelTempData[0];
-    const rows = excelTempData.slice(1).filter(row => row[servicoIndex] === servicoSelecionado);
-
-    filteredData = rows;
-    data = [headers, ...rows]; // usado apenas para renderização
-
-    localStorage.setItem("servicoFiltrado", JSON.stringify({
-        headers,
-        rows
-    }));
-
-    findColumnIndexes(data); // para usar nas colunas
-    renderTable();
-}
-
-
+        function getColumnIndex(headerRow, columnName) {
+            const normalized = columnName.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            return headerRow.findIndex(h =>
+                h.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === normalized
+            );
+        }
 
         function formatDate(dateString) {
             if (!dateString) return "";
-
             const date = new Date(dateString);
             if (isNaN(date.getTime())) return "";
-
-            const day = String(date.getUTCDate()).padStart(2, "0");
-            const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-            const year = date.getUTCFullYear();
-
-            return `${day}/${month}/${year}`;
+            return date.toLocaleDateString("pt-BR");
         }
 
         function formatDateForInput(dateString) {
             if (!dateString) return "";
             const date = new Date(dateString);
             if (isNaN(date.getTime())) return "";
-            const day = String(date.getUTCDate()).padStart(2, "0");
-            const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-            const year = date.getUTCFullYear();
-            return `${year}-${month}-${day}`;
+            return date.toISOString().split('T')[0];
         }
 
         function findColumnIndexes() {
-    columnIndexes = {};
-    data[0].forEach((header, index) => {
-        const normalizedHeader = header.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // remove acentos
-        columnIndexes[normalizedHeader] = index;
-    });
-}
-
+            columnIndexes = {};
+            data[0].forEach((header, index) => {
+                const normalizedHeader = header.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                columnIndexes[normalizedHeader] = index;
+            });
+        }
 
         function applyFilter() {
-    const filterValue = document.getElementById("identificacaoFilter").value.trim().toLowerCase();
+            const filterValue = document.getElementById("identificacaoFilter").value.trim().toLowerCase();
+            const qrColumnIndex = columnIndexes["qr"];
+            const identificacao1Index = columnIndexes["identificação 1"];
 
-    // Verifica se as colunas "QR" e "Identificação 1" existem
-    const qrColumnIndex = columnIndexes["qr"];
-    const identificacao1Index = columnIndexes["identificação 1"];
+            if (qrColumnIndex === undefined || identificacao1Index === undefined) {
+                console.error("Coluna 'QR' ou 'Identificação 1' não encontrada.");
+                return;
+            }
 
-    if (qrColumnIndex === undefined || identificacao1Index === undefined) {
-        console.error("Coluna 'QR' ou 'Identificação 1' não encontrada.");
-        return;
-    }
+            filteredData = data.slice(1).filter(row => {
+                const qrValue = String(row[qrColumnIndex]).toLowerCase();
+                const identificacao1Value = String(row[identificacao1Index]).toLowerCase();
+                return qrValue.includes(filterValue) || identificacao1Value.includes(filterValue);
+            });
 
-    // Filtra os dados com base no valor do filtro
-    filteredData = data.slice(1).filter(row => {
-        const qrValue = String(row[qrColumnIndex]).toLowerCase();
-        const identificacao1Value = String(row[identificacao1Index]).toLowerCase();
-
-        // Retorna true se o valor do filtro estiver presente em qualquer uma das colunas
-        return qrValue.includes(filterValue) || identificacao1Value.includes(filterValue);
-    });
-
-    renderTable();
-}
+            renderTable();
+        }
 
         function renderTable() {
             const table = document.getElementById("dataTable");
@@ -395,27 +328,24 @@ function filterByServico() {
             fragment.appendChild(headerRow);
 
             filteredData.slice(0, rowsPerPage).forEach((row, index) => {
-                const originalIndex = data.indexOf(row);
-                if (originalIndex === -1) return;
-
                 const tr = document.createElement("tr");
-                tr.onclick = () => openEditModal(originalIndex);
+                tr.onclick = () => openEditModal(index + 1); // +1 porque o índice 0 é o cabeçalho
 
-                row.forEach((cell, colIndex) => {
-                    if (!hiddenColumns.includes(data[0][colIndex].trim().toLowerCase())) {
+                data[0].forEach((header, colIndex) => {
+                    if (!hiddenColumns.includes(header.trim().toLowerCase())) {
                         const td = document.createElement("td");
 
-                        if (data[0][colIndex].toLowerCase() === "data do romaneio") {
-                            td.textContent = formatDate(cell);
+                        if (header.toLowerCase() === "data do romaneio") {
+                            td.textContent = formatDate(row[colIndex]);
                         } else {
-                            td.textContent = cell || "";
+                            td.textContent = row[colIndex] || "";
                         }
 
                         tr.appendChild(td);
                     }
                 });
 
-                if (editedRows.has(originalIndex)) {
+                if (editedRows.has(index + 1)) {
                     tr.classList.add("edited-row");
                 }
 
@@ -425,7 +355,7 @@ function filterByServico() {
             table.appendChild(fragment);
         }
 
-            function openEditModal(index) {
+        function openEditModal(index) {
             if (index < 0 || index >= data.length) return;
 
             document.getElementById("editIndex").value = index;
@@ -443,7 +373,6 @@ function filterByServico() {
             const saldoInput = document.getElementById("Saldo");
             saldoInput.value = saldo;
 
-            // Aplicar estilo com base no valor do saldo
             if (saldo <= 0) {
                 saldoInput.classList.add("saldo-negativo");
                 saldoInput.classList.remove("saldo-positivo");
@@ -455,12 +384,6 @@ function filterByServico() {
             document.getElementById("editModal").style.display = "block";
         }
 
-        function closeModal() {
-            const saldoInput = document.getElementById("Saldo");
-            saldoInput.classList.remove("saldo-negativo", "saldo-positivo"); // Limpa os estilos ao fechar o modal
-            document.getElementById("editModal").style.display = "none";
-        }
-
         function saveEdit() {
             const originalIndex = parseInt(document.getElementById("editIndex").value);
             if (originalIndex < 0 || originalIndex >= data.length) return;
@@ -469,15 +392,11 @@ function filterByServico() {
             data[originalIndex][columnIndexes["qtd enviada"]] = document.getElementById("QTDENVIADA").value;
             data[originalIndex][columnIndexes["obs romaneio"]] = document.getElementById("OBSROMANEIO").value;
 
-            const dataRomaneio = document.getElementById("DATADOROMANEIO").value;
-            if (!dataRomaneio) {
-                editedRows.delete(originalIndex);
-            } else {
+            if (document.getElementById("DATADOROMANEIO").value) {
                 editedRows.add(originalIndex);
+            } else {
+                editedRows.delete(originalIndex);
             }
-
-            localStorage.setItem("uploadedData", JSON.stringify(data));
-            localStorage.setItem("editedRows", JSON.stringify(Array.from(editedRows)));
 
             document.getElementById("editModal").style.display = "none";
             renderTable();
@@ -522,262 +441,23 @@ function filterByServico() {
             }
         }
 
-
-if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js')
-                .then((registration) => {
-                    console.log('Service Worker registrado com sucesso:', registration);
-                })
-                .catch((error) => {
-                    console.error('Erro ao registrar o Service Worker:', error);
-                });
-        }
-
-function downloadExcel() {
-    if (!data.length) {
-        alert("Nenhum dado carregado para exportar.");
-        return;
-    }
-
-    let headerRow = [...data[0]];
-    let pesoKgIndex = columnIndexes["peso (kg)"];
-    let areaSuperficieIndex = columnIndexes["área superfície"];
-    let pesoUnitarioIndex = columnIndexes["peso unitário"];
-    let areaM2UnitarioIndex = columnIndexes["area m² unitário"];
-    let qtdeIndex = columnIndexes["qtde"];
-    let qtdeEnviadaIndex = columnIndexes["qtde enviada"];
-    let saldoIndex = columnIndexes["saldo"];
-    let qtdEnviadaIndex = columnIndexes["qtd enviada"];
-    let dataRomaneioIndex = columnIndexes["data do romaneio"];
-    let statusIndex = columnIndexes["status"];
-    let observacaoIndex = columnIndexes["observação"];
-    let dataRecebimentoIndex = columnIndexes["data recebimento"];
-    let obsRomaneioIndex = columnIndexes["obs romaneio"];
-    let dataCadastroIndex = columnIndexes["data cadastro"];
-
-    let newData = data.map((row, index) => {
-        if (index === 0) {
-            let reorderedHeader = [];
-
-            headerRow.forEach((header, colIndex) => {
-                if (colIndex === dataCadastroIndex) return;
-
-                if (colIndex === pesoUnitarioIndex) {
-                    reorderedHeader.push(header);
-                    if (pesoKgIndex !== undefined) reorderedHeader.push("PESO TOTAL");
-
-                } else if (colIndex === areaM2UnitarioIndex) {
-                    reorderedHeader.push(header);
-                    if (areaSuperficieIndex !== undefined) {
-                        reorderedHeader.push("ÁREA M² TOTAL");
-                    }
-
-                } else if (colIndex === statusIndex) {
-                    reorderedHeader.push(header); // Status
-                    reorderedHeader.push(headerRow[observacaoIndex]); // Observação
-                    reorderedHeader.push(headerRow[dataRomaneioIndex]); // Data do Romaneio
-
-                } else if (colIndex === obsRomaneioIndex) {
-                    reorderedHeader.push(header);
-                    reorderedHeader.push("PESO ENVIADO");
-                    reorderedHeader.push("ÁREA ENVIADA");
-
-                } else if (
-                    colIndex !== pesoKgIndex &&
-                    colIndex !== areaSuperficieIndex &&
-                    colIndex !== dataRomaneioIndex &&
-                    colIndex !== observacaoIndex
-                ) {
-                    reorderedHeader.push(header);
-                }
-            });
-
-            return reorderedHeader;
-        }
-
-        const parseValue = (value) => {
-            if (value === "" || value === null || value === undefined) return undefined;
-            return parseFloat(value.toString().replace(",", "."));
-        };
-
-        let qtde = parseValue(row[qtdeIndex]);
-        let qtdeEnviada = parseValue(row[qtdeEnviadaIndex]);
-        let saldo = parseValue(row[saldoIndex]);
-        let qtdEnviada = parseValue(row[qtdEnviadaIndex]);
-        let pesoKg = parseValue(row[pesoKgIndex]);
-        let areaSuperficie = parseValue(row[areaSuperficieIndex]);
-
-        if (qtde !== undefined && qtde > 0) {
-            row[pesoUnitarioIndex] = parseFloat((pesoKg / qtde).toFixed(2));
-            row[areaM2UnitarioIndex] = parseFloat((areaSuperficie / qtde).toFixed(2));
-        } else {
-            row[pesoUnitarioIndex] = undefined;
-            row[areaM2UnitarioIndex] = undefined;
-        }
-
-        Object.entries(columnIndexes).forEach(([colName, colIndex]) => {
-            if (colName.includes("data") && colName !== "data cadastro") {
-                let dateValue = row[colIndex];
-                if (dateValue && !isNaN(new Date(dateValue))) {
-                    let dateObj = new Date(dateValue);
-                    dateObj.setDate(dateObj.getDate() + 1);
-                    row[colIndex] = dateObj.toLocaleDateString("pt-BR");
-                }
-            }
-        });
-
-        let reorderedRow = [];
-
-        row.forEach((cell, colIndex) => {
-            if (colIndex === dataCadastroIndex) return;
-
-            if (colIndex === pesoUnitarioIndex) {
-                reorderedRow.push(cell !== undefined ? cell : "");
-                if (pesoKgIndex !== undefined) {
-                    reorderedRow.push(row[pesoKgIndex] !== undefined ? row[pesoKgIndex] : "");
-                }
-
-            } else if (colIndex === areaM2UnitarioIndex) {
-                reorderedRow.push(cell !== undefined ? cell : "");
-                if (areaSuperficieIndex !== undefined) {
-                    reorderedRow.push(row[areaSuperficieIndex] !== undefined ? row[areaSuperficieIndex] : "");
-                }
-
-            } else if (colIndex === statusIndex) {
-                reorderedRow.push(cell !== undefined ? cell : ""); // Status
-                reorderedRow.push(row[observacaoIndex] !== undefined ? row[observacaoIndex] : ""); // Observação
-                reorderedRow.push(row[dataRomaneioIndex] !== undefined ? row[dataRomaneioIndex] : ""); // Data do Romaneio
-
-            } else if (colIndex === obsRomaneioIndex) {
-                reorderedRow.push(cell !== undefined ? cell : "");
-
-                const pesoUnit = parseValue(row[pesoUnitarioIndex]);
-                const areaUnit = parseValue(row[areaM2UnitarioIndex]);
-                const qtdEnv = parseValue(row[qtdEnviadaIndex]);
-
-                const pesoEnviado = (pesoUnit !== undefined && qtdEnv !== undefined)
-                    ? parseFloat((pesoUnit * qtdEnv).toFixed(2)) : "";
-
-                const areaEnviada = (areaUnit !== undefined && qtdEnv !== undefined)
-                    ? parseFloat((areaUnit * qtdEnv).toFixed(2)) : "";
-
-                reorderedRow.push(pesoEnviado);
-                reorderedRow.push(areaEnviada);
-
-            } else if (
-                colIndex !== pesoKgIndex &&
-                colIndex !== areaSuperficieIndex &&
-                colIndex !== dataRomaneioIndex &&
-                colIndex !== observacaoIndex
-            ) {
-                reorderedRow.push(cell !== undefined ? cell : "");
-            }
-        });
-
-        return reorderedRow;
-    });
-
-    const updatedSheet = XLSX.utils.aoa_to_sheet(newData);
-
-    const integerColumns = ["Qtde", "Qtde Enviada", "Saldo", "QTD ENVIADA"];
-    const decimalColumns = [
-        "PESO ENVIADO", "ÁREA ENVIADA", "PESO Unitário",
-        "PESO TOTAL", "AREA M² Unitário", "ÁREA M² TOTAL"
-    ];
-
-    [...integerColumns, ...decimalColumns].forEach(colName => {
-        const colIndex = newData[0].indexOf(colName);
-        if (colIndex !== -1) {
-            for (let i = 1; i < newData.length; i++) {
-                let value = newData[i][colIndex];
-                if (value !== undefined && value !== null && value !== "") {
-                    let num = parseFloat(value.toString().replace(",", "."));
-                    if (!isNaN(num)) {
-                        const cellAddress = XLSX.utils.encode_cell({ r: i, c: colIndex });
-                        updatedSheet[cellAddress].v = num;
-                        updatedSheet[cellAddress].t = 'n';
-                        updatedSheet[cellAddress].z = integerColumns.includes(colName) ? "0" : "#,##0.00";
-                    }
-                }
-            }
-        }
-    });
-
-    updatedSheet["!cols"] = newData[0].map((_, index) => {
-        let maxLength = Math.max(...newData.map(row => (row[index] ? row[index].toString().length : 0)));
-        return { wch: maxLength + 2 };
-    });
-
-    const newWorkbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(newWorkbook, updatedSheet, "Planilha1");
-    XLSX.writeFile(newWorkbook, "Romaneio_Suporte.xlsx");
-}
-
-
-document.addEventListener("DOMContentLoaded", () => {
-    const salvo = localStorage.getItem("servicoFiltrado");
-    if (salvo) {
-        try {
-            const json = JSON.parse(salvo);
-            data = [json.headers, ...json.rows];
-            filteredData = json.rows;
-            findColumnIndexes();
-            renderTable();
-        } catch (e) {
-            console.error("Erro ao restaurar serviço salvo:", e);
-        }
-    }
-});
-
-
-function confirmUpdate() {
-    const servicoSelecionado = document.getElementById("servicoFilter").value;
-    if (!servicoSelecionado) {
-        alert("Selecione um serviço!");
-        return;
-    }
-
-    fetch(localExcelPath)
-        .then(res => {
-            if (!res.ok) throw new Error("Erro ao carregar Excel");
-            return res.arrayBuffer();
-        })
-        .then(arrayBuffer => {
-            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
-
-            const header = jsonData[0];
-            const indexServico = getColumnIndex(header, "serviço");
-
-            const rowsFiltradas = jsonData.slice(1).filter(row => row[indexServico] === servicoSelecionado);
-
-            if (!rowsFiltradas.length) {
-                alert("Serviço não encontrado no arquivo!");
+        function downloadExcel() {
+            if (!data.length) {
+                alert("Nenhum dado carregado para exportar.");
                 return;
             }
 
-            data = [header, ...rowsFiltradas];
-            filteredData = rowsFiltradas;
-            findColumnIndexes();
-            renderTable();
+            const workbook = XLSX.utils.book_new();
+            const worksheet = XLSX.utils.aoa_to_sheet(data);
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Planilha1");
+            XLSX.writeFile(workbook, "Romaneio_Suporte.xlsx");
+        }
 
-            // Salva somente os dados filtrados
-            localStorage.setItem("servicoFiltrado", JSON.stringify({
-                headers: header,
-                rows: rowsFiltradas,
-                servico: servicoSelecionado
-            }));
-
-        }).catch(err => {
-            console.error(err);
-            alert("Erro ao carregar arquivo.");
+        // Inicializa quando o documento estiver pronto
+        document.addEventListener("DOMContentLoaded", () => {
+            // Carrega apenas a lista de serviços disponíveis
+            loadServicos();
         });
-}
-
-
-
-
-</script>
+    </script>
 </body>
 </html>
