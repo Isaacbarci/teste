@@ -213,33 +213,38 @@
         ];
 
         function loadTesteFile() {
-            fetch("teste.xlsx")
-                .then(response => {
-                    if (!response.ok) throw new Error(`Erro ao carregar arquivo: ${response.statusText}`);
-                    return response.arrayBuffer();
-                })
-                .then(arrayBuffer => {
-                    const workbook = XLSX.read(arrayBuffer, { type: 'array', cellFormula: true });
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
+    // Tenta ambos os nomes (maiúsculas/minúsculas)
+    const filesToTry = ['teste.xlsx', 'TESTE.xlsx'];
 
-                    data = jsonData;
-                    localStorage.setItem("uploadedData", JSON.stringify(data));
+    // Verifica qual arquivo existe primeiro
+    Promise.any(filesToTry.map(file =>
+        fetch(file)
+            .then(res => res.ok ? file : Promise.reject())
+            .catch(() => Promise.reject())
+    ))
+    .then(existingFile => {
+        console.log("Arquivo encontrado:", existingFile);
+        return fetch(existingFile);
+    })
+    .then(response => response.arrayBuffer())
+    .then(arrayBuffer => {
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
 
-                    filteredData = data.slice(1);
-                    editedRows.clear();
-                    localStorage.removeItem("editedRows");
-
-                    findColumnIndexes();
-                    loadServicos();
-                    renderTable();
-                    alert("Arquivo atualizado com sucesso!");
-                })
-                .catch(error => {
-                    console.error("Erro ao carregar o arquivo:", error);
-                    alert("Erro ao carregar o arquivo teste.xlsx Verifique se o arquivo existe.");
-                });
-        }
+        localStorage.setItem("uploadedData", JSON.stringify(data));
+        filteredData = data.slice(1);
+        findColumnIndexes();
+        loadServicos();
+        renderTable();
+        alert("Dados carregados com sucesso!");
+    })
+    .catch(error => {
+        const errorMsg = `ERRO CRÍTICO:\n\n1. Verifique se 'teste.xlsx' está na mesma pasta\n2. Confira se está usando um servidor local\n3. O arquivo deve ser .xlsx válido\n\n(Dica: Abra o console para detalhes [F12])`;
+        console.error("Erro técnico:", error);
+        alert(errorMsg);
+    });
+}
 
         function loadServicos() {
             // Verifica todas as colunas para encontrar a de serviço (case insensitive)
