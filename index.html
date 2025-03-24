@@ -512,9 +512,10 @@ function downloadExcel() {
         }
 
         const parseValue = (value) => {
-            if (value === "" || value === null || value === undefined) return undefined;
-            return parseFloat(value.toString().replace(",", "."));
-        };
+    if (value === "" || value === null || value === undefined) return undefined;
+    const num = parseFloat(value.toString().replace(",", "."));
+    return isNaN(num) ? undefined : num;
+};
 
         const formatNumber = (value) => {
             if (value === undefined || value === null || value === "") return "";
