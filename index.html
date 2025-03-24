@@ -243,23 +243,19 @@ function loadExcelFromDirectory() {
             const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
             data = jsonData;
-            filteredData = []; // ainda não filtra
+            filteredData = [];
             findColumnIndexes();
             populateServicoOptions();
 
-            // Limpa tabela
             document.getElementById("dataTable").innerHTML = "";
-
-            // Salva no localStorage
-            localStorage.setItem("uploadedData", JSON.stringify(data));
-            localStorage.removeItem("editedRows");
-            editedRows.clear();
+            document.getElementById("servicoFilter").value = "";
         })
         .catch(error => {
             console.error("Erro ao carregar Excel:", error);
             alert("Não foi possível carregar o arquivo do diretório.");
         });
 }
+
 
 
 
@@ -304,17 +300,22 @@ function confirmUpdate() {
 
 function filterByServico() {
     const servicoSelecionado = document.getElementById("servicoFilter").value;
-    const servicoIndex = columnIndexes["servico"]; // com acento já tratado via normalize
+    const servicoIndex = columnIndexes["servico"]; // header normalizado
 
     if (!data.length || servicoIndex === undefined || !servicoSelecionado) {
-        // Se não selecionou serviço, limpa a tabela
         document.getElementById("dataTable").innerHTML = "";
+        localStorage.removeItem("servicoFiltrado");
         return;
     }
 
     filteredData = data.slice(1).filter(row => {
         return row[servicoIndex] === servicoSelecionado;
     });
+
+    localStorage.setItem("servicoFiltrado", JSON.stringify({
+        headers: data[0],
+        rows: filteredData
+    }));
 
     renderTable();
 }
@@ -715,30 +716,24 @@ function downloadExcel() {
 }
 
 
-    document.addEventListener("DOMContentLoaded", () => {
-    const storedData = localStorage.getItem("uploadedData");
-    const storedEditedRows = localStorage.getItem("editedRows");
+   document.addEventListener("DOMContentLoaded", () => {
+    const saved = localStorage.getItem("servicoFiltrado");
 
-    if (storedData) {
+    if (saved) {
         try {
-            data = JSON.parse(storedData);
-            filteredData = data.slice(1);
+            const parsed = JSON.parse(saved);
+            data = [parsed.headers, ...parsed.rows];
+            filteredData = parsed.rows;
             findColumnIndexes();
-            populateServicoOptions();
             renderTable();
         } catch (error) {
-            console.error("Erro ao carregar dados do localStorage:", error);
+            console.error("Erro ao restaurar serviço salvo:", error);
         }
-    }
-
-    if (storedEditedRows) {
-        try {
-            editedRows = new Set(JSON.parse(storedEditedRows));
-        } catch (error) {
-            console.error("Erro ao carregar edições:", error);
-        }
+    } else {
+        document.getElementById("dataTable").innerHTML = "";
     }
 });
+
 
 
 
