@@ -525,7 +525,7 @@ function downloadExcel() {
         ];
 
         // Filtra e ordena as colunas
-        const filteredHeaders = newData[0].filter((header, index)) => {
+        const filteredHeaders = newData[0].filter((header, index) => {
             const headerName = header.trim().toLowerCase();
             return !hiddenColumns.includes(headerName) || columnsOrder.includes(headerName);
         });
@@ -572,12 +572,13 @@ function downloadExcel() {
         });
 
         // Ajusta a largura das colunas
-        ws['!cols'] = filteredHeaders.map(header => ({
-            wch: Math.max(
-                header.length,
-                ...exportData.map(row => (row[header] ? row[header].toString().length : 0)
-            ) + 2
-        }));
+       ws['!cols'] = filteredHeaders.map(header => ({
+    wch: Math.max(
+        header.length,
+        ...exportData.map(row => (row[header] ? row[header].toString().length : 0))
+    ) + 2
+}));
+
 
         // Cria o workbook e faz o download
         const wb = XLSX.utils.book_new();
