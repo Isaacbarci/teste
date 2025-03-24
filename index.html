@@ -493,11 +493,15 @@ if ('serviceWorker' in navigator) {
                     } else if (colIndex === areaM2UnitarioIndex) {
                         reorderedHeader.push(header);
                         if (areaSuperficieIndex !== undefined) reorderedHeader.push("ÁREA M² TOTAL");
-                   } else if (colIndex === statusIndex) {
+
+
+                  } else if (colIndex === statusIndex) {
     reorderedHeader.push(header);
     reorderedHeader.push(headerRow[observacaoIndex]);
     reorderedHeader.push(headerRow[dataRomaneioIndex]);
 }
+
+
 
                     } else if (colIndex === obsRomaneioIndex) {
                         reorderedHeader.push(header);
@@ -559,11 +563,14 @@ if ('serviceWorker' in navigator) {
                     if (areaSuperficieIndex !== undefined) {
                         reorderedRow.push(row[areaSuperficieIndex] !== undefined ? row[areaSuperficieIndex] : "");
                     }
-              } else if (colIndex === statusIndex) {
+
+               } else if (colIndex === statusIndex) {
     reorderedRow.push(cell !== undefined ? cell : "");
     reorderedRow.push(row[observacaoIndex] !== undefined ? row[observacaoIndex] : "");
     reorderedRow.push(row[dataRomaneioIndex] !== undefined ? row[dataRomaneioIndex] : "");
 }
+
+
 
                 } else if (colIndex === obsRomaneioIndex) {
                     reorderedRow.push(cell !== undefined ? cell : "");
@@ -601,7 +608,7 @@ if ('serviceWorker' in navigator) {
         ];
 
         // Formatação das colunas numéricas
-             numberColumns.forEach(colName => {
+        numberColumns.forEach(colName => {
             const colIndex = newData[0].indexOf(colName);
             if (colIndex !== -1) {
                 for (let i = 1; i < newData.length; i++) {
@@ -609,16 +616,15 @@ if ('serviceWorker' in navigator) {
                     if (value !== undefined && value !== null && value !== "") {
                         let num = parseFloat(value.toString().replace(",", "."));
                         if (!isNaN(num)) {
+                            let stringFormatted = num.toFixed(2).replace(".", ",");
                             const cellAddress = XLSX.utils.encode_cell({ r: i, c: colIndex });
-                            updatedSheet[cellAddress].v = num;
-                            updatedSheet[cellAddress].t = 'n'; // número
-                            updatedSheet[cellAddress].z = "#,##0.00"; // formatação numérica com vírgula
+                            updatedSheet[cellAddress].v = stringFormatted;
+                            updatedSheet[cellAddress].t = 's';
                         }
                     }
                 }
             }
         });
-
 
 
         // Ajusta a largura das colunas
