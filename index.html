@@ -233,22 +233,27 @@ function loadExcelFromDirectory() {
             if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
             return response.arrayBuffer();
         })
-        .then(arrayBuffer => {
+               .then(arrayBuffer => {
             const workbook = XLSX.read(arrayBuffer, { type: 'array' });
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
             const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
             data = jsonData;
-            filteredData = data.slice(1);
             findColumnIndexes();
-            populateServicoOptions();
+
+            // Aplica o filtro do serviço automaticamente
+            const servicoIndex = columnIndexes["serviço"];
+            if (servicoIndex !== undefined) {
+                filteredData = data.slice(1).filter(row => row[servicoIndex] === servicoDefault);
+            } else {
+                filteredData = data.slice(1);
+            }
+
+            populateServicoOptions(); // ainda carrega o menu suspenso
+            document.getElementById("servicoFilter").value = servicoDefault; // já seleciona o valor correto
             renderTable();
         })
-        .catch(error => {
-            console.error("Erro ao carregar Excel:", error);
-            alert("Não foi possível carregar o arquivo do diretório.");
-        });
-}
+
 
 
 
