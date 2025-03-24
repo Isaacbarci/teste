@@ -161,7 +161,7 @@
     <input type="text" id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação" onkeyup="applyFilter()">
     <button onclick="downloadExcel()">Download Excel</button>
     <button onclick="startQrScanner()">Escanear QR Code</button>
- <button onclick="loadExcelFromDirectory()">Atualizar Arquivo</button>
+
 
 
 
@@ -286,7 +286,23 @@ function populateServicoOptions() {
     });
 }
 
-ffunction filterByServico() {
+function confirmUpdate() {
+    const confirmacao = confirm("Deseja carregar o arquivo TESTE.xlsx e substituir os dados atuais?");
+    if (confirmacao) {
+        loadExcelFromDirectory();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+function filterByServico() {
     const servicoSelecionado = document.getElementById("servicoFilter").value;
     const servicoIndex = columnIndexes["servico"]; // com acento já tratado via normalize
 
