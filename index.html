@@ -161,7 +161,7 @@
     <input type="text" id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação" onkeyup="applyFilter()">
     <button onclick="downloadExcel()">Download Excel</button>
     <button onclick="startQrScanner()">Escanear QR Code</button>
- <button onclick="loadExcelFromDirectory()">Atualizar Arquivo</button>
+ 
 
 
 
@@ -243,12 +243,14 @@ function loadExcelFromDirectory() {
             const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
             data = jsonData;
-            filteredData = data.slice(1);
+            filteredData = []; // ainda não filtra
             findColumnIndexes();
             populateServicoOptions();
-            renderTable();
 
-            // Salva os dados carregados
+            // Limpa tabela
+            document.getElementById("dataTable").innerHTML = "";
+
+            // Salva no localStorage
             localStorage.setItem("uploadedData", JSON.stringify(data));
             localStorage.removeItem("editedRows");
             editedRows.clear();
@@ -258,8 +260,6 @@ function loadExcelFromDirectory() {
             alert("Não foi possível carregar o arquivo do diretório.");
         });
 }
-
-
 
 
 
@@ -286,15 +286,17 @@ function populateServicoOptions() {
     });
 }
 
-function filterByServico() {
+ffunction filterByServico() {
     const servicoSelecionado = document.getElementById("servicoFilter").value;
-    const servicoIndex = columnIndexes["servico"]; // sem acento, tudo minúsculo
+    const servicoIndex = columnIndexes["servico"]; // com acento já tratado via normalize
 
-
-    if (!data.length || servicoIndex === undefined) return;
+    if (!data.length || servicoIndex === undefined || !servicoSelecionado) {
+        // Se não selecionou serviço, limpa a tabela
+        document.getElementById("dataTable").innerHTML = "";
+        return;
+    }
 
     filteredData = data.slice(1).filter(row => {
-        if (!servicoSelecionado) return true;
         return row[servicoIndex] === servicoSelecionado;
     });
 
