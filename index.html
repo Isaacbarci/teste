@@ -490,15 +490,18 @@ if ('serviceWorker' in navigator) {
                     if (colIndex === pesoUnitarioIndex) {
                         reorderedHeader.push(header);
                         if (pesoKgIndex !== undefined) reorderedHeader.push("PESO TOTAL");
-                    } else if (colIndex === areaM2UnitarioIndex) {
-                        reorderedHeader.push(header);
-                        if (areaSuperficieIndex !== undefined) reorderedHeader.push("ÁREA M² TOTAL");
 
+                 } else if (colIndex === areaM2UnitarioIndex) {
+    reorderedHeader.push(header);
+    if (areaSuperficieIndex !== undefined) {
+        reorderedHeader.push("ÁREA M² TOTAL");
+    }
 
-        } else if (colIndex === statusIndex) {
+} else if (colIndex === statusIndex) {
     reorderedHeader.push(header);
     reorderedHeader.push(headerRow[observacaoIndex]);
     reorderedHeader.push(headerRow[dataRomaneioIndex]);
+}
 
 
 
