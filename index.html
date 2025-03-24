@@ -148,7 +148,7 @@
     Developed by Isaac Dutra
 </p>
 
-  <input type="file" id="fileInput" accept=".xlsx" onchange="handleFileUpload(event)" />
+
 <select id="servicoFilter" onchange="filterByServico()" style="margin-left: 5px;">
     <option value="">Todos os Serviços</option>
 </select>
@@ -692,29 +692,11 @@ function downloadExcel() {
 
 
      document.addEventListener("DOMContentLoaded", () => {
-    ...
-    if (data.length) {
-        renderTable();
-    }
-
-    loadExcelFromDirectory(); // <-- Carrega automaticamente
+    loadExcelFromDirectory(); // Agora o Excel será carregado automaticamente do diretório
 });
 
 
-            const storedEditedRows = localStorage.getItem("editedRows");
-            if (storedEditedRows) {
-                try {
-                    editedRows = new Set(JSON.parse(storedEditedRows));
-                } catch (error) {
-                    console.error("Erro ao carregar as edições armazenadas:", error);
-                    localStorage.removeItem("editedRows");
-                }
-            }
 
-            if (data.length) {
-                renderTable();
-            }
-        });
-    </script>
+</script>
 </body>
 </html>
