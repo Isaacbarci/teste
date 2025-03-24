@@ -715,29 +715,67 @@ function downloadExcel() {
 }
 
 
-   document.addEventListener("DOMContentLoaded", () => {
-    const saved = localStorage.getItem("servicoFiltrado");
-
-    if (saved) {
+document.addEventListener("DOMContentLoaded", () => {
+    const salvo = localStorage.getItem("servicoFiltrado");
+    if (salvo) {
         try {
-            const parsed = JSON.parse(saved);
-            data = [parsed.headers, ...parsed.rows];
-            filteredData = parsed.rows;
+            const json = JSON.parse(salvo);
+            data = [json.headers, ...json.rows];
+            filteredData = json.rows;
             findColumnIndexes();
             renderTable();
-        } catch (error) {
-            console.error("Erro ao restaurar serviço salvo:", error);
+        } catch (e) {
+            console.error("Erro ao restaurar serviço salvo:", e);
         }
-    } else {
-        document.getElementById("dataTable").innerHTML = "";
     }
-
-
 });
 
+
 function confirmUpdate() {
-        loadExcelFromDirectory();
+    const servicoSelecionado = document.getElementById("servicoFilter").value;
+    if (!servicoSelecionado) {
+        alert("Selecione um serviço!");
+        return;
     }
+
+    fetch(localExcelPath)
+        .then(res => {
+            if (!res.ok) throw new Error("Erro ao carregar Excel");
+            return res.arrayBuffer();
+        })
+        .then(arrayBuffer => {
+            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
+
+            const header = jsonData[0];
+            const indexServico = getColumnIndex(header, "serviço");
+
+            const rowsFiltradas = jsonData.slice(1).filter(row => row[indexServico] === servicoSelecionado);
+
+            if (!rowsFiltradas.length) {
+                alert("Serviço não encontrado no arquivo!");
+                return;
+            }
+
+            data = [header, ...rowsFiltradas];
+            filteredData = rowsFiltradas;
+            findColumnIndexes();
+            renderTable();
+
+            // Salva somente os dados filtrados
+            localStorage.setItem("servicoFiltrado", JSON.stringify({
+                headers: header,
+                rows: rowsFiltradas,
+                servico: servicoSelecionado
+            }));
+
+        }).catch(err => {
+            console.error(err);
+            alert("Erro ao carregar arquivo.");
+        });
+}
+
 
 
 
