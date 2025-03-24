@@ -484,39 +484,41 @@ if ('serviceWorker' in navigator) {
         let newData = data.map((row, index) => {
             if (index === 0) {
                 let reorderedHeader = [];
-                headerRow.forEach((header, colIndex) => {
-                    if (colIndex === dataCadastroIndex) return;
 
-                    if (colIndex === pesoUnitarioIndex) {
-                        reorderedHeader.push(header);
-                        if (pesoKgIndex !== undefined) reorderedHeader.push("PESO TOTAL");
+             headerRow.forEach((header, colIndex) => {
+    if (colIndex === dataCadastroIndex) return;
 
-                 } else if (colIndex === areaM2UnitarioIndex) {
-    reorderedHeader.push(header);
-    if (areaSuperficieIndex !== undefined) {
-        reorderedHeader.push("ÁREA M² TOTAL");
+    if (colIndex === pesoUnitarioIndex) {
+        reorderedHeader.push(header);
+        if (pesoKgIndex !== undefined) reorderedHeader.push("PESO TOTAL");
+
+    } else if (colIndex === areaM2UnitarioIndex) {
+        reorderedHeader.push(header);
+        if (areaSuperficieIndex !== undefined) {
+            reorderedHeader.push("ÁREA M² TOTAL");
+        }
+
+    } else if (colIndex === statusIndex) {
+        reorderedHeader.push(header);
+        reorderedHeader.push(headerRow[observacaoIndex]);
+        reorderedHeader.push(headerRow[dataRomaneioIndex]);
+
+    } else if (colIndex === obsRomaneioIndex) {
+        reorderedHeader.push(header);
+        reorderedHeader.push("PESO ENVIADO");
+        reorderedHeader.push("ÁREA ENVIADA");
+
+    } else if (
+        colIndex !== pesoKgIndex &&
+        colIndex !== areaSuperficieIndex &&
+        colIndex !== dataRomaneioIndex &&
+        colIndex !== observacaoIndex
+    ) {
+        reorderedHeader.push(header);
     }
-
-} else if (colIndex === statusIndex) {
-    reorderedHeader.push(header);
-    reorderedHeader.push(headerRow[observacaoIndex]);
-    reorderedHeader.push(headerRow[dataRomaneioIndex]);
-}
+});
 
 
-
-                    } else if (colIndex === obsRomaneioIndex) {
-                        reorderedHeader.push(header);
-                        reorderedHeader.push("PESO ENVIADO");
-                        reorderedHeader.push("ÁREA ENVIADA");
-                    } else if (
-                        colIndex !== pesoKgIndex &&
-                        colIndex !== areaSuperficieIndex &&
-                        colIndex !== dataRomaneioIndex
-                    ) {
-                        reorderedHeader.push(header);
-                    }
-                });
                 return reorderedHeader;
             }
 
@@ -565,13 +567,11 @@ if ('serviceWorker' in navigator) {
                     if (areaSuperficieIndex !== undefined) {
                         reorderedRow.push(row[areaSuperficieIndex] !== undefined ? row[areaSuperficieIndex] : "");
                     }
-
-               } else if (colIndex === statusIndex) {
+} else if (colIndex === statusIndex) {
     reorderedRow.push(cell !== undefined ? cell : "");
     reorderedRow.push(row[observacaoIndex] !== undefined ? row[observacaoIndex] : "");
     reorderedRow.push(row[dataRomaneioIndex] !== undefined ? row[dataRomaneioIndex] : "");
 }
-
 
 
                 } else if (colIndex === obsRomaneioIndex) {
