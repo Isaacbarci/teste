@@ -460,187 +460,134 @@ if ('serviceWorker' in navigator) {
         }
 
 function downloadExcel() {
-    if (!data.length) {
-        alert("Nenhum dado carregado para exportar.");
-        return;
-    }
-
-    let headerRow = [...data[0]];
-    let pesoKgIndex = columnIndexes["peso (kg)"];
-    let areaSuperficieIndex = columnIndexes["área superfície"];
-    let pesoUnitarioIndex = columnIndexes["peso unitário"];
-    let areaM2UnitarioIndex = columnIndexes["area m² unitário"];
-    let qtdeIndex = columnIndexes["qtde"];
-    let qtdeEnviadaIndex = columnIndexes["qtde enviada"];
-    let saldoIndex = columnIndexes["saldo"];
-    let qtdEnviadaIndex = columnIndexes["qtd enviada"];
-    let dataRomaneioIndex = columnIndexes["data do romaneio"];
-    let statusIndex = columnIndexes["status"];
-    let observacaoIndex = columnIndexes["observação"];
-    let dataRecebimentoIndex = columnIndexes["data recebimento"];
-    let obsRomaneioIndex = columnIndexes["obs romaneio"];
-    let dataCadastroIndex = columnIndexes["data cadastro"];
-
-    let newData = data.map((row, index) => {
-        if (index === 0) {
-            let reorderedHeader = [];
-            headerRow.forEach((header, colIndex) => {
-                if (colIndex === dataCadastroIndex) return;
-
-                if (colIndex === pesoUnitarioIndex) {
-                    reorderedHeader.push(header);
-                    if (pesoKgIndex !== undefined) reorderedHeader.push("PESO TOTAL");
-                } else if (colIndex === areaM2UnitarioIndex) {
-                    reorderedHeader.push(header);
-                    if (areaSuperficieIndex !== undefined) reorderedHeader.push("ÁREA M² TOTAL");
-                } else if (colIndex === statusIndex) {
-                    reorderedHeader.push(header);
-                    reorderedHeader.push(headerRow[dataRomaneioIndex]);
-                } else if (colIndex === obsRomaneioIndex) {
-                    reorderedHeader.push(header);
-                    reorderedHeader.push("PESO ENVIADO");
-                    reorderedHeader.push("ÁREA ENVIADA");
-                } else if (
-                    colIndex !== pesoKgIndex &&
-                    colIndex !== areaSuperficieIndex &&
-                    colIndex !== dataRomaneioIndex
-                ) {
-                    reorderedHeader.push(header);
-                }
-            });
-            return reorderedHeader;
+    try {
+        if (!data || !data.length) {
+            throw new Error("Nenhum dado carregado para exportar.");
         }
 
-        const parseValue = (value) => {
-    if (value === "" || value === null || value === undefined) return undefined;
-    const num = parseFloat(value.toString().replace(",", "."));
-    return isNaN(num) ? undefined : num;
-};
+        // Verifica se os índices das colunas necessárias existem
+        const requiredColumns = [
+            'peso (kg)', 'área superfície', 'peso unitário',
+            'area m² unitário', 'qtde', 'qtde enviada', 'saldo',
+            'data do romaneio', 'obs romaneio'
+        ];
 
-        const formatNumber = (value) => {
-            if (value === undefined || value === null || value === "") return "";
-            return value.toString().replace(".", ",");
-        };
-
-        let qtde = parseValue(row[qtdeIndex]);
-        let qtdeEnviada = parseValue(row[qtdeEnviadaIndex]);
-        let saldo = parseValue(row[saldoIndex]);
-        let qtdEnviada = parseValue(row[qtdEnviadaIndex]);
-        let pesoKg = parseValue(row[pesoKgIndex]);
-        let areaSuperficie = parseValue(row[areaSuperficieIndex]);
-
-        if (qtde !== undefined && qtde > 0) {
-            row[pesoUnitarioIndex] = parseFloat((pesoKg / qtde).toFixed(2));
-            row[areaM2UnitarioIndex] = parseFloat((areaSuperficie / qtde).toFixed(2));
-        } else {
-            row[pesoUnitarioIndex] = undefined;
-            row[areaM2UnitarioIndex] = undefined;
-        }
-
-        Object.entries(columnIndexes).forEach(([colName, colIndex]) => {
-            if (colName.includes("data") && colName !== "data cadastro") {
-                let dateValue = row[colIndex];
-                if (dateValue && !isNaN(new Date(dateValue))) {
-                    let dateObj = new Date(dateValue);
-                    dateObj.setDate(dateObj.getDate() + 1);
-                    row[colIndex] = dateObj.toLocaleDateString("pt-BR");
-                }
+        requiredColumns.forEach(col => {
+            if (columnIndexes[col] === undefined) {
+                console.warn(`Coluna '${col}' não encontrada.`);
             }
         });
 
-        let reorderedRow = [];
-        row.forEach((cell, colIndex) => {
-            if (colIndex === dataCadastroIndex) return;
+        // Cria uma cópia profunda dos dados originais
+        const newData = JSON.parse(JSON.stringify(data));
 
-            if (colIndex === pesoUnitarioIndex) {
-                reorderedRow.push(cell !== undefined ? formatNumber(cell) : "");
-                if (pesoKgIndex !== undefined) {
-                    reorderedRow.push(row[pesoKgIndex] !== undefined ? formatNumber(row[pesoKgIndex]) : "");
-                }
-            } else if (colIndex === areaM2UnitarioIndex) {
-                reorderedRow.push(cell !== undefined ? formatNumber(cell) : "");
-                if (areaSuperficieIndex !== undefined) {
-                    reorderedRow.push(row[areaSuperficieIndex] !== undefined ? formatNumber(row[areaSuperficieIndex]) : "");
-                }
-            } else if (colIndex === statusIndex) {
-                reorderedRow.push(cell !== undefined ? cell : "");
-                reorderedRow.push(row[dataRomaneioIndex] !== undefined ? row[dataRomaneioIndex] : "");
-            } else if (colIndex === obsRomaneioIndex) {
-                reorderedRow.push(cell !== undefined ? cell : "");
+        // Processa cada linha de dados
+        newData.forEach((row, rowIndex) => {
+            // Pula o cabeçalho
+            if (rowIndex === 0) return;
 
-                const pesoUnit = parseValue(row[pesoUnitarioIndex]);
-                const areaUnit = parseValue(row[areaM2UnitarioIndex]);
-                const qtdEnv = parseValue(row[qtdEnviadaIndex]);
+            // 1. Calcula peso unitário e área unitária se houver qtde
+            const qtde = parseFloat(row[columnIndexes['qtde']]) || 0;
+            const pesoKg = parseFloat(row[columnIndexes['peso (kg)']]) || 0;
+            const areaSuperficie = parseFloat(row[columnIndexes['área superfície']]) || 0;
 
-                const pesoEnviado = (pesoUnit !== undefined && qtdEnv !== undefined)
-                    ? parseFloat((pesoUnit * qtdEnv).toFixed(2)) : "";
-
-                const areaEnviada = (areaUnit !== undefined && qtdEnv !== undefined)
-                    ? parseFloat((areaUnit * qtdEnv).toFixed(2)) : "";
-
-                reorderedRow.push(pesoEnviado !== "" ? formatNumber(pesoEnviado) : "");
-                reorderedRow.push(areaEnviada !== "" ? formatNumber(areaEnviada) : "");
-            } else if (
-                colIndex !== pesoKgIndex &&
-                colIndex !== areaSuperficieIndex &&
-                colIndex !== dataRomaneioIndex
-            ) {
-                // Formata as colunas numéricas específicas
-                const headerName = newData[0][reorderedRow.length];
-                const numericColumns = ["Qtde", "Qtde Enviada", "Saldo", "QTD ENVIADA"];
-
-                if (numericColumns.includes(headerName)) {
-
-                    reorderedRow.push(cell !== undefined ? formatNumber(cell) : "");
-                } else {
-                    reorderedRow.push(cell !== undefined ? cell : "");
-                }
+            if (qtde > 0) {
+                row[columnIndexes['peso unitário']] = (pesoKg / qtde).toFixed(2);
+                row[columnIndexes['area m² unitário']] = (areaSuperficie / qtde).toFixed(2);
             }
-        });
 
-        return reorderedRow;
-    });
+            // 2. Calcula peso enviado e área enviada
+            const qtdeEnviada = parseFloat(row[columnIndexes['qtde enviada']]) || 0;
+            const pesoUnitario = parseFloat(row[columnIndexes['peso unitário']]) || 0;
+            const areaUnitario = parseFloat(row[columnIndexes['area m² unitário']]) || 0;
 
-    const updatedSheet = XLSX.utils.aoa_to_sheet(newData);
+            row['__pesoEnviado'] = (pesoUnitario * qtdeEnviada).toFixed(2);
+            row['__areaEnviada'] = (areaUnitario * qtdeEnviada).toFixed(2);
 
-    // Ajusta a largura das colunas
-    updatedSheet["!cols"] = newData[0].map((_, index) => {
-        let maxLength = Math.max(...newData.map(row => (row[index] ? row[index].toString().length : 0)));
-        return { wch: maxLength + 2 };
-    });
-
-    // Define o tipo das colunas numéricas como 'n' (número)
-    const numberColumns = [
-        "Qtde", "Qtde Enviada", "Saldo", "QTD ENVIADA", "PESO ENVIADO",
-        "ÁREA ENVIADA", "PESO Unitário", "PESO TOTAL", "AREA M² Unitário", "ÁREA M² TOTAL"
-    ];
-
-    numberColumns.forEach(colName => {
-        const colIndex = newData[0].indexOf(colName);
-        if (colIndex !== -1) {
-            newData.slice(1).forEach((row, rowIndex) => {
-                const cellAddress = XLSX.utils.encode_cell({ r: rowIndex + 1, c: colIndex });
-                if (updatedSheet[cellAddress] && row[colIndex] !== "") {
-                    // Converte a string com vírgula para número
-                    const numValue = parseFloat(row[colIndex].toString().replace(",", "."));
-                    if (!isNaN(numValue)) {
-                        updatedSheet[cellAddress].v = numValue;
-                        updatedSheet[cellAddress].t = 'n';
-                        // Define formatação para exibir com vírgula
-                        updatedSheet[cellAddress].z = '#,##0.00';
+            // 3. Formata datas
+            Object.entries(columnIndexes).forEach(([colName, colIndex]) => {
+                if (colName.includes('data') && row[colIndex]) {
+                    const date = new Date(row[colIndex]);
+                    if (!isNaN(date.getTime())) {
+                        row[colIndex] = date.toLocaleDateString('pt-BR');
                     }
                 }
             });
-        }
-    });
+        });
 
-    const newWorkbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(newWorkbook, updatedSheet, "Planilha1");
-    XLSX.writeFile(newWorkbook, "Romaneio_Suporte.xlsx");
-}
+        // Define as colunas na ordem desejada
+        const columnsOrder = [
+            'posição / tag', 'identificação 1', 'identificação 2',
+            'tipo de suporte', 'tipo estrutura', 'desenho suporte',
+            'peso unitário', 'peso (kg)', 'area m² unitário', 'área superfície',
+            'qtde', 'qtde enviada', 'saldo', 'data do romaneio',
+            'obs romaneio', '__pesoEnviado', '__areaEnviada'
+        ];
 
+        // Filtra e ordena as colunas
+        const filteredHeaders = newData[0].filter((header, index) => {
+            const headerName = header.trim().toLowerCase();
+            return !hiddenColumns.includes(headerName) || columnsOrder.includes(headerName);
+        });
 
+        // Adiciona os cabeçalhos calculados
+        filteredHeaders.push('PESO ENVIADO', 'ÁREA ENVIADA');
 
+        // Prepara os dados para exportação
+        const exportData = newData.map(row => {
+            const newRow = {};
+            filteredHeaders.forEach(header => {
+                const headerLower = header.trim().toLowerCase();
+                if (header === 'PESO ENVIADO') {
+                    newRow[header] = row['__pesoEnviado'] || '';
+                } else if (header === 'ÁREA ENVIADA') {
+                    newRow[header] = row['__areaEnviada'] || '';
+                } else {
+                    const colIndex = columnIndexes[headerLower];
+                    newRow[header] = colIndex !== undefined ? row[colIndex] : '';
+                }
+            });
+            return newRow;
+        });
+
+        // Cria a planilha
+        const ws = XLSX.utils.json_to_sheet(exportData, { header: filteredHeaders });
+
+        // Ajusta o estilo das colunas numéricas
+        const numberCols = ['peso unitário', 'peso (kg)', 'area m² unitário', 'área superfície',
+                           'qtde', 'qtde enviada', 'saldo', 'PESO ENVIADO', 'ÁREA ENVIADA'];
+
+        numberCols.forEach(col => {
+            const colIndex = filteredHeaders.indexOf(col);
+            if (colIndex !== -1) {
+                for (let i = 1; i < exportData.length; i++) {
+                    const cellRef = XLSX.utils.encode_cell({ r: i, c: colIndex });
+                    if (ws[cellRef] && ws[cellRef].v !== '') {
+                        ws[cellRef].t = 'n';
+                        ws[cellRef].v = parseFloat(ws[cellRef].v.toString().replace(',', '.'));
+                        ws[cellRef].z = '#,##0.00';
+                    }
+                }
+            }
+        });
+
+        // Ajusta a largura das colunas
+        ws['!cols'] = filteredHeaders.map(header => ({
+            wch: Math.max(
+                header.length,
+                ...exportData.map(row => (row[header] ? row[header].toString().length : 0)
+            ) + 2
+        }));
+
+        // Cria o workbook e faz o download
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Romaneio");
+        XLSX.writeFile(wb, `Romaneio_Suporte_${new Date().toISOString().slice(0,10)}.xlsx`);
+
+    } catch (error) {
+        console.error('Erro ao gerar o Excel:', error);
+        alert('Ocorreu um erro ao gerar o arquivo Excel: ' + error.message);
+    }
 
         document.addEventListener("DOMContentLoaded", () => {
             const storedData = localStorage.getItem("uploadedData");
