@@ -7,7 +7,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-       body {
+        body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
@@ -133,10 +133,25 @@
             color: green;
             font-weight: bold;
         }
+        .controls-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 10px;
+            align-items: center;
+        }
+        @media (max-width: 768px) {
+            .controls-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            input[type="text"] {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- Cabeçalho com Logo e Título -->
     <h2 style="display: flex; align-items: center;">
         <img src="image.png" alt="Logo" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;">
         <span style="font-size: 23px;">ROMANEIO DE SUPORTE</span>
@@ -145,13 +160,15 @@
         Developed by Isaac Dutra
     </p>
 
-    <button onclick="loadTesteFile()">Atualizar Arquivo</button>
-    <select id="servicoFilter" style="margin-left: 5px;">
-        <option value="">Todos os Serviços</option>
-    </select>
-    <input type="text" id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação" onkeyup="applyFilter()">
-    <button onclick="downloadExcel()">Download Excel</button>
-    <button onclick="startQrScanner()">Escanear QR Code</button>
+    <div class="controls-container">
+        <button onclick="loadTesteFile()">Atualizar Arquivo</button>
+        <select id="servicoFilter">
+            <option value="">Todos os Serviços</option>
+        </select>
+        <input type="text" id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação" onkeyup="applyFilter()">
+        <button onclick="downloadExcel()">Download Excel</button>
+        <button onclick="startQrScanner()">Escanear QR Code</button>
+    </div>
 
     <div id="qr-container" style="display: none;">
         <div id="qr-reader" style="width:300px; margin-top:10px;"></div>
@@ -185,8 +202,7 @@
         let qrScanner;
         let servicos = [];
 
-        const rowsPerPage = 500; // Número de linhas por página
-
+        const rowsPerPage = 500;
         const hiddenColumns = [
             "desenho suporte", "informações", "isométrico", "peso (kg)", "cond. pintura",
             "área superfície", "data corte", "data acoplamento", "data solda",
@@ -199,9 +215,7 @@
         function loadTesteFile() {
             fetch("TESTE.xlsx")
                 .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Erro ao carregar arquivo: ${response.statusText}`);
-                    }
+                    if (!response.ok) throw new Error(`Erro ao carregar arquivo: ${response.statusText}`);
                     return response.arrayBuffer();
                 })
                 .then(arrayBuffer => {
@@ -227,19 +241,25 @@
                 });
         }
 
-      function loadServicos() {
-            const servicoIndex = columnIndexes["serviço"];
-            if (servicoIndex === undefined) {
-                console.error("Coluna 'serviço' não encontrada no arquivo.");
+        function loadServicos() {
+            // Verifica todas as colunas para encontrar a de serviço (case insensitive)
+            let servicoKey = Object.keys(columnIndexes).find(key =>
+                key.toLowerCase().includes("serviço") || key.toLowerCase().includes("servico")
+            );
+
+            if (!servicoKey) {
+                console.error("Coluna de serviço não encontrada. Colunas disponíveis:", Object.keys(columnIndexes));
                 return;
             }
 
-            // Extrai todos os serviços únicos, tratando valores vazios/nulos
+            const servicoIndex = columnIndexes[servicoKey];
+
+            // Extrai serviços únicos, tratando valores vazios/nulos e removendo duplicatas
             servicos = [...new Set(
                 data.slice(1)
                     .map(row => String(row[servicoIndex] || "").trim())
                     .filter(servico => servico !== "")
-            )].sort();
+            )].sort((a, b) => a.localeCompare(b));
 
             const select = document.getElementById("servicoFilter");
             select.innerHTML = '<option value="">Todos os Serviços</option>';
@@ -251,33 +271,30 @@
                 select.appendChild(option);
             });
 
+            console.log("Serviços carregados:", servicos);
         }
 
         function applyFilter() {
             const filterValue = document.getElementById("identificacaoFilter").value.trim().toLowerCase();
             const servicoValue = document.getElementById("servicoFilter").value;
 
-            // Verifica se as colunas "QR" e "Identificação 1" existem
-            const qrColumnIndex = columnIndexes["qr"];
-            const identificacao1Index = columnIndexes["identificação 1"];
-            const servicoIndex = columnIndexes["serviço"];
+            // Encontra índices das colunas relevantes
+            const qrColumnIndex = columnIndexes["qr"] ?? columnIndexes["identificação"] ?? -1;
+            const identificacao1Index = columnIndexes["identificação 1"] ?? columnIndexes["identificação"] ?? -1;
+            const servicoKey = Object.keys(columnIndexes).find(key =>
+                key.toLowerCase().includes("serviço") || key.toLowerCase().includes("servico")
+            );
+            const servicoIndex = servicoKey ? columnIndexes[servicoKey] : -1;
 
-            if (qrColumnIndex === undefined || identificacao1Index === undefined) {
-                console.error("Coluna 'QR' ou 'Identificação 1' não encontrada.");
-                return;
-            }
-
-            // Filtra os dados com base no valor do filtro e serviço
             filteredData = data.slice(1).filter(row => {
-                const qrValue = String(row[qrColumnIndex]).toLowerCase();
-                const identificacao1Value = String(row[identificacao1Index]).toLowerCase();
-                const servicoRowValue = servicoIndex !== undefined ? String(row[servicoIndex]) : "";
-
-                // Filtro por texto
-                const textFilter = qrValue.includes(filterValue) || identificacao1Value.includes(filterValue);
+                // Filtro por texto (QR ou Identificação)
+                const textFilter = filterValue === "" ||
+                    (qrColumnIndex !== -1 && String(row[qrColumnIndex]).toLowerCase().includes(filterValue)) ||
+                    (identificacao1Index !== -1 && String(row[identificacao1Index]).toLowerCase().includes(filterValue));
 
                 // Filtro por serviço
-                const servicoFilter = !servicoValue || servicoRowValue === servicoValue;
+                const servicoFilter = servicoValue === "" ||
+                    (servicoIndex !== -1 && String(row[servicoIndex]) === servicoValue);
 
                 return textFilter && servicoFilter;
             });
@@ -285,33 +302,21 @@
             renderTable();
         }
 
-        function formatDate(dateString) {
-            if (!dateString) return "";
-
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return "";
-
-            const day = String(date.getUTCDate()).padStart(2, "0");
-            const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-            const year = date.getUTCFullYear();
-
-            return `${day}/${month}/${year}`;
-        }
-
-        function formatDateForInput(dateString) {
-            if (!dateString) return "";
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return "";
-            const day = String(date.getUTCDate()).padStart(2, "0");
-            const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-            const year = date.getUTCFullYear();
-            return `${year}-${month}-${day}`;
-        }
-
         function findColumnIndexes() {
             columnIndexes = {};
+            if (data.length === 0) return;
+
             data[0].forEach((header, index) => {
-                columnIndexes[header.trim().toLowerCase()] = index;
+                const headerLower = header.trim().toLowerCase();
+                columnIndexes[headerLower] = index;
+
+                // Mapeia variações comuns de nomes de colunas
+                if (headerLower.includes("identificação") && !headerLower.includes("1") && !headerLower.includes("2")) {
+                    columnIndexes["identificação 1"] = index;
+                }
+                if (headerLower.includes("serviço") || headerLower.includes("servico")) {
+                    columnIndexes["serviço"] = index;
+                }
             });
         }
 
@@ -321,6 +326,7 @@
 
             if (!data.length) return;
 
+            // Cria cabeçalho
             const fragment = document.createDocumentFragment();
             const headerRow = document.createElement("tr");
 
@@ -331,9 +337,9 @@
                     headerRow.appendChild(th);
                 }
             });
-
             fragment.appendChild(headerRow);
 
+            // Adiciona linhas de dados
             filteredData.slice(0, rowsPerPage).forEach((row, index) => {
                 const originalIndex = data.indexOf(row);
                 if (originalIndex === -1) return;
@@ -344,13 +350,7 @@
                 row.forEach((cell, colIndex) => {
                     if (!hiddenColumns.includes(data[0][colIndex].trim().toLowerCase())) {
                         const td = document.createElement("td");
-
-                        if (data[0][colIndex].toLowerCase() === "data do romaneio") {
-                            td.textContent = formatDate(cell);
-                        } else {
-                            td.textContent = cell || "";
-                        }
-
+                        td.textContent = formatCellValue(cell, data[0][colIndex]);
                         tr.appendChild(td);
                     }
                 });
@@ -365,39 +365,90 @@
             table.appendChild(fragment);
         }
 
+        function formatCellValue(value, header) {
+            if (value === null || value === undefined) return "";
+
+            const headerLower = header.trim().toLowerCase();
+
+            if (headerLower.includes("data")) {
+                return formatDate(value);
+            }
+
+            if (headerLower.includes("peso") || headerLower.includes("área") || headerLower.includes("area")) {
+                const num = parseFloat(value);
+                return isNaN(num) ? value : num.toFixed(2).replace(".", ",");
+            }
+
+            return value;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return "";
+
+            try {
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return dateString;
+
+                const day = String(date.getDate()).padStart(2, "0");
+                const month = String(date.getMonth() + 1).padStart(2, "0");
+                const year = date.getFullYear();
+
+                return `${day}/${month}/${year}`;
+            } catch {
+                return dateString;
+            }
+        }
+
+        function formatDateForInput(dateString) {
+            if (!dateString) return "";
+
+            try {
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return "";
+
+                const day = String(date.getDate()).padStart(2, "0");
+                const month = String(date.getMonth() + 1).padStart(2, "0");
+                const year = date.getFullYear();
+
+                return `${year}-${month}-${day}`;
+            } catch {
+                return "";
+            }
+        }
+
         function openEditModal(index) {
             if (index < 0 || index >= data.length) return;
 
             document.getElementById("editIndex").value = index;
+            document.getElementById("POSICAOTAG").value = getCellValue(index, "posição / tag");
+            document.getElementById("IDENTIFICACAO1").value = getCellValue(index, "identificação 1");
+            document.getElementById("IDENTIFICACAO2").value = getCellValue(index, "identificação 2");
+            document.getElementById("PesoKg").value = getCellValue(index, "peso (kg)");
+            document.getElementById("DATADOROMANEIO").value = formatDateForInput(getCellValue(index, "data do romaneio"));
+            document.getElementById("QTDENVIADA").value = getCellValue(index, "qtd enviada");
+            document.getElementById("OBSROMANEIO").value = getCellValue(index, "obs romaneio");
+            document.getElementById("Qtde").value = getCellValue(index, "qtde");
 
-            document.getElementById("POSICAOTAG").value = data[index][columnIndexes["posição / tag"]] || "";
-            document.getElementById("IDENTIFICACAO1").value = data[index][columnIndexes["identificação 1"]] || "";
-            document.getElementById("IDENTIFICACAO2").value = data[index][columnIndexes["identificação 2"]] || "";
-            document.getElementById("PesoKg").value = data[index][columnIndexes["peso (kg)"]] || "";
-            document.getElementById("DATADOROMANEIO").value = formatDateForInput(data[index][columnIndexes["data do romaneio"]]);
-            document.getElementById("QTDENVIADA").value = data[index][columnIndexes["qtd enviada"]] || "";
-            document.getElementById("OBSROMANEIO").value = data[index][columnIndexes["obs romaneio"]] || "";
-            document.getElementById("Qtde").value = data[index][columnIndexes["qtde"]] || "";
-
-            const saldo = parseFloat(data[index][columnIndexes["saldo"]] || 0);
+            const saldo = parseFloat(getCellValue(index, "saldo") || 0);
             const saldoInput = document.getElementById("Saldo");
             saldoInput.value = saldo;
-
-            // Aplicar estilo com base no valor do saldo
-            if (saldo <= 0) {
-                saldoInput.classList.add("saldo-negativo");
-                saldoInput.classList.remove("saldo-positivo");
-            } else {
-                saldoInput.classList.add("saldo-positivo");
-                saldoInput.classList.remove("saldo-negativo");
-            }
+            saldoInput.className = saldo <= 0 ? "saldo-negativo" : "saldo-positivo";
 
             document.getElementById("editModal").style.display = "block";
         }
 
+        function getCellValue(rowIndex, columnKey) {
+            const columnKeys = Object.keys(columnIndexes);
+            const exactKey = columnKeys.find(key => key === columnKey.toLowerCase());
+            const similarKey = columnKeys.find(key => key.includes(columnKey.toLowerCase()));
+
+            const colIndex = exactKey ? columnIndexes[exactKey] :
+                             similarKey ? columnIndexes[similarKey] : -1;
+
+            return colIndex !== -1 ? data[rowIndex][colIndex] || "" : "";
+        }
+
         function closeModal() {
-            const saldoInput = document.getElementById("Saldo");
-            saldoInput.classList.remove("saldo-negativo", "saldo-positivo");
             document.getElementById("editModal").style.display = "none";
         }
 
@@ -405,22 +456,38 @@
             const originalIndex = parseInt(document.getElementById("editIndex").value);
             if (originalIndex < 0 || originalIndex >= data.length) return;
 
-            data[originalIndex][columnIndexes["data do romaneio"]] = document.getElementById("DATADOROMANEIO").value;
-            data[originalIndex][columnIndexes["qtd enviada"]] = document.getElementById("QTDENVIADA").value;
-            data[originalIndex][columnIndexes["obs romaneio"]] = document.getElementById("OBSROMANEIO").value;
-
             const dataRomaneio = document.getElementById("DATADOROMANEIO").value;
-            if (!dataRomaneio) {
-                editedRows.delete(originalIndex);
-            } else {
+            const qtdEnviada = document.getElementById("QTDENVIADA").value;
+            const obsRomaneio = document.getElementById("OBSROMANEIO").value;
+
+            setCellValue(originalIndex, "data do romaneio", dataRomaneio);
+            setCellValue(originalIndex, "qtd enviada", qtdEnviada);
+            setCellValue(originalIndex, "obs romaneio", obsRomaneio);
+
+            if (dataRomaneio) {
                 editedRows.add(originalIndex);
+            } else {
+                editedRows.delete(originalIndex);
             }
 
             localStorage.setItem("uploadedData", JSON.stringify(data));
             localStorage.setItem("editedRows", JSON.stringify(Array.from(editedRows)));
 
-            document.getElementById("editModal").style.display = "none";
+            closeModal();
             renderTable();
+        }
+
+        function setCellValue(rowIndex, columnKey, value) {
+            const columnKeys = Object.keys(columnIndexes);
+            const exactKey = columnKeys.find(key => key === columnKey.toLowerCase());
+            const similarKey = columnKeys.find(key => key.includes(columnKey.toLowerCase()));
+
+            const colIndex = exactKey ? columnIndexes[exactKey] :
+                             similarKey ? columnIndexes[similarKey] : -1;
+
+            if (colIndex !== -1) {
+                data[rowIndex][colIndex] = value;
+            }
         }
 
         function startQrScanner() {
@@ -464,185 +531,31 @@
                 return;
             }
 
-            let headerRow = [...data[0]];
-            let pesoKgIndex = columnIndexes["peso (kg)"];
-            let areaSuperficieIndex = columnIndexes["área superfície"];
-            let pesoUnitarioIndex = columnIndexes["peso unitário"];
-            let areaM2UnitarioIndex = columnIndexes["area m² unitário"];
-            let qtdeIndex = columnIndexes["qtde"];
-            let qtdeEnviadaIndex = columnIndexes["qtde enviada"];
-            let saldoIndex = columnIndexes["saldo"];
-            let qtdEnviadaIndex = columnIndexes["qtd enviada"];
-            let dataRomaneioIndex = columnIndexes["data do romaneio"];
-            let statusIndex = columnIndexes["status"];
-            let observacaoIndex = columnIndexes["observação"];
-            let dataRecebimentoIndex = columnIndexes["data recebimento"];
-            let obsRomaneioIndex = columnIndexes["obs romaneio"];
-            let dataCadastroIndex = columnIndexes["data cadastro"];
+            const workbook = XLSX.utils.book_new();
+            const worksheet = XLSX.utils.json_to_sheet(convertDataForExport());
 
-            let newData = data.map((row, index) => {
-                if (index === 0) {
-                    let reorderedHeader = [];
+            // Ajusta o formato das colunas
+            const wscols = data[0].map((_, i) => ({wch: 20}));
+            worksheet["!cols"] = wscols;
 
-                    headerRow.forEach((header, colIndex) => {
-                        if (colIndex === dataCadastroIndex) return;
-
-                        if (colIndex === pesoUnitarioIndex) {
-                            reorderedHeader.push(header);
-                            if (pesoKgIndex !== undefined) reorderedHeader.push("PESO TOTAL");
-
-                        } else if (colIndex === areaM2UnitarioIndex) {
-                            reorderedHeader.push(header);
-                            if (areaSuperficieIndex !== undefined) {
-                                reorderedHeader.push("ÁREA M² TOTAL");
-                            }
-
-                        } else if (colIndex === statusIndex) {
-                            reorderedHeader.push(header); // Status
-                            reorderedHeader.push(headerRow[observacaoIndex]); // Observação
-                            reorderedHeader.push(headerRow[dataRomaneioIndex]); // Data do Romaneio
-
-                        } else if (colIndex === obsRomaneioIndex) {
-                            reorderedHeader.push(header);
-                            reorderedHeader.push("PESO ENVIADO");
-                            reorderedHeader.push("ÁREA ENVIADA");
-
-                        } else if (
-                            colIndex !== pesoKgIndex &&
-                            colIndex !== areaSuperficieIndex &&
-                            colIndex !== dataRomaneioIndex &&
-                            colIndex !== observacaoIndex
-                        ) {
-                            reorderedHeader.push(header);
-                        }
-                    });
-
-                    return reorderedHeader;
-                }
-
-                const parseValue = (value) => {
-                    if (value === "" || value === null || value === undefined) return undefined;
-                    return parseFloat(value.toString().replace(",", "."));
-                };
-
-                let qtde = parseValue(row[qtdeIndex]);
-                let qtdeEnviada = parseValue(row[qtdeEnviadaIndex]);
-                let saldo = parseValue(row[saldoIndex]);
-                let qtdEnviada = parseValue(row[qtdEnviadaIndex]);
-                let pesoKg = parseValue(row[pesoKgIndex]);
-                let areaSuperficie = parseValue(row[areaSuperficieIndex]);
-
-                if (qtde !== undefined && qtde > 0) {
-                    row[pesoUnitarioIndex] = parseFloat((pesoKg / qtde).toFixed(2));
-                    row[areaM2UnitarioIndex] = parseFloat((areaSuperficie / qtde).toFixed(2));
-                } else {
-                    row[pesoUnitarioIndex] = undefined;
-                    row[areaM2UnitarioIndex] = undefined;
-                }
-
-                Object.entries(columnIndexes).forEach(([colName, colIndex]) => {
-                    if (colName.includes("data") && colName !== "data cadastro") {
-                        let dateValue = row[colIndex];
-                        if (dateValue && !isNaN(new Date(dateValue))) {
-                            let dateObj = new Date(dateValue);
-                            dateObj.setDate(dateObj.getDate() + 1);
-                            row[colIndex] = dateObj.toLocaleDateString("pt-BR");
-                        }
-                    }
-                });
-
-                let reorderedRow = [];
-
-                row.forEach((cell, colIndex) => {
-                    if (colIndex === dataCadastroIndex) return;
-
-                    if (colIndex === pesoUnitarioIndex) {
-                        reorderedRow.push(cell !== undefined ? cell : "");
-                        if (pesoKgIndex !== undefined) {
-                            reorderedRow.push(row[pesoKgIndex] !== undefined ? row[pesoKgIndex] : "");
-                        }
-
-                    } else if (colIndex === areaM2UnitarioIndex) {
-                        reorderedRow.push(cell !== undefined ? cell : "");
-                        if (areaSuperficieIndex !== undefined) {
-                            reorderedRow.push(row[areaSuperficieIndex] !== undefined ? row[areaSuperficieIndex] : "");
-                        }
-
-                    } else if (colIndex === statusIndex) {
-                        reorderedRow.push(cell !== undefined ? cell : ""); // Status
-                        reorderedRow.push(row[observacaoIndex] !== undefined ? row[observacaoIndex] : ""); // Observação
-                        reorderedRow.push(row[dataRomaneioIndex] !== undefined ? row[dataRomaneioIndex] : ""); // Data do Romaneio
-
-                    } else if (colIndex === obsRomaneioIndex) {
-                        reorderedRow.push(cell !== undefined ? cell : "");
-
-                        const pesoUnit = parseValue(row[pesoUnitarioIndex]);
-                        const areaUnit = parseValue(row[areaM2UnitarioIndex]);
-                        const qtdEnv = parseValue(row[qtdEnviadaIndex]);
-
-                        const pesoEnviado = (pesoUnit !== undefined && qtdEnv !== undefined)
-                            ? parseFloat((pesoUnit * qtdEnv).toFixed(2)) : "";
-
-                        const areaEnviada = (areaUnit !== undefined && qtdEnv !== undefined)
-                            ? parseFloat((areaUnit * qtdEnv).toFixed(2)) : "";
-
-                        reorderedRow.push(pesoEnviado);
-                        reorderedRow.push(areaEnviada);
-
-                    } else if (
-                        colIndex !== pesoKgIndex &&
-                        colIndex !== areaSuperficieIndex &&
-                        colIndex !== dataRomaneioIndex &&
-                        colIndex !== observacaoIndex
-                    ) {
-                        reorderedRow.push(cell !== undefined ? cell : "");
-                    }
-                });
-
-                return reorderedRow;
-            });
-
-            const updatedSheet = XLSX.utils.aoa_to_sheet(newData);
-
-            const integerColumns = ["Qtde", "Qtde Enviada", "Saldo", "QTD ENVIADA"];
-            const decimalColumns = [
-                "PESO ENVIADO", "ÁREA ENVIADA", "PESO Unitário",
-                "PESO TOTAL", "AREA M² Unitário", "ÁREA M² TOTAL"
-            ];
-
-            [...integerColumns, ...decimalColumns].forEach(colName => {
-                const colIndex = newData[0].indexOf(colName);
-                if (colIndex !== -1) {
-                    for (let i = 1; i < newData.length; i++) {
-                        let value = newData[i][colIndex];
-                        if (value !== undefined && value !== null && value !== "") {
-                            let num = parseFloat(value.toString().replace(",", "."));
-                            if (!isNaN(num)) {
-                                const cellAddress = XLSX.utils.encode_cell({ r: i, c: colIndex });
-                                updatedSheet[cellAddress].v = num;
-                                updatedSheet[cellAddress].t = 'n';
-                                updatedSheet[cellAddress].z = integerColumns.includes(colName) ? "0" : "#,##0.00";
-                            }
-                        }
-                    }
-                }
-            });
-
-            updatedSheet["!cols"] = newData[0].map((_, index) => {
-                let maxLength = Math.max(...newData.map(row => (row[index] ? row[index].toString().length : 0));
-                return { wch: maxLength + 2 };
-            });
-
-            const newWorkbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(newWorkbook, updatedSheet, "Planilha1");
-            XLSX.writeFile(newWorkbook, "Romaneio_Suporte.xlsx");
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Romaneio");
+            XLSX.writeFile(workbook, "Romaneio_Suporte.xlsx");
         }
 
-   document.addEventListener("DOMContentLoaded", () => {
-            // Carrega automaticamente o arquivo TESTE.xlsx
-            loadTesteFile();
+        function convertDataForExport() {
+            return filteredData.map(row => {
+                const obj = {};
+                data[0].forEach((header, index) => {
+                    if (!hiddenColumns.includes(header.trim().toLowerCase())) {
+                        obj[header] = formatCellValue(row[index], header);
+                    }
+                });
+                return obj;
+            });
+        }
 
-            // Verifica se há dados salvos localmente
+        // Carrega os dados ao iniciar
+        document.addEventListener("DOMContentLoaded", () => {
             const storedData = localStorage.getItem("uploadedData");
             if (storedData) {
                 try {
@@ -652,8 +565,20 @@
                     loadServicos();
                     renderTable();
                 } catch (error) {
-                    console.error("Erro ao carregar os dados armazenados:", error);
+                    console.error("Erro ao carregar dados locais:", error);
                     localStorage.removeItem("uploadedData");
+                }
+            } else {
+                loadTesteFile();
+            }
+
+            const storedEditedRows = localStorage.getItem("editedRows");
+            if (storedEditedRows) {
+                try {
+                    editedRows = new Set(JSON.parse(storedEditedRows));
+                } catch (error) {
+                    console.error("Erro ao carregar edições:", error);
+                    localStorage.removeItem("editedRows");
                 }
             }
         });
