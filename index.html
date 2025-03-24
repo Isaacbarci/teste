@@ -559,12 +559,13 @@ if ('serviceWorker' in navigator) {
                     if (areaSuperficieIndex !== undefined) {
                         reorderedRow.push(row[areaSuperficieIndex] !== undefined ? row[areaSuperficieIndex] : "");
                     }
-              } else if (colIndex === statusIndex) {
+            } else if (colIndex === statusIndex) {
     reorderedRow.push(cell !== undefined ? cell : "");
     reorderedRow.push(row[observacaoIndex] !== undefined ? row[observacaoIndex] : "");
     reorderedRow.push(row[dataRomaneioIndex] !== undefined ? row[dataRomaneioIndex] : "");
 }
 
+                    reorderedRow.push(cell !== undefined ? cell : "");
 
                     const pesoUnit = parseValue(row[pesoUnitarioIndex]);
                     const areaUnit = parseValue(row[areaM2UnitarioIndex]);
