@@ -242,13 +242,14 @@ function loadExcelFromDirectory() {
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
             const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
-            data = jsonData;
-            filteredData = [];
-            findColumnIndexes();
-            populateServicoOptions();
+            excelTempData = jsonData; // ⬅️ Apenas temporário
+            findColumnIndexes(excelTempData);
+            populateServicoOptions(excelTempData);
 
             document.getElementById("dataTable").innerHTML = "";
             document.getElementById("servicoFilter").value = "";
+
+            localStorage.removeItem("servicoFiltrado");
         })
         .catch(error => {
             console.error("Erro ao carregar Excel:", error);
@@ -259,38 +260,30 @@ function loadExcelFromDirectory() {
 
 
 
-function populateServicoOptions() {
-    const servicoIndex = columnIndexes["servico"]; // sem acento, tudo minúsculo
 
-    if (servicoIndex === undefined) return;
+function populateServicoOptions(dataset) {
+    const index = getColumnIndex(dataset[0], "serviço");
+    if (index === -1) return;
 
-    const uniqueServicos = new Set();
+    const unique = [...new Set(dataset.slice(1).map(row => row[index]).filter(Boolean))];
 
-    data.slice(1).forEach(row => {
-        const value = row[servicoIndex];
-        if (value) uniqueServicos.add(value);
-    });
+    const select = document.getElementById("servicoFilter");
+    select.innerHTML = '<option value="">Todos os Serviços</option>';
 
-    const servicoFilter = document.getElementById("servicoFilter");
-    servicoFilter.innerHTML = '<option value="">Todos os Serviços</option>';
-
-    [...uniqueServicos].sort().forEach(servico => {
+    unique.sort().forEach(servico => {
         const option = document.createElement("option");
         option.value = servico;
         option.textContent = servico;
-        servicoFilter.appendChild(option);
+        select.appendChild(option);
     });
 }
 
-function confirmUpdate() {
-    const confirmacao = confirm("Deseja carregar o arquivo TESTE.xlsx e substituir os dados atuais?");
-    if (confirmacao) {
-        loadExcelFromDirectory();
-    }
+function getColumnIndex(headerRow, name) {
+    const normalized = name.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    return headerRow.findIndex(h =>
+        h.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === normalized
+    );
 }
-
-
-
 
 
 
@@ -300,25 +293,31 @@ function confirmUpdate() {
 
 function filterByServico() {
     const servicoSelecionado = document.getElementById("servicoFilter").value;
-    const servicoIndex = columnIndexes["servico"]; // header normalizado
+    if (!excelTempData.length) return;
 
-    if (!data.length || servicoIndex === undefined || !servicoSelecionado) {
+    const servicoIndex = getColumnIndex(excelTempData[0], "serviço");
+
+    if (servicoIndex === -1 || !servicoSelecionado) {
         document.getElementById("dataTable").innerHTML = "";
         localStorage.removeItem("servicoFiltrado");
         return;
     }
 
-    filteredData = data.slice(1).filter(row => {
-        return row[servicoIndex] === servicoSelecionado;
-    });
+    const headers = excelTempData[0];
+    const rows = excelTempData.slice(1).filter(row => row[servicoIndex] === servicoSelecionado);
+
+    filteredData = rows;
+    data = [headers, ...rows]; // usado apenas para renderização
 
     localStorage.setItem("servicoFiltrado", JSON.stringify({
-        headers: data[0],
-        rows: filteredData
+        headers,
+        rows
     }));
 
+    findColumnIndexes(data); // para usar nas colunas
     renderTable();
 }
+
 
 
         function formatDate(dateString) {
@@ -716,21 +715,18 @@ function downloadExcel() {
 }
 
 
-   document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("DOMContentLoaded", () => {
     const saved = localStorage.getItem("servicoFiltrado");
-
     if (saved) {
         try {
             const parsed = JSON.parse(saved);
             data = [parsed.headers, ...parsed.rows];
             filteredData = parsed.rows;
-            findColumnIndexes();
+            findColumnIndexes(data);
             renderTable();
         } catch (error) {
             console.error("Erro ao restaurar serviço salvo:", error);
         }
-    } else {
-        document.getElementById("dataTable").innerHTML = "";
     }
 });
 
