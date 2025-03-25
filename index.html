@@ -309,10 +309,26 @@ function renderSelectedServico() {
     }
 
     filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
-    localStorage.setItem("servicoSelecionado", JSON.stringify(filteredData));
     editedRows.clear();
+
+    // Carrega apenas edições do serviço atual
+    const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+    const edits = stored[selectedServico] || {};
+
+    Object.keys(edits).forEach(index => {
+        const idx = parseInt(index);
+        if (!isNaN(idx) && data[idx]) {
+            data[idx][columnIndexes["data do romaneio"]] = edits[index].dataRomaneio;
+            data[idx][columnIndexes["qtd enviada"]] = edits[index].qtdEnviada;
+            data[idx][columnIndexes["obs romaneio"]] = edits[index].obsRomaneio;
+            editedRows.add(idx);
+        }
+    });
+
+    localStorage.setItem("ultimoServico", selectedServico);
     renderTable();
 }
+
 
 
 
@@ -427,26 +443,39 @@ function renderSelectedServico() {
         }
 
         function saveEdit() {
-            const originalIndex = parseInt(document.getElementById("editIndex").value);
-            if (originalIndex < 0 || originalIndex >= data.length) return;
+    const originalIndex = parseInt(document.getElementById("editIndex").value);
+    if (originalIndex < 0 || originalIndex >= data.length) return;
 
-            data[originalIndex][columnIndexes["data do romaneio"]] = document.getElementById("DATADOROMANEIO").value;
-            data[originalIndex][columnIndexes["qtd enviada"]] = document.getElementById("QTDENVIADA").value;
-            data[originalIndex][columnIndexes["obs romaneio"]] = document.getElementById("OBSROMANEIO").value;
+    const selectedServico = document.getElementById("servicoSelect").value;
 
-            const dataRomaneio = document.getElementById("DATADOROMANEIO").value;
-            if (!dataRomaneio) {
-                editedRows.delete(originalIndex);
-            } else {
-                editedRows.add(originalIndex);
-            }
+    data[originalIndex][columnIndexes["data do romaneio"]] = document.getElementById("DATADOROMANEIO").value;
+    data[originalIndex][columnIndexes["qtd enviada"]] = document.getElementById("QTDENVIADA").value;
+    data[originalIndex][columnIndexes["obs romaneio"]] = document.getElementById("OBSROMANEIO").value;
 
-            localStorage.setItem("uploadedData", JSON.stringify(data));
-            localStorage.setItem("editedRows", JSON.stringify(Array.from(editedRows)));
+    if (!document.getElementById("DATADOROMANEIO").value) {
+        editedRows.delete(originalIndex);
+    } else {
+        editedRows.add(originalIndex);
+    }
 
-            document.getElementById("editModal").style.display = "none";
-            renderTable();
-        }
+    // Apenas salva edições do serviço atual
+    const edits = {};
+    edits[selectedServico] = {};
+    editedRows.forEach(index => {
+        edits[selectedServico][index] = {
+            dataRomaneio: data[index][columnIndexes["data do romaneio"]],
+            qtdEnviada: data[index][columnIndexes["qtd enviada"]],
+            obsRomaneio: data[index][columnIndexes["obs romaneio"]]
+        };
+    });
+
+    localStorage.setItem("edicoesServicoAtual", JSON.stringify(edits));
+    localStorage.setItem("ultimoServico", selectedServico);
+
+    document.getElementById("editModal").style.display = "none";
+    renderTable();
+}
+
 
         function closeModal() {
             document.getElementById("editModal").style.display = "none";
@@ -707,6 +736,13 @@ let newData = baseData.map((row, index) => {
             if (data.length) {
                 renderTable();
             }
+const ultimoServico = localStorage.getItem("ultimoServico");
+if (ultimoServico) {
+    document.getElementById("servicoSelect").value = ultimoServico;
+    renderSelectedServico();
+}
+
+
             loadExcelFromDirectory();
         });
     </script>
