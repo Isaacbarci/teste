@@ -700,7 +700,7 @@
             currentFileName = localStorage.getItem("currentFileName") || "TESTE.xlsx";
             loadExcelFromDirectory();
 
-            servicoSelect.addEventListener("change", (event) => {
+servicoSelect.addEventListener("change", (event) => {
     const confirmar = confirm("Ao mudar o serviço, os dados não salvos serão perdidos. Deseja continuar?");
     if (confirmar) {
         const selectedServico = event.target.value;
@@ -721,15 +721,6 @@
     }
 });
 
-
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js')
-                .then((registration) => {
-                    console.log('Service Worker registrado com sucesso:', registration);
-                })
-                .catch((error) => {
-                    console.error('Erro ao registrar o Service Worker:', error);
-                });
         }
     </script>
 </body>
