@@ -710,41 +710,15 @@ let newData = baseData.map((row, index) => {
 }
 
         document.addEventListener("DOMContentLoaded", () => {
-            const storedData = localStorage.getItem("uploadedData");
-            if (storedData) {
-                try {
-                    data = JSON.parse(storedData);
-                    filteredData = data.slice(1);
-                    findColumnIndexes();
-                    mapColumnIndexes();
-                } catch (error) {
-                    console.error("Erro ao carregar os dados armazenados:", error);
-                    localStorage.removeItem("uploadedData");
-                }
-            }
+    loadExcelFromDirectory().then(() => {
+        const ultimoServico = localStorage.getItem("ultimoServico");
+        if (ultimoServico) {
+            document.getElementById("servicoSelect").value = ultimoServico;
+            renderSelectedServico();
+        }
+    });
+});
 
-            const storedEditedRows = localStorage.getItem("editedRows");
-            if (storedEditedRows) {
-                try {
-                    editedRows = new Set(JSON.parse(storedEditedRows));
-                } catch (error) {
-                    console.error("Erro ao carregar as edições armazenadas:", error);
-                    localStorage.removeItem("editedRows");
-                }
-            }
-
-            if (data.length) {
-                renderTable();
-            }
-const ultimoServico = localStorage.getItem("ultimoServico");
-if (ultimoServico) {
-    document.getElementById("servicoSelect").value = ultimoServico;
-    renderSelectedServico();
-}
-
-
-            loadExcelFromDirectory();
-        });
     </script>
 </body>
 </html>
