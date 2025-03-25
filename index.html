@@ -148,8 +148,10 @@
     Developed by Isaac Dutra
 </p>
 
-    <select id="fileList" style="margin-left: 5px;">
-    <option value="">Selecione um arquivo</option>
+   <div style="margin-left: 5px;">
+    <label for="servicoSelect" style="color: white;">Escolher Serviço:</label>
+    <select id="servicoSelect"></select>
+    <button onclick="renderSelectedServico()">Atualizar Serviço</button>
 
 
 
@@ -159,10 +161,7 @@
     <input type="text" id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação" onkeyup="applyFilter()">
     <button onclick="downloadExcel()">Download Excel</button>
     <button onclick="startQrScanner()">Escanear QR Code</button>
-<div style="margin-left: 5px;">
-    <label for="servicoSelect" style="color: white;">Escolher Serviço:</label>
-    <select id="servicoSelect"></select>
-    <button onclick="renderSelectedServico()">Atualizar Serviço</button>
+
 </div>
 
 
