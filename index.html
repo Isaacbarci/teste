@@ -179,13 +179,13 @@
         let editedRows = new Set();
         let qrScanner;
         const itemsPerPage = 500; // Itens por página
-        let services = []; // Lista de serviços disponíveis
+        let services = new Set(); // Lista de serviços disponíveis (usando Set para valores únicos)
         let currentService = ""; // Serviço atual selecionado
 
         const hiddenColumns = [
             "ÁREA", "REV", "MATERIAL", "PROG FAB", "EXECUTANTE FAB",
             "PESO", "LINHA", "COND PINT", "DIÂM. NOMINAL",
-            "ÁREA SUPERF.", "OBS ROMANEIO", "ID_SPOOL"
+            "ÁREA SUPERF.", "OBS ROMANEIO", "ID_SPOOL", "SERVIÇO"
         ];
 
         // Função debounce para melhorar o desempenho do filtro
@@ -203,7 +203,7 @@
         // Configura o evento de input com debounce
         document.getElementById("identificacaoFilter").addEventListener("input", applyFilterDebounced);
 
-        // Carrega o arquivo TESTE.xlsx e extrai os serviços disponíveis
+        // Carrega o arquivo TESTE.xlsx e extrai os serviços disponíveis da coluna "SERVIÇO"
         function loadServices() {
             fetch("TESTE.xlsx")
                 .then(response => {
@@ -214,10 +214,30 @@
                 })
                 .then(arrayBuffer => {
                     const workbook = XLSX.read(arrayBuffer, { type: 'array', cellFormula: true });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]]; // Assume que todos os dados estão na primeira planilha
                     
-                    // Extrai os nomes das planilhas (cada planilha representa um serviço)
-                    services = workbook.SheetNames;
-                    
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
+
+                    if (jsonData.length === 0) {
+                        throw new Error("O arquivo está vazio ou não contém dados.");
+                    }
+
+                    // Encontra o índice da coluna "SERVIÇO"
+                    const headers = jsonData[0].map(h => h.trim().toLowerCase());
+                    const servicoIndex = headers.indexOf("serviço");
+
+                    if (servicoIndex === -1) {
+                        throw new Error("Coluna 'SERVIÇO' não encontrada no arquivo.");
+                    }
+
+                    // Coleta todos os serviços únicos
+                    for (let i = 1; i < jsonData.length; i++) {
+                        const servico = jsonData[i][servicoIndex];
+                        if (servico && servico.trim() !== "") {
+                            services.add(servico.trim());
+                        }
+                    }
+
                     // Preenche o dropdown de serviços
                     const serviceSelect = document.getElementById("serviceList");
                     serviceSelect.innerHTML = '<option value="">Selecione um serviço</option>';
@@ -228,6 +248,12 @@
                         option.textContent = service;
                         serviceSelect.appendChild(option);
                     });
+
+                    // Se já tiver um serviço selecionado anteriormente, marca no dropdown
+                    const storedService = localStorage.getItem("currentService");
+                    if (storedService && services.has(storedService)) {
+                        serviceSelect.value = storedService;
+                    }
                 })
                 .catch(error => {
                     console.error("Erro ao carregar o arquivo:", error);
@@ -256,26 +282,41 @@
                 })
                 .then(arrayBuffer => {
                     const workbook = XLSX.read(arrayBuffer, { type: 'array', cellFormula: true });
-                    const sheet = workbook.Sheets[serviceName];
-                    
-                    if (!sheet) {
-                        throw new Error(`Serviço "${serviceName}" não encontrado no arquivo.`);
-                    }
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]]; // Assume que todos os dados estão na primeira planilha
                     
                     const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
                     if (jsonData.length === 0) {
-                        throw new Error("O serviço está vazio ou não contém dados.");
+                        throw new Error("O arquivo está vazio ou não contém dados.");
                     }
 
-                    data = jsonData;
+                    // Encontra o índice da coluna "SERVIÇO"
+                    const headers = jsonData[0].map(h => h.trim().toLowerCase());
+                    const servicoIndex = headers.indexOf("serviço");
+
+                    if (servicoIndex === -1) {
+                        throw new Error("Coluna 'SERVIÇO' não encontrada no arquivo.");
+                    }
+
+                    // Filtra os dados pelo serviço selecionado
+                    const allData = jsonData;
+                    const headerRow = allData[0];
+                    const serviceData = allData.filter((row, index) => {
+                        return index === 0 || (row[servicoIndex] && row[servicoIndex].trim() === serviceName);
+                    });
+
+                    if (serviceData.length <= 1) {
+                        throw new Error(`Nenhum dado encontrado para o serviço "${serviceName}".`);
+                    }
+
+                    data = serviceData;
                     filteredData = data.slice(1);
                     editedRows.clear();
                     findColumnIndexes();
                     renderTable();
                     saveToLocalStorage("uploadedData", data);
                     saveToLocalStorage("editedRows", Array.from(editedRows));
-                    saveToLocalStorage("currentService", currentService);
+                    localStorage.setItem("currentService", currentService);
                 })
                 .catch(error => {
                     console.error("Erro ao carregar o serviço:", error);
