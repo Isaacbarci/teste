@@ -136,6 +136,9 @@
         label {
             color: white;
         }
+        #qr-container {
+            margin-left: 5px;
+        }
     </style>
 </head>
 <body>
@@ -150,11 +153,10 @@
     <div style="margin-left: 5px;">
         <label for="servicoSelect">Escolher Serviço:</label>
         <select id="servicoSelect"></select>
-        <button onclick="renderSelectedServico()">Atualizar Serviço</button>
+        <button onclick="startQrScanner()">Escanear QR Code</button>
 
         <input type="text" id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação" onkeyup="applyFilter()">
         <button onclick="downloadExcel()">Download Excel</button>
-        <button onclick="startQrScanner()">Escanear QR Code</button>
     </div>
 
     <div id="qr-container" style="display: none;">
