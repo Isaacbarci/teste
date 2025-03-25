@@ -303,15 +303,21 @@ function populateServicoOptions() {
 
 function renderSelectedServico() {
     const selectedServico = document.getElementById("servicoSelect").value;
-    if (!selectedServico) {
-        alert("Selecione um serviço.");
-        return;
+    const ultimoServico = localStorage.getItem("ultimoServico");
+
+    // Se já tiver um serviço carregado e o novo for diferente, perguntar:
+    if (ultimoServico && ultimoServico !== selectedServico) {
+        const confirmar = confirm("Deseja realmente trocar de serviço? Alterações salvas localmente serão perdidas.");
+        if (!confirmar) {
+            // Reverter seleção
+            document.getElementById("servicoSelect").value = ultimoServico;
+            return;
+        }
     }
 
     filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
     editedRows.clear();
 
-    // Carrega apenas edições do serviço atual
     const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
     const edits = stored[selectedServico] || {};
 
@@ -328,7 +334,6 @@ function renderSelectedServico() {
     localStorage.setItem("ultimoServico", selectedServico);
     renderTable();
 }
-
 
 
 
@@ -709,7 +714,7 @@ let newData = baseData.map((row, index) => {
     XLSX.writeFile(newWorkbook, "Romaneio_Suporte.xlsx");
 }
 
-        document.addEventListener("DOMContentLoaded", () => {
+      document.addEventListener("DOMContentLoaded", () => {
     loadExcelFromDirectory().then(() => {
         const ultimoServico = localStorage.getItem("ultimoServico");
         if (ultimoServico) {
@@ -718,6 +723,7 @@ let newData = baseData.map((row, index) => {
         }
     });
 });
+
 
     </script>
 </body>
