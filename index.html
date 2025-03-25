@@ -159,9 +159,11 @@
     <input type="text" id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação" onkeyup="applyFilter()">
     <button onclick="downloadExcel()">Download Excel</button>
     <button onclick="startQrScanner()">Escanear QR Code</button>
-<label for="servicoSelect" style="color: white; margin-left: 5px;">Escolher Serviço:</label>
-<select id="servicoSelect" style="margin-left: 5px;"></select>
-<button onclick="renderSelectedServico()">Atualizar Serviço</button>
+<div style="margin-left: 5px;">
+    <label for="servicoSelect" style="color: white;">Escolher Serviço:</label>
+    <select id="servicoSelect"></select>
+    <button onclick="renderSelectedServico()">Atualizar Serviço</button>
+</div>
 
 
 
@@ -225,7 +227,7 @@
             }
         }
 
-     function loadExcelFromDirectory() {
+   function loadExcelFromDirectory() {
     fetch(localExcelPath)
         .then(response => {
             if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
@@ -237,7 +239,7 @@
             const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
             data = jsonData;
-            filteredData = data.slice(1);
+            filteredData = data.slice(1); // Remove cabeçalho
             findColumnIndexes();
             populateServicoOptions();
         })
@@ -246,27 +248,6 @@
             alert("Não foi possível carregar o arquivo do diretório.");
         });
 }
-
-                .then(arrayBuffer => {
-                    const workbook = XLSX.read(arrayBuffer, { type: 'array', cellFormula: true });
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
-
-                    data = jsonData;
-                    localStorage.setItem("uploadedData", JSON.stringify(data));
-
-                    filteredData = data.slice(1);
-                    editedRows.clear();
-                    localStorage.removeItem("editedRows");
-
-                    findColumnIndexes();
-                    renderTable();
-                })
-                .catch(error => {
-                    console.error("Erro ao carregar o arquivo:", error);
-                    alert("Erro ao carregar o arquivo. Verifique se o nome está correto.");
-                });
-        }
 
         function formatDate(dateString) {
             if (!dateString) return "";
@@ -321,6 +302,7 @@ function renderSelectedServico() {
     editedRows.clear();
     renderTable();
 }
+
 
 
         function applyFilter() {
@@ -711,6 +693,7 @@ if ('serviceWorker' in navigator) {
             if (data.length) {
                 renderTable();
             }
+            loadExcelFromDirectory();
         });
     </script>
 </body>
