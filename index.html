@@ -200,7 +200,7 @@
             "identificação 2", "area m²", "peso"
         ];
 
-        function loadExcelFromDirectory() {
+       function loadExcelFromDirectory() {
             fetch(currentFileName)
                 .then(response => {
                     if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
@@ -213,23 +213,24 @@
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
                     const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
-                    data = jsonData;
+                    // Armazena os dados originais
+                    window.originalData = JSON.parse(JSON.stringify(jsonData));
+                    data = JSON.parse(JSON.stringify(jsonData));
                     filteredData = data.slice(1);
 
                     findColumnIndexes();
                     mapColumnIndexes();
                     populateServicoOptions();
 
-                    // Carrega edições salvas APENAS se for o mesmo serviço
-                    const currentServico = localStorage.getItem("ultimoServico");
-                    if (document.getElementById("servicoSelect").value === currentServico) {
-                        loadSavedEdits();
+                    // Carrega o último serviço ou o selecionado
+                    const servicoSelect = document.getElementById("servicoSelect");
+                    const ultimoServico = localStorage.getItem("ultimoServico");
+
+                    if (ultimoServico && Array.from(servicoSelect.options).some(o => o.value === ultimoServico)) {
+                        servicoSelect.value = ultimoServico;
                     }
 
-                    const servicoSelect = document.getElementById("servicoSelect");
-                    if (servicoSelect.value) {
-                        renderSelectedServico();
-                    }
+                    renderSelectedServico();
                 })
                 .catch(error => {
                     console.error("Erro ao carregar Excel:", error);
@@ -237,9 +238,30 @@
                 });
         }
 
+        function renderSelectedServico() {
+            const selectedServico = document.getElementById("servicoSelect").value;
+            const ultimoServico = localStorage.getItem("ultimoServico");
+
+            // Restaura os dados originais antes de aplicar filtros
+            if (window.originalData) {
+                data = JSON.parse(JSON.stringify(window.originalData));
+                filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
+            }
+
+            // Atualiza o serviço atual
+            localStorage.setItem("ultimoServico", selectedServico);
+
+            // Carrega edições salvas para este serviço
+            loadSavedEdits();
+
+            // Renderiza a tabela
+            document.getElementById("dataTable").innerHTML = "";
+            renderTable();
+        }
+
         function loadSavedEdits() {
             const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
-            const currentServico = localStorage.getItem("ultimoServico");
+            const currentServico = document.getElementById("servicoSelect").value;
 
             if (!stored[currentFileName] || !stored[currentFileName][currentServico]) {
                 return;
@@ -249,21 +271,14 @@
 
             Object.keys(servicoEdits).forEach(index => {
                 const rowIndex = parseInt(index);
-                if (rowIndex >= 0 && rowIndex < data.length) {
+                if (rowIndex >= 0 && rowIndex < data.length &&
+                    data[rowIndex][servicoIndex] === currentServico) {
+
                     const edit = servicoEdits[rowIndex];
+                    data[rowIndex][columnIndexes["data do romaneio"]] = edit.dataRomaneio || "";
+                    data[rowIndex][columnIndexes["qtd enviada"]] = edit.qtdEnviada || "";
+                    data[rowIndex][columnIndexes["obs romaneio"]] = edit.obsRomaneio || "";
 
-                    // Aplicar as edições aos dados
-                    if (edit.dataRomaneio !== undefined) {
-                        data[rowIndex][columnIndexes["data do romaneio"]] = edit.dataRomaneio;
-                    }
-                    if (edit.qtdEnviada !== undefined) {
-                        data[rowIndex][columnIndexes["qtd enviada"]] = edit.qtdEnviada;
-                    }
-                    if (edit.obsRomaneio !== undefined) {
-                        data[rowIndex][columnIndexes["obs romaneio"]] = edit.obsRomaneio;
-                    }
-
-                    // Marcar como editado
                     editedRows.add(rowIndex);
                 }
             });
@@ -768,18 +783,28 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             const servicoSelect = document.getElementById("servicoSelect");
-            const ultimoServico = localStorage.getItem("ultimoServico");
 
             currentFileName = localStorage.getItem("currentFileName") || "TESTE.xlsx";
             loadExcelFromDirectory();
 
-            // Definir o último serviço selecionado após carregar as opções
-            setTimeout(() => {
-                if (ultimoServico && servicoSelect.querySelector(`option[value="${ultimoServico}"]`)) {
-                    servicoSelect.value = ultimoServico;
-                    renderSelectedServico();
+            servicoSelect.addEventListener("change", (event) => {
+                const selectedServico = event.target.value;
+                const ultimoServico = localStorage.getItem("ultimoServico");
+
+                if (ultimoServico && ultimoServico !== selectedServico) {
+                    const confirmar = confirm("Ao mudar o serviço, os dados não salvos serão perdidos. Deseja continuar?");
+                    if (!confirmar) {
+                        servicoSelect.value = ultimoServico;
+                        return;
+                    }
                 }
-            }, 500);
+
+                document.getElementById("dataTable").innerHTML = "";
+                localStorage.setItem("ultimoServico", selectedServico);
+                renderSelectedServico();
+            });
+        });
+
 
             servicoSelect.addEventListener("change", (event) => {
                 const confirmar = confirm("Ao mudar o serviço, os dados não salvos serão perdidos. Deseja continuar?");
