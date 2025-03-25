@@ -315,6 +315,11 @@
                     };
                     localStorage.setItem("edicoesServicoAtual", JSON.stringify(newStored));
                 }
+
+                // Limpar o modal se estiver aberto
+                if (document.getElementById("editModal").style.display === "block") {
+                    closeModal();
+                }
             }
 
             // Filtrar dados para o serviço selecionado
@@ -449,6 +454,11 @@
         }
 
         function closeModal() {
+            // Limpar todos os campos do modal
+            document.getElementById("DATADOROMANEIO").value = "";
+            document.getElementById("QTDENVIADA").value = "";
+            document.getElementById("OBSROMANEIO").value = "";
+
             const saldoInput = document.getElementById("Saldo");
             saldoInput.classList.remove("saldo-negativo", "saldo-positivo");
             document.getElementById("editModal").style.display = "none";
@@ -459,6 +469,13 @@
             if (originalIndex < 0 || originalIndex >= data.length) return;
 
             const selectedServico = document.getElementById("servicoSelect").value;
+
+            // Validar se o item pertence ao serviço selecionado
+            if (data[originalIndex][servicoIndex] !== selectedServico) {
+                alert("Este item não pertence ao serviço selecionado!");
+                closeModal();
+                return;
+            }
 
             // Atualizar dados na matriz
             data[originalIndex][columnIndexes["data do romaneio"]] = document.getElementById("DATADOROMANEIO").value;
