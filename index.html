@@ -159,6 +159,12 @@
     <input type="text" id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação" onkeyup="applyFilter()">
     <button onclick="downloadExcel()">Download Excel</button>
     <button onclick="startQrScanner()">Escanear QR Code</button>
+<label for="servicoSelect" style="color: white; margin-left: 5px;">Escolher Serviço:</label>
+<select id="servicoSelect" style="margin-left: 5px;"></select>
+<button onclick="renderSelectedServico()">Atualizar Serviço</button>
+
+
+
 
     <div id="qr-container" style="display: none;">
         <div id="qr-reader" style="width:300px; margin-top:10px;"></div>
@@ -182,6 +188,7 @@
         <label>Saldo: <input type="text" id="Saldo" readonly></label>
         <button class="save-btn" onclick="saveEdit()">Salvar</button>
         <button class="close-btn" onclick="closeModal()">Fechar</button>
+
     </div>
 
     <script>
@@ -218,7 +225,7 @@
             }
         }
 
-      function loadExcelFromDirectory() {
+     function loadExcelFromDirectory() {
     fetch(localExcelPath)
         .then(response => {
             if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
@@ -230,7 +237,7 @@
             const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
             data = jsonData;
-            filteredData = data.slice(1); // remover cabeçalho
+            filteredData = data.slice(1);
             findColumnIndexes();
             populateServicoOptions();
         })
@@ -239,6 +246,7 @@
             alert("Não foi possível carregar o arquivo do diretório.");
         });
 }
+
                 .then(arrayBuffer => {
                     const workbook = XLSX.read(arrayBuffer, { type: 'array', cellFormula: true });
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -303,11 +311,17 @@ function populateServicoOptions() {
 
 function renderSelectedServico() {
     const selectedServico = document.getElementById("servicoSelect").value;
-    const selectedData = filteredData.filter(row => row[servicoIndex] === selectedServico);
+    if (!selectedServico) {
+        alert("Selecione um serviço.");
+        return;
+    }
 
-    localStorage.setItem("servicoSelecionado", JSON.stringify(selectedData));
-    alert(`Serviço "${selectedServico}" carregado com sucesso!`);
+    filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
+    localStorage.setItem("servicoSelecionado", JSON.stringify(filteredData));
+    editedRows.clear();
+    renderTable();
 }
+
 
         function applyFilter() {
     const filterValue = document.getElementById("identificacaoFilter").value.trim().toLowerCase();
