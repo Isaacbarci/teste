@@ -200,7 +200,7 @@
             "identificação 2", "area m²", "peso"
         ];
 
-       function loadExcelFromDirectory() {
+        function loadExcelFromDirectory() {
             fetch(currentFileName)
                 .then(response => {
                     if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
@@ -345,38 +345,6 @@
             if (ultimoServico && servicosOrdenados.includes(ultimoServico)) {
                 servicoSelect.value = ultimoServico;
             }
-        }
-
-        function renderSelectedServico() {
-            const selectedServico = document.getElementById("servicoSelect").value;
-            const ultimoServico = localStorage.getItem("ultimoServico");
-
-            // Limpeza radical ao trocar de serviço
-            if (ultimoServico && ultimoServico !== selectedServico) {
-                // 1. Limpa todas as edições em memória
-                editedRows.clear();
-
-                // 2. Remove apenas os dados do serviço anterior do localStorage
-                const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
-                if (stored[currentFileName]) {
-                    delete stored[currentFileName][ultimoServico]; // Remove só o serviço anterior
-                    localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
-                }
-
-                // 3. Recarrega os dados originais do Excel
-                loadExcelFromDirectory();
-                return; // Sai da função para evitar renderização duplicada
-            }
-
-            // Carrega os dados do novo serviço
-            filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
-
-            // Atualiza o serviço atual
-            localStorage.setItem("ultimoServico", selectedServico);
-
-            // Renderiza a tabela limpa
-            document.getElementById("dataTable").innerHTML = "";
-            renderTable();
         }
 
         function resetModalCompleto() {
@@ -554,7 +522,7 @@
                     obsRomaneio: data[originalIndex][columnIndexes["obs romaneio"]]
                 };
             } else {
-                delete stored[currentFileName][selectedServico][originalIndex];
+                delete stored[currentFileName][selectedServico][originalIndex);
             }
 
             // Salvar apenas as edições do serviço atual
@@ -802,20 +770,6 @@
                 document.getElementById("dataTable").innerHTML = "";
                 localStorage.setItem("ultimoServico", selectedServico);
                 renderSelectedServico();
-            });
-        });
-
-
-            servicoSelect.addEventListener("change", (event) => {
-                const confirmar = confirm("Ao mudar o serviço, os dados não salvos serão perdidos. Deseja continuar?");
-                if (confirmar) {
-                    const selectedServico = event.target.value;
-                    document.getElementById("dataTable").innerHTML = "";
-                    localStorage.setItem("ultimoServico", selectedServico);
-                    renderSelectedServico();
-                } else {
-                    servicoSelect.value = localStorage.getItem("ultimoServico") || "";
-                }
             });
         });
 
