@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Romaneio de Spool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: white;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+        }
+
+        .header img {
+            height: 40px;
+            width: 95px;
+            margin-right: 10px;
+        }
+
+        .header h2 {
+            margin: 0;
+            font-size: 23px;
+        }
+
+        .developer {
+            font-size: 6px;
+            margin-left: 17px;
+            margin-top: -14px;
+        }
+
+        .controls {
+            margin: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        select, input, button {
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .close-btn {
+            background-color: #dc3545;
+        }
+
+        .close-btn:hover {
+            background-color: #c82333;
+        }
+
+        .save-btn {
+            background-color: #28a745;
+        }
+
+        .save-btn:hover {
+            background-color: #218838;
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            background-color: #000;
+            color: white;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #333;
+        }
+
+        th {
+            background-color: #007BFF;
+        }
+
+        tr:hover {
+            background-color: #333;
+        }
+
+        .edited-row {
+            background-color: #444 !important;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            color: black;
+            z-index: 1000;
+            width: 90%;
+            max-width: 450px;
+        }
+
+        .modal label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .modal input[readonly] {
+            background-color: #f5f5f5;
+        }
+
+        #qr-container {
+            margin: 10px;
+            display: none;
+        }
+
+        #qr-reader {
+            width: 100%;
+            max-width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="image.png" alt="Logo">
+        <h2>ROMANEIO DE SPOOL</h2>
+    </div>
+    <p class="developer">Developed by Isaac Dutra</p>
+
+    <div class="controls">
+        <label for="servicoSelect">Serviço:</label>
+        <select id="servicoSelect"></select>
+        <input type="text" id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code">
+        <button onclick="downloadExcel()">Download Excel</button>
+        <button onclick="startQrScanner()">Escanear QR Code</button>
+    </div>
+
+    <div id="qr-container">
+        <div id="qr-reader"></div>
+        <button class="close-btn" onclick="stopQrScanner()">Fechar Scanner</button>
+    </div>
+
+    <div class="table-container">
+        <table id="dataTable">
+            <thead></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div id="editModal" class="modal">
+        <input type="hidden" id="editIndex">
+        <label>ISOMÉTRICO: <input type="text" id="ISOMETRICO" readonly></label>
+        <label>SPOOL: <input type="text" id="SPOOL" readonly></label>
+        <label>ÁREA: <input type="text" id="AREA" readonly></label>
+        <label>PROG FAB: <input type="text" id="PROGFAB" readonly></label>
+        <label>PESO: <input type="text" id="PESO" readonly></label>
+        <label>Data do Romaneio: <input type="date" id="DATADOROMANEIO"></label>
+        <label>Obs Romaneio: <input type="text" id="OBSROMANEIO"></label>
+        <button class="save-btn" onclick="saveEdit()">Salvar</button>
+        <button class="close-btn" onclick="closeModal()">Fechar</button>
+    </div>
+
+    <script>
+        // Variáveis globais
+        let data = [];
+        let filteredData = [];
+        let columnIndexes = {};
+        let editedRows = new Set();
+        let qrScanner;
+        let currentFileName = "TESTE.xlsx";
+        let servicoIndex = 0;
+
+        // Colunas que serão ocultadas na tabela
+        const hiddenColumns = [
+            "ÁREA", "REV", "MATERIAL", "PROG FAB", "EXECUTANTE FAB",
+            "PESO", "LINHA", "COND PINT", "DIÂM. NOMINAL",
+            "ÁREA SUPERF.", "OBS ROMANEIO", "ID_SPOOL", "SERVIÇO"
+        ];
+
+        // Função principal para carregar o arquivo Excel
+        function loadExcelFromDirectory() {
+            fetch(currentFileName)
+                .then(response => {
+                    if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
+                    return response.arrayBuffer();
+                })
+                .then(arrayBuffer => {
+                    clearPreviousFileData();
+
+                    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
+
+                    window.originalData = JSON.parse(JSON.stringify(jsonData));
+                    data = JSON.parse(JSON.stringify(jsonData));
+                    filteredData = data.slice(1);
+
+                    findColumnIndexes();
+                    populateServicoOptions();
+                    renderSelectedServico(true);
+                })
+                .catch(error => {
+                    console.error("Erro ao carregar Excel:", error);
+                    alert("Não foi possível carregar o arquivo do diretório.");
+                });
+        }
+
+        // Limpa dados anteriores
+        function clearPreviousFileData() {
+            editedRows.clear();
+        }
+
+        // Encontra os índices das colunas importantes
+        function findColumnIndexes() {
+            const headers = data[0];
+            servicoIndex = headers.findIndex(header => header.trim().toLowerCase() === "serviço");
+
+            columnIndexes = {};
+            headers.forEach((header, index) => {
+                columnIndexes[header.trim().toLowerCase()] = index;
+            });
+        }
+
+        // Preenche o dropdown de serviços
+        function populateServicoOptions() {
+            const servicoSet = new Set();
+            data.slice(1).forEach(row => {
+                if (row[servicoIndex]) {
+                    servicoSet.add(row[servicoIndex]);
+                }
+            });
+
+            const servicoSelect = document.getElementById("servicoSelect");
+            servicoSelect.innerHTML = "";
+
+            Array.from(servicoSet).sort().forEach(servico => {
+                const option = document.createElement("option");
+                option.value = servico;
+                option.textContent = servico;
+                servicoSelect.appendChild(option);
+            });
+
+            // Carrega o último serviço usado
+            const ultimoServico = localStorage.getItem("ultimoServico");
+            if (ultimoServico && Array.from(servicoSelect.options).some(o => o.value === ultimoServico)) {
+                servicoSelect.value = ultimoServico;
+            } else if (servicoSelect.options.length > 0) {
+                servicoSelect.value = servicoSelect.options[0].value;
+            }
+        }
+
+        // Filtra os dados pelo serviço selecionado
+        function renderSelectedServico(manterEdicoes = false) {
+            const selectedServico = document.getElementById("servicoSelect").value;
+            filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
+
+            if (!manterEdicoes) {
+                editedRows.clear();
+            }
+
+            localStorage.setItem("ultimoServico", selectedServico);
+            renderTable();
+        }
+
+        // Renderiza a tabela com os dados filtrados
+        function renderTable() {
+            const table = document.getElementById("dataTable");
+            const thead = table.querySelector("thead");
+            const tbody = table.querySelector("tbody");
+
+            thead.innerHTML = "";
+            tbody.innerHTML = "";
+
+            if (!data.length) return;
+
+            // Cria cabeçalho
+            const headerRow = document.createElement("tr");
+            data[0].forEach((header, colIndex) => {
+                if (!hiddenColumns.includes(header.trim().toUpperCase())) {
+                    const th = document.createElement("th");
+                    th.textContent = header;
+                    headerRow.appendChild(th);
+                }
+            });
+            thead.appendChild(headerRow);
+
+            // Cria linhas da tabela
+            filteredData.forEach((row, rowIndex) => {
+                const originalIndex = data.indexOf(row);
+                const tr = document.createElement("tr");
+                tr.onclick = () => openEditModal(originalIndex);
+
+                row.forEach((cell, colIndex) => {
+                    if (!hiddenColumns.includes(data[0][colIndex].trim().toUpperCase())) {
+                        const td = document.createElement("td");
+                        td.textContent = cell || "";
+
+                        // Formata data
+                        if (data[0][colIndex].trim().toLowerCase() === "data do romaneio") {
+                            td.textContent = formatDate(cell);
+                        }
+
+                        tr.appendChild(td);
+                    }
+                });
+
+                if (editedRows.has(originalIndex)) {
+                    tr.classList.add("edited-row");
+                }
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Formata data para exibição
+        function formatDate(dateString) {
+            if (!dateString) return "";
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return "";
+            const day = String(date.getDate()).padStart(2, "0");
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        // Formata data para input date
+        function formatDateForInput(dateString) {
+            if (!dateString) return "";
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return "";
+            const day = String(date.getDate()).padStart(2, "0");
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const year = date.getFullYear();
+            return `${year}-${month}-${day}`;
+        }
+
+        // Abre modal de edição
+        function openEditModal(index) {
+            if (index < 0 || index >= data.length) return;
+
+            document.getElementById("editIndex").value = index;
+            document.getElementById("ISOMETRICO").value = data[index][columnIndexes["isométrico"]] || "";
+            document.getElementById("SPOOL").value = data[index][columnIndexes["spool"]] || "";
+            document.getElementById("AREA").value = data[index][columnIndexes["área"]] || "";
+            document.getElementById("PROGFAB").value = data[index][columnIndexes["prog fab"]] || "";
+            document.getElementById("PESO").value = data[index][columnIndexes["peso"]] || "";
+            document.getElementById("DATADOROMANEIO").value = formatDateForInput(data[index][columnIndexes["data do romaneio"]]);
+            document.getElementById("OBSROMANEIO").value = data[index][columnIndexes["obs romaneio"]] || "";
+
+            document.getElementById("editModal").style.display = "block";
+        }
+
+        // Salva edições
+        function saveEdit() {
+            const originalIndex = parseInt(document.getElementById("editIndex").value);
+            if (originalIndex < 0) return;
+
+            data[originalIndex][columnIndexes["data do romaneio"]] = document.getElementById("DATADOROMANEIO").value;
+            data[originalIndex][columnIndexes["obs romaneio"]] = document.getElementById("OBSROMANEIO").value;
+
+            editedRows.add(originalIndex);
+            renderTable();
+            closeModal();
+        }
+
+        // Fecha modal
+        function closeModal() {
+            document.getElementById("editModal").style.display = "none";
+        }
+
+        // Scanner QR Code
+        function startQrScanner() {
+            document.getElementById("qr-container").style.display = "block";
+
+            qrScanner = new Html5Qrcode("qr-reader");
+            qrScanner.start(
+                { facingMode: "environment" },
+                {
+                    fps: 10,
+                    qrbox: 250
+                },
+                (decodedText) => {
+                    document.getElementById("identificacaoFilter").value = decodedText;
+                    applyFilter();
+                    stopQrScanner();
+                },
+                (errorMessage) => {
+                    console.error(errorMessage);
+                }
+            ).catch((err) => {
+                console.error(err);
+            });
+        }
+
+        function stopQrScanner() {
+            if (qrScanner) {
+                qrScanner.stop().then(() => {
+                    document.getElementById("qr-container").style.display = "none";
+                }).catch((err) => {
+                    console.error(err);
+                });
+            }
+        }
+
+        // Filtra os dados
+        function applyFilter() {
+            const filterValue = document.getElementById("identificacaoFilter").value.toLowerCase();
+            const currentServico = document.getElementById("servicoSelect").value;
+
+            filteredData = data.slice(1).filter(row => {
+                // Filtra por serviço
+                if (currentServico && row[servicoIndex] !== currentServico) {
+                    return false;
+                }
+
+                // Filtra por isométrico ou QR
+                const isometrico = String(row[columnIndexes["isométrico"]] || "").toLowerCase();
+                const qr = String(row[columnIndexes["qr"]] || "").toLowerCase();
+
+                return isometrico.includes(filterValue) || qr.includes(filterValue);
+            });
+
+            renderTable();
+        }
+
+        // Exporta para Excel
+        function downloadExcel() {
+            if (!data.length) {
+                alert("Nenhum dado disponível para exportar.");
+                return;
+            }
+
+            // Cria uma cópia dos dados formatados
+            const formattedData = data.map((row, rowIndex) => {
+                if (rowIndex === 0) return row; // Mantém o cabeçalho
+
+                return row.map((cell, colIndex) => {
+                    const header = data[0][colIndex].trim().toLowerCase();
+
+                    // Formata datas
+                    if (header.includes("data")) {
+                        return formatDate(cell);
+                    }
+
+                    return cell;
+                });
+            });
+
+            // Cria a planilha
+            const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Romaneio");
+
+            // Ajusta largura das colunas
+            worksheet["!cols"] = formattedData[0].map((_, i) => ({
+                wch: Math.max(...formattedData.map(row => (row[i] ? row[i].toString().length : 10))) + 2
+            }));
+
+            // Gera o arquivo
+            XLSX.writeFile(workbook, "Romaneio_Spool.xlsx");
+        }
+
+        // Inicialização
+        document.addEventListener("DOMContentLoaded", () => {
+            loadExcelFromDirectory();
+
+            // Configura eventos
+            document.getElementById("servicoSelect").addEventListener("change", () => {
+                renderSelectedServico(false);
+            });
+
+            document.getElementById("identificacaoFilter").addEventListener("input", () => {
+                applyFilter();
+            });
+        });
+    </script>
+</body>
+</html>
