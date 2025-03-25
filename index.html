@@ -12,106 +12,70 @@
             margin: 0;
             padding: 0;
             background-color: #000;
+        }
+        h2 {
             color: white;
-        }
-
-        .header {
-            display: flex;
-            align-items: center;
-            padding: 10px 20px;
-        }
-
-        .header img {
-            height: 40px;
-            width: 95px;
-            margin-right: 10px;
-        }
-
-        .header h2 {
+            padding: 20px;
             margin: 0;
-            font-size: 23px;
         }
-
-        .developer {
-            font-size: 6px;
-            margin-left: 17px;
-            margin-top: -14px;
-        }
-
-        .controls {
-            margin: 10px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-        }
-
-        select, input, button {
-            padding: 8px 12px;
+        input[type="text"], button, select {
+            margin: 5px;
+            padding: 10px;
             border-radius: 5px;
             border: 1px solid #ccc;
             font-size: 14px;
         }
-
+        input[type="text"] {
+            width: 300px;
+        }
         button {
             background-color: #007BFF;
             color: white;
             border: none;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s ease;
         }
-
         button:hover {
             background-color: #0056b3;
         }
-
         .close-btn {
             background-color: #dc3545;
         }
-
         .close-btn:hover {
             background-color: #c82333;
         }
-
         .save-btn {
             background-color: #28a745;
         }
-
         .save-btn:hover {
             background-color: #218838;
         }
-
         .table-container {
             width: 100%;
             overflow-x: auto;
             margin-top: 20px;
         }
-
         table {
             border-collapse: collapse;
             width: 100%;
             background-color: #000;
             color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-
         th, td {
+            border: none;
             padding: 10px;
+            font-size: 14px;
             text-align: left;
-            border: 1px solid #333;
+            white-space: nowrap;
         }
-
         th {
             background-color: #007BFF;
+            color: white;
         }
-
-        tr:hover {
-            background-color: #333;
+        td {
+            cursor: pointer;
         }
-
-        .edited-row {
-            background-color: #444 !important;
-        }
-
         .modal {
             display: none;
             position: fixed;
@@ -119,68 +83,80 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background: white;
-            padding: 20px;
+            padding: 25px;
             border-radius: 10px;
-            color: black;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             z-index: 1000;
             width: 90%;
             max-width: 450px;
+            max-height: 85vh;
+            overflow-y: auto;
+            text-align: left;
         }
-
         .modal label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
             font-weight: bold;
+            color: #333;
         }
-
         .modal input {
             width: 100%;
             padding: 8px;
-            margin-bottom: 15px;
             border-radius: 5px;
             border: 1px solid #ccc;
+            margin-bottom: 15px;
+            font-size: 14px;
         }
-
         .modal input[readonly] {
-            background-color: #f5f5f5;
+            background-color: #f9f9f9;
+            cursor: not-allowed;
         }
-
+        .modal button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .edited-row {
+            background-color: darkgray !important;
+        }
         #qr-container {
-            margin: 10px;
+            margin-left: 5px;
             display: none;
         }
-
         #qr-reader {
-            width: 100%;
-            max-width: 300px;
+            width: 300px;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <img src="image.png" alt="Logo">
-        <h2>ROMANEIO DE SPOOL</h2>
-    </div>
-    <p class="developer">Developed by Isaac Dutra</p>
+    <h2 style="display: flex; align-items: center;">
+        <img src="image.png" alt="Logo" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;">
+        ROMANEIO DE SPOOL
+    </h2>
+    <p style="font-size: 6px; color: white; margin-left: 17px; margin-top: -14px;">
+        Developed by Isaac Dutra
+    </p>
 
-    <div class="controls">
+    <div style="margin-left: 5px;">
         <label for="servicoSelect">Serviço:</label>
-        <select id="servicoSelect"></select>
-        <input type="text" id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code">
+        <select id="servicoSelect" onchange="renderSelectedServico()"></select>
+        <input type="text" id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code" onkeyup="applyFilter()">
         <button onclick="downloadExcel()">Download Excel</button>
         <button onclick="startQrScanner()">Escanear QR Code</button>
     </div>
 
     <div id="qr-container">
         <div id="qr-reader"></div>
-        <button class="close-btn" onclick="stopQrScanner()">Fechar Scanner</button>
+        <button class="close-btn" id="closeScannerBtn" style="display: none;" onclick="stopQrScanner()">Fechar Scanner</button>
     </div>
 
     <div class="table-container">
-        <table id="dataTable">
-            <thead></thead>
-            <tbody></tbody>
-        </table>
+        <table id="dataTable"></table>
     </div>
 
     <div id="editModal" class="modal">
@@ -206,27 +182,26 @@
         let currentFileName = "TESTE.xlsx";
         let servicoIndex = 0;
 
-        // Colunas que serão ocultadas na tabela
+        // Colunas que serão ocultadas
         const hiddenColumns = [
-            "ÁREA", "REV", "MATERIAL", "PROG FAB", "EXECUTANTE FAB",
-            "PESO", "LINHA", "COND PINT", "DIÂM. NOMINAL",
-            "ÁREA SUPERF.", "OBS ROMANEIO", "ID_SPOOL", "SERVIÇO"
+            "área", "rev", "material", "prog fab", "executante fab",
+            "peso", "linha", "cond pint", "diâm. nominal",
+            "área superf.", "obs romaneio", "id_spool"
         ];
 
-        // Função principal para carregar o arquivo Excel
+        // Carrega o arquivo Excel
         function loadExcelFromDirectory() {
             fetch(currentFileName)
                 .then(response => {
-                    if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
+                    if (!response.ok) throw new Error("Erro ao carregar o arquivo.");
                     return response.arrayBuffer();
                 })
                 .then(arrayBuffer => {
-                    clearPreviousFileData();
-
                     const workbook = XLSX.read(arrayBuffer, { type: 'array' });
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
                     const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
+                    // Armazena os dados originais
                     window.originalData = JSON.parse(JSON.stringify(jsonData));
                     data = JSON.parse(JSON.stringify(jsonData));
                     filteredData = data.slice(1);
@@ -236,17 +211,12 @@
                     renderSelectedServico(true);
                 })
                 .catch(error => {
-                    console.error("Erro ao carregar Excel:", error);
-                    alert("Não foi possível carregar o arquivo do diretório.");
+                    console.error("Erro:", error);
+                    alert("Não foi possível carregar o arquivo.");
                 });
         }
 
-        // Limpa dados anteriores
-        function clearPreviousFileData() {
-            editedRows.clear();
-        }
-
-        // Encontra os índices das colunas importantes
+        // Encontra índices das colunas importantes
         function findColumnIndexes() {
             const headers = data[0];
             servicoIndex = headers.findIndex(header => header.trim().toLowerCase() === "serviço");
@@ -276,16 +246,14 @@
                 servicoSelect.appendChild(option);
             });
 
-            // Carrega o último serviço usado
+            // Carrega último serviço usado
             const ultimoServico = localStorage.getItem("ultimoServico");
             if (ultimoServico && Array.from(servicoSelect.options).some(o => o.value === ultimoServico)) {
                 servicoSelect.value = ultimoServico;
-            } else if (servicoSelect.options.length > 0) {
-                servicoSelect.value = servicoSelect.options[0].value;
             }
         }
 
-        // Filtra os dados pelo serviço selecionado
+        // Filtra por serviço selecionado
         function renderSelectedServico(manterEdicoes = false) {
             const selectedServico = document.getElementById("servicoSelect").value;
             filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
@@ -298,53 +266,51 @@
             renderTable();
         }
 
-        // Renderiza a tabela com os dados filtrados
+        // Renderiza a tabela
         function renderTable() {
             const table = document.getElementById("dataTable");
-            const thead = table.querySelector("thead");
-            const tbody = table.querySelector("tbody");
-
-            thead.innerHTML = "";
-            tbody.innerHTML = "";
+            table.innerHTML = "";
 
             if (!data.length) return;
 
             // Cria cabeçalho
             const headerRow = document.createElement("tr");
             data[0].forEach((header, colIndex) => {
-                if (!hiddenColumns.includes(header.trim().toUpperCase())) {
+                if (!hiddenColumns.includes(header.trim().toLowerCase())) {
                     const th = document.createElement("th");
                     th.textContent = header;
                     headerRow.appendChild(th);
                 }
             });
-            thead.appendChild(headerRow);
+            table.appendChild(headerRow);
 
-            // Cria linhas da tabela
-            filteredData.forEach((row, rowIndex) => {
+            // Cria linhas
+            filteredData.forEach((row, index) => {
                 const originalIndex = data.indexOf(row);
                 const tr = document.createElement("tr");
                 tr.onclick = () => openEditModal(originalIndex);
 
                 row.forEach((cell, colIndex) => {
-                    if (!hiddenColumns.includes(data[0][colIndex].trim().toUpperCase())) {
+                    if (!hiddenColumns.includes(data[0][colIndex].trim().toLowerCase())) {
                         const td = document.createElement("td");
-                        td.textContent = cell || "";
 
                         // Formata data
                         if (data[0][colIndex].trim().toLowerCase() === "data do romaneio") {
                             td.textContent = formatDate(cell);
+                        } else {
+                            td.textContent = cell || "";
                         }
 
                         tr.appendChild(td);
                     }
                 });
 
+                // Destaca linhas editadas
                 if (editedRows.has(originalIndex)) {
                     tr.classList.add("edited-row");
                 }
 
-                tbody.appendChild(tr);
+                table.appendChild(tr);
             });
         }
 
@@ -372,8 +338,6 @@
 
         // Abre modal de edição
         function openEditModal(index) {
-            if (index < 0 || index >= data.length) return;
-
             document.getElementById("editIndex").value = index;
             document.getElementById("ISOMETRICO").value = data[index][columnIndexes["isométrico"]] || "";
             document.getElementById("SPOOL").value = data[index][columnIndexes["spool"]] || "";
@@ -389,14 +353,15 @@
         // Salva edições
         function saveEdit() {
             const originalIndex = parseInt(document.getElementById("editIndex").value);
-            if (originalIndex < 0) return;
 
             data[originalIndex][columnIndexes["data do romaneio"]] = document.getElementById("DATADOROMANEIO").value;
             data[originalIndex][columnIndexes["obs romaneio"]] = document.getElementById("OBSROMANEIO").value;
 
             editedRows.add(originalIndex);
-            renderTable();
+            localStorage.setItem("editedRows", JSON.stringify(Array.from(editedRows)));
+
             closeModal();
+            renderTable();
         }
 
         // Fecha modal
@@ -404,9 +369,31 @@
             document.getElementById("editModal").style.display = "none";
         }
 
+        // Filtra os dados
+        function applyFilter() {
+            const filterValue = document.getElementById("identificacaoFilter").value.toLowerCase();
+            const currentServico = document.getElementById("servicoSelect").value;
+
+            filteredData = data.slice(1).filter(row => {
+                // Filtro por serviço
+                if (currentServico && row[servicoIndex] !== currentServico) {
+                    return false;
+                }
+
+                // Filtro por isométrico ou QR
+                const isometrico = String(row[columnIndexes["isométrico"]] || "").toLowerCase();
+                const qr = String(row[columnIndexes["qr"]] || "").toLowerCase();
+
+                return isometrico.includes(filterValue) || qr.includes(filterValue);
+            });
+
+            renderTable();
+        }
+
         // Scanner QR Code
         function startQrScanner() {
             document.getElementById("qr-container").style.display = "block";
+            document.getElementById("closeScannerBtn").style.display = "block";
 
             qrScanner = new Html5Qrcode("qr-reader");
             qrScanner.start(
@@ -432,31 +419,11 @@
             if (qrScanner) {
                 qrScanner.stop().then(() => {
                     document.getElementById("qr-container").style.display = "none";
+                    document.getElementById("closeScannerBtn").style.display = "none";
                 }).catch((err) => {
                     console.error(err);
                 });
             }
-        }
-
-        // Filtra os dados
-        function applyFilter() {
-            const filterValue = document.getElementById("identificacaoFilter").value.toLowerCase();
-            const currentServico = document.getElementById("servicoSelect").value;
-
-            filteredData = data.slice(1).filter(row => {
-                // Filtra por serviço
-                if (currentServico && row[servicoIndex] !== currentServico) {
-                    return false;
-                }
-
-                // Filtra por isométrico ou QR
-                const isometrico = String(row[columnIndexes["isométrico"]] || "").toLowerCase();
-                const qr = String(row[columnIndexes["qr"]] || "").toLowerCase();
-
-                return isometrico.includes(filterValue) || qr.includes(filterValue);
-            });
-
-            renderTable();
         }
 
         // Exporta para Excel
@@ -466,15 +433,15 @@
                 return;
             }
 
-            // Cria uma cópia dos dados formatados
+            // Cria cópia formatada
             const formattedData = data.map((row, rowIndex) => {
-                if (rowIndex === 0) return row; // Mantém o cabeçalho
+                if (rowIndex === 0) return row;
 
                 return row.map((cell, colIndex) => {
                     const header = data[0][colIndex].trim().toLowerCase();
 
                     // Formata datas
-                    if (header.includes("data")) {
+                    if (header === "data do romaneio") {
                         return formatDate(cell);
                     }
 
@@ -482,17 +449,16 @@
                 });
             });
 
-            // Cria a planilha
+            // Cria planilha
             const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Romaneio");
 
             // Ajusta largura das colunas
             worksheet["!cols"] = formattedData[0].map((_, i) => ({
-                wch: Math.max(...formattedData.map(row => (row[i] ? row[i].toString().length : 10))) + 2
+                wch: Math.max(...formattedData.map(row => (row[i] ? row[i].toString().length : 10)) + 2
             }));
 
-            // Gera o arquivo
             XLSX.writeFile(workbook, "Romaneio_Spool.xlsx");
         }
 
@@ -500,14 +466,11 @@
         document.addEventListener("DOMContentLoaded", () => {
             loadExcelFromDirectory();
 
-            // Configura eventos
-            document.getElementById("servicoSelect").addEventListener("change", () => {
-                renderSelectedServico(false);
-            });
-
-            document.getElementById("identificacaoFilter").addEventListener("input", () => {
-                applyFilter();
-            });
+            // Carrega edições salvas
+            const savedEdits = localStorage.getItem("editedRows");
+            if (savedEdits) {
+                editedRows = new Set(JSON.parse(savedEdits));
+            }
         });
     </script>
 </body>
