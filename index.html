@@ -222,15 +222,17 @@
                     mapColumnIndexes();
                     populateServicoOptions();
 
-                    // Carrega o último serviço ou o selecionado
-                    const servicoSelect = document.getElementById("servicoSelect");
+                    // Carrega o último serviço salvo
                     const ultimoServico = localStorage.getItem("ultimoServico");
+                    const servicoSelect = document.getElementById("servicoSelect");
 
                     if (ultimoServico && Array.from(servicoSelect.options).some(o => o.value === ultimoServico)) {
                         servicoSelect.value = ultimoServico;
+                        renderSelectedServico(true); // Carrega com dados limpos
+                    } else if (servicoSelect.options.length > 0) {
+                        servicoSelect.value = servicoSelect.options[0].value;
+                        renderSelectedServico(true);
                     }
-
-                    renderSelectedServico();
                 })
                 .catch(error => {
                     console.error("Erro ao carregar Excel:", error);
@@ -238,29 +240,34 @@
                 });
         }
 
-        function renderSelectedServico() {
+        function renderSelectedServico(manterEdicoes = false) {
             const selectedServico = document.getElementById("servicoSelect").value;
 
-            // Restaura os dados originais completamente limpos
+            // Restaura os dados originais
             if (window.originalData) {
                 data = JSON.parse(JSON.stringify(window.originalData));
                 filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
             }
 
-            // Limpa todas as edições para este serviço
-            editedRows.clear();
+            if (!manterEdicoes) {
+                // Limpa todas as edições em memória para este serviço
+                editedRows.clear();
 
-            // Remove as edições do localStorage para este serviço
-            const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
-            if (stored[currentFileName] && stored[currentFileName][selectedServico]) {
-                delete stored[currentFileName][selectedServico];
-                localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
+                // Remove as edições do localStorage para este serviço
+                const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+                if (stored[currentFileName] && stored[currentFileName][selectedServico]) {
+                    delete stored[currentFileName][selectedServico];
+                    localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
+                }
+            } else {
+                // Carrega edições salvas para este serviço
+                loadSavedEdits();
             }
 
-            // Atualiza o serviço atual
+            // Atualiza o último serviço selecionado
             localStorage.setItem("ultimoServico", selectedServico);
 
-            // Renderiza a tabela limpa
+            // Renderiza a tabela
             document.getElementById("dataTable").innerHTML = "";
             renderTable();
         }
@@ -775,7 +782,7 @@
 
                 document.getElementById("dataTable").innerHTML = "";
                 localStorage.setItem("ultimoServico", selectedServico);
-                renderSelectedServico();
+                renderSelectedServico(false); // Sempre carrega limpo ao trocar de serviço
             });
         });
 
