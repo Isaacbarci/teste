@@ -329,7 +329,7 @@ function renderSelectedServico() {
     }
 
     // Filtra os dados com base no valor do filtro
-    filteredData = data.slice(1).filter(row => {
+    filteredData = filteredData.filter(row => {
         const qrValue = String(row[qrColumnIndex]).toLowerCase();
         const identificacao1Value = String(row[identificacao1Index]).toLowerCase();
 
@@ -520,7 +520,9 @@ if ('serviceWorker' in navigator) {
     let obsRomaneioIndex = columnIndexes["obs romaneio"];
     let dataCadastroIndex = columnIndexes["data cadastro"];
 
-    let newData = data.map((row, index) => {
+    let baseData = [data[0], ...filteredData]; // cabeçalho + serviço filtrado
+let newData = baseData.map((row, index) => {
+
         if (index === 0) {
             let reorderedHeader = [];
 
