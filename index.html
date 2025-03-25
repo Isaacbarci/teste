@@ -687,6 +687,7 @@ let newData = baseData.map((row, index) => {
                     data = JSON.parse(storedData);
                     filteredData = data.slice(1);
                     findColumnIndexes();
+                    mapColumnIndexes();
                 } catch (error) {
                     console.error("Erro ao carregar os dados armazenados:", error);
                     localStorage.removeItem("uploadedData");
