@@ -220,6 +220,9 @@
                     mapColumnIndexes();
                     populateServicoOptions();
 
+                    // Carregar edições salvas após carregar os dados
+                    loadSavedEdits();
+
                     const servicoSelect = document.getElementById("servicoSelect");
                     if (servicoSelect.value) {
                         renderSelectedServico();
@@ -229,6 +232,38 @@
                     console.error("Erro ao carregar Excel:", error);
                     alert("Não foi possível carregar o arquivo do diretório.");
                 });
+        }
+
+        function loadSavedEdits() {
+            const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+            const currentServico = localStorage.getItem("ultimoServico");
+
+            if (!stored[currentFileName] || !stored[currentFileName][currentServico]) {
+                return;
+            }
+
+            const servicoEdits = stored[currentFileName][currentServico];
+
+            Object.keys(servicoEdits).forEach(index => {
+                const rowIndex = parseInt(index);
+                if (rowIndex >= 0 && rowIndex < data.length) {
+                    const edit = servicoEdits[rowIndex];
+
+                    // Aplicar as edições aos dados
+                    if (edit.dataRomaneio !== undefined) {
+                        data[rowIndex][columnIndexes["data do romaneio"]] = edit.dataRomaneio;
+                    }
+                    if (edit.qtdEnviada !== undefined) {
+                        data[rowIndex][columnIndexes["qtd enviada"]] = edit.qtdEnviada;
+                    }
+                    if (edit.obsRomaneio !== undefined) {
+                        data[rowIndex][columnIndexes["obs romaneio"]] = edit.obsRomaneio;
+                    }
+
+                    // Marcar como editado
+                    editedRows.add(rowIndex);
+                }
+            });
         }
 
         function clearPreviousFileData() {
@@ -734,11 +769,18 @@
             currentFileName = localStorage.getItem("currentFileName") || "TESTE.xlsx";
             loadExcelFromDirectory();
 
+            // Definir o último serviço selecionado após carregar as opções
+            setTimeout(() => {
+                if (ultimoServico && servicoSelect.querySelector(`option[value="${ultimoServico}"]`)) {
+                    servicoSelect.value = ultimoServico;
+                    renderSelectedServico();
+                }
+            }, 500);
+
             servicoSelect.addEventListener("change", (event) => {
                 const confirmar = confirm("Ao mudar o serviço, os dados não salvos serão perdidos. Deseja continuar?");
                 if (confirmar) {
                     const selectedServico = event.target.value;
-                    // Limpar a tabela antes de renderizar o novo serviço
                     document.getElementById("dataTable").innerHTML = "";
                     localStorage.setItem("ultimoServico", selectedServico);
                     renderSelectedServico();
@@ -746,6 +788,12 @@
                     servicoSelect.value = localStorage.getItem("ultimoServico") || "";
                 }
             });
+        });
+
+        // Salvar edições antes de descarregar a página
+        window.addEventListener('beforeunload', function() {
+            const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+            localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
         });
 
         if ('serviceWorker' in navigator) {
