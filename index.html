@@ -701,16 +701,26 @@
             loadExcelFromDirectory();
 
             servicoSelect.addEventListener("change", (event) => {
-                const confirmar = confirm("Ao mudar o serviço, os dados não salvos serão perdidos. Deseja continuar?");
-                if (confirmar) {
-                    const selectedServico = event.target.value;
-                    localStorage.setItem("ultimoServico", selectedServico);
-                    renderSelectedServico();
-                } else {
-                    servicoSelect.value = localStorage.getItem("ultimoServico") || "";
-                }
-            });
-        });
+    const confirmar = confirm("Ao mudar o serviço, os dados não salvos serão perdidos. Deseja continuar?");
+    if (confirmar) {
+        const selectedServico = event.target.value;
+        const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+
+        // Limpar edições do serviço anterior
+        const ultimoServico = localStorage.getItem("ultimoServico");
+        if (stored[currentFileName] && stored[currentFileName][ultimoServico]) {
+            delete stored[currentFileName][ultimoServico];
+            localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
+        }
+
+        editedRows.clear(); // também limpa da sessão
+        localStorage.setItem("ultimoServico", selectedServico);
+        renderSelectedServico();
+    } else {
+        servicoSelect.value = localStorage.getItem("ultimoServico") || "";
+    }
+});
+
 
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('service-worker.js')
