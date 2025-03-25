@@ -19,6 +19,7 @@
             display: flex;
             align-items: center;
             padding: 10px 20px;
+            border-bottom: 1px solid #333;
         }
 
         .header img {
@@ -33,9 +34,10 @@
         }
 
         .developer {
-            font-size: 6px;
+            font-size: 8px;
             margin-left: 17px;
             margin-top: -14px;
+            color: #777;
         }
 
         .controls {
@@ -49,8 +51,10 @@
         select, input, button {
             padding: 8px 12px;
             border-radius: 5px;
-            border: 1px solid #ccc;
+            border: 1px solid #333;
             font-size: 14px;
+            background-color: #222;
+            color: white;
         }
 
         button {
@@ -94,22 +98,26 @@
             color: white;
         }
 
-        th, td {
+        th {
             padding: 10px;
             text-align: left;
-            border: 1px solid #333;
+            background-color: #007BFF;
+            position: sticky;
+            top: 0;
         }
 
-        th {
-            background-color: #007BFF;
+        td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #333;
         }
 
         tr:hover {
-            background-color: #333;
+            background-color: #222;
         }
 
         .edited-row {
-            background-color: #444 !important;
+            background-color: #1a3d5c !important;
         }
 
         .modal {
@@ -118,13 +126,14 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: white;
+            background: #222;
             padding: 20px;
             border-radius: 10px;
-            color: black;
+            color: white;
             z-index: 1000;
             width: 90%;
             max-width: 450px;
+            border: 1px solid #444;
         }
 
         .modal label {
@@ -138,30 +147,52 @@
             padding: 8px;
             margin-bottom: 15px;
             border-radius: 5px;
-            border: 1px solid #ccc;
+            border: 1px solid #444;
+            background-color: #333;
+            color: white;
         }
 
         .modal input[readonly] {
-            background-color: #f5f5f5;
+            background-color: #444;
+            color: #ccc;
         }
 
         #qr-container {
             margin: 10px;
             display: none;
+            background: #222;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
         }
 
         #qr-reader {
             width: 100%;
             max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .unsaved-changes {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #dc3545;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            display: none;
+            z-index: 1000;
         }
     </style>
 </head>
 <body>
     <div class="header">
         <img src="image.png" alt="Logo">
-        <h2>ROMANEIO DE SPOOL</h2>
+        <div>
+            <h2>ROMANEIO DE SPOOL</h2>
+            <p class="developer">Desenvolvido por Isaac Dutra</p>
+        </div>
     </div>
-    <p class="developer">Developed by Isaac Dutra</p>
 
     <div class="controls">
         <label for="servicoSelect">Serviço:</label>
@@ -192,8 +223,14 @@
         <label>PESO: <input type="text" id="PESO" readonly></label>
         <label>Data do Romaneio: <input type="date" id="DATADOROMANEIO"></label>
         <label>Obs Romaneio: <input type="text" id="OBSROMANEIO"></label>
-        <button class="save-btn" onclick="saveEdit()">Salvar</button>
-        <button class="close-btn" onclick="closeModal()">Fechar</button>
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <button class="save-btn" onclick="saveEdit()">Salvar</button>
+            <button class="close-btn" onclick="closeModal()">Fechar</button>
+        </div>
+    </div>
+
+    <div class="unsaved-changes" id="unsavedChangesWarning">
+        Você tem alterações não salvas!
     </div>
 
     <script>
@@ -205,6 +242,8 @@
         let qrScanner;
         let currentFileName = "TESTE.xlsx";
         let servicoIndex = 0;
+        let hasUnsavedChanges = false;
+        let currentServicoData = [];
 
         // Colunas que serão ocultadas na tabela
         const hiddenColumns = [
@@ -229,10 +268,19 @@
 
                     window.originalData = JSON.parse(JSON.stringify(jsonData));
                     data = JSON.parse(JSON.stringify(jsonData));
-                    filteredData = data.slice(1);
 
                     findColumnIndexes();
                     populateServicoOptions();
+
+                    // Carrega o último serviço usado do localStorage
+                    const lastServico = localStorage.getItem("ultimoServico");
+                    if (lastServico) {
+                        const servicoSelect = document.getElementById("servicoSelect");
+                        if (Array.from(servicoSelect.options).some(opt => opt.value === lastServico)) {
+                            servicoSelect.value = lastServico;
+                        }
+                    }
+
                     renderSelectedServico(true);
                 })
                 .catch(error => {
@@ -244,6 +292,8 @@
         // Limpa dados anteriores
         function clearPreviousFileData() {
             editedRows.clear();
+            hasUnsavedChanges = false;
+            updateUnsavedChangesWarning();
         }
 
         // Encontra os índices das colunas importantes
@@ -276,19 +326,32 @@
                 servicoSelect.appendChild(option);
             });
 
-            // Carrega o último serviço usado
-            const ultimoServico = localStorage.getItem("ultimoServico");
-            if (ultimoServico && Array.from(servicoSelect.options).some(o => o.value === ultimoServico)) {
-                servicoSelect.value = ultimoServico;
-            } else if (servicoSelect.options.length > 0) {
-                servicoSelect.value = servicoSelect.options[0].value;
-            }
+            // Configura evento para confirmar mudança de serviço
+            servicoSelect.addEventListener('change', function() {
+                if (hasUnsavedChanges) {
+                    if (confirm("Você tem alterações não salvas. Deseja realmente mudar de serviço sem salvar?")) {
+                        renderSelectedServico(false);
+                    } else {
+                        // Reverte para o serviço anterior
+                        const lastServico = localStorage.getItem("ultimoServico");
+                        if (lastServico) {
+                            this.value = lastServico;
+                        }
+                        return;
+                    }
+                } else {
+                    renderSelectedServico(false);
+                }
+            });
         }
 
         // Filtra os dados pelo serviço selecionado
         function renderSelectedServico(manterEdicoes = false) {
             const selectedServico = document.getElementById("servicoSelect").value;
-            filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
+
+            // Filtra apenas os dados do serviço selecionado para melhor performance
+            currentServicoData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
+            filteredData = [...currentServicoData];
 
             if (!manterEdicoes) {
                 editedRows.clear();
@@ -320,7 +383,7 @@
             });
             thead.appendChild(headerRow);
 
-            // Cria linhas da tabela
+            // Cria linhas da tabela - usando currentServicoData para melhor performance
             filteredData.forEach((row, rowIndex) => {
                 const originalIndex = data.indexOf(row);
                 const tr = document.createElement("tr");
@@ -346,6 +409,12 @@
 
                 tbody.appendChild(tr);
             });
+        }
+
+        // Atualiza aviso de alterações não salvas
+        function updateUnsavedChangesWarning() {
+            const warningElement = document.getElementById("unsavedChangesWarning");
+            warningElement.style.display = hasUnsavedChanges ? "block" : "none";
         }
 
         // Formata data para exibição
@@ -395,6 +464,8 @@
             data[originalIndex][columnIndexes["obs romaneio"]] = document.getElementById("OBSROMANEIO").value;
 
             editedRows.add(originalIndex);
+            hasUnsavedChanges = true;
+            updateUnsavedChangesWarning();
             renderTable();
             closeModal();
         }
@@ -438,23 +509,19 @@
             }
         }
 
-        // Filtra os dados
+        // Filtra os dados - otimizado para usar currentServicoData
         function applyFilter() {
             const filterValue = document.getElementById("identificacaoFilter").value.toLowerCase();
-            const currentServico = document.getElementById("servicoSelect").value;
 
-            filteredData = data.slice(1).filter(row => {
-                // Filtra por serviço
-                if (currentServico && row[servicoIndex] !== currentServico) {
-                    return false;
-                }
-
-                // Filtra por isométrico ou QR
-                const isometrico = String(row[columnIndexes["isométrico"]] || "").toLowerCase();
-                const qr = String(row[columnIndexes["qr"]] || "").toLowerCase();
-
-                return isometrico.includes(filterValue) || qr.includes(filterValue);
-            });
+            if (!filterValue) {
+                filteredData = [...currentServicoData];
+            } else {
+                filteredData = currentServicoData.filter(row => {
+                    const isometrico = String(row[columnIndexes["isométrico"]] || "").toLowerCase();
+                    const qr = String(row[columnIndexes["qr"]] || "").toLowerCase();
+                    return isometrico.includes(filterValue) || qr.includes(filterValue);
+                });
+            }
 
             renderTable();
         }
@@ -494,19 +561,23 @@
 
             // Gera o arquivo
             XLSX.writeFile(workbook, "Romaneio_Spool.xlsx");
+
+            // Marca alterações como salvas
+            hasUnsavedChanges = false;
+            updateUnsavedChangesWarning();
         }
 
         // Inicialização
         document.addEventListener("DOMContentLoaded", () => {
             loadExcelFromDirectory();
 
-            // Configura eventos
-            document.getElementById("servicoSelect").addEventListener("change", () => {
-                renderSelectedServico(false);
-            });
-
+            // Configura evento de filtro com debounce para melhor performance
+            let filterTimeout;
             document.getElementById("identificacaoFilter").addEventListener("input", () => {
-                applyFilter();
+                clearTimeout(filterTimeout);
+                filterTimeout = setTimeout(() => {
+                    applyFilter();
+                }, 300);
             });
         });
     </script>
