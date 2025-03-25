@@ -298,55 +298,53 @@
             const selectedServico = document.getElementById("servicoSelect").value;
             const ultimoServico = localStorage.getItem("ultimoServico");
 
-            // Limpar completamente os dados do serviço anterior
+            // Limpeza radical ao trocar de serviço
             if (ultimoServico && ultimoServico !== selectedServico) {
+                // 1. Limpa todas as edições em memória
                 editedRows.clear();
 
-                // Limpar dados do localStorage para o serviço anterior
+                // 2. Remove apenas os dados do serviço anterior do localStorage
                 const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
-                if (stored[currentFileName] && stored[currentFileName][ultimoServico]) {
-                    // Criar novo objeto sem os dados do serviço anterior
-                    const newStored = {
-                        ...stored,
-                        [currentFileName]: {
-                            ...stored[currentFileName],
-                            [ultimoServico]: {}  // Limpa as edições do serviço anterior
-                        }
-                    };
-                    localStorage.setItem("edicoesServicoAtual", JSON.stringify(newStored));
+                if (stored[currentFileName]) {
+                    delete stored[currentFileName][ultimoServico]; // Remove só o serviço anterior
+                    localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
                 }
 
-                // Limpar o modal se estiver aberto
-                if (document.getElementById("editModal").style.display === "block") {
-                    closeModal();
-                }
+                // 3. Força limpeza total do modal
+                resetModalCompleto();
             }
 
-            // Filtrar dados para o serviço selecionado
+            // Carrega os dados do novo serviço
             filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
 
-            // Carregar edições apenas para o serviço selecionado
-            const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
-            const fileEdits = stored[currentFileName] || {};
-            const edits = fileEdits[selectedServico] || {};
-
-            // Aplicar edições salvas
-            Object.keys(edits).forEach(index => {
-                const idx = parseInt(index);
-                if (!isNaN(idx) && idx < data.length) {
-                    data[idx][columnIndexes["data do romaneio"]] = edits[index].dataRomaneio || "";
-                    data[idx][columnIndexes["qtd enviada"]] = edits[index].qtdEnviada || "";
-                    data[idx][columnIndexes["obs romaneio"]] = edits[index].obsRomaneio || "";
-                    editedRows.add(idx);
-                }
-            });
-
-            // Atualizar serviço atual no localStorage
+            // Atualiza o serviço atual
             localStorage.setItem("ultimoServico", selectedServico);
 
-            // Renderizar tabela limpa
+            // Renderiza a tabela limpa
             document.getElementById("dataTable").innerHTML = "";
             renderTable();
+        }
+
+        function resetModalCompleto() {
+            const modal = document.getElementById("editModal");
+            if (modal.style.display === "block") {
+                // Limpa todos os campos sem exceção
+                document.getElementById("editIndex").value = "";
+                document.getElementById("POSICAOTAG").value = "";
+                document.getElementById("IDENTIFICACAO1").value = "";
+                document.getElementById("IDENTIFICACAO2").value = "";
+                document.getElementById("PesoKg").value = "";
+                document.getElementById("DATADOROMANEIO").value = "";
+                document.getElementById("QTDENVIADA").value = "";
+                document.getElementById("OBSROMANEIO").value = "";
+                document.getElementById("Qtde").value = "";
+
+                const saldoInput = document.getElementById("Saldo");
+                saldoInput.value = "";
+                saldoInput.classList.remove("saldo-negativo", "saldo-positivo");
+
+                modal.style.display = "none";
+            }
         }
 
         function applyFilter() {
@@ -454,11 +452,6 @@
         }
 
         function closeModal() {
-            // Limpar todos os campos do modal
-            document.getElementById("DATADOROMANEIO").value = "";
-            document.getElementById("QTDENVIADA").value = "";
-            document.getElementById("OBSROMANEIO").value = "";
-
             const saldoInput = document.getElementById("Saldo");
             saldoInput.classList.remove("saldo-negativo", "saldo-positivo");
             document.getElementById("editModal").style.display = "none";
@@ -466,14 +459,12 @@
 
         function saveEdit() {
             const originalIndex = parseInt(document.getElementById("editIndex").value);
-            if (originalIndex < 0 || originalIndex >= data.length) return;
-
             const selectedServico = document.getElementById("servicoSelect").value;
 
-            // Validar se o item pertence ao serviço selecionado
+            // Verificação EXTRA de segurança
             if (data[originalIndex][servicoIndex] !== selectedServico) {
-                alert("Este item não pertence ao serviço selecionado!");
-                closeModal();
+                alert("ERRO: O item não pertence ao serviço selecionado!");
+                resetModalCompleto();
                 return;
             }
 
