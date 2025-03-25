@@ -298,18 +298,26 @@
             const selectedServico = document.getElementById("servicoSelect").value;
             const ultimoServico = localStorage.getItem("ultimoServico");
 
-            // Limpar edições ao trocar de serviço
+            // Limpar completamente os dados do serviço anterior
             if (ultimoServico && ultimoServico !== selectedServico) {
                 editedRows.clear();
 
                 // Limpar dados do localStorage para o serviço anterior
                 const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
                 if (stored[currentFileName] && stored[currentFileName][ultimoServico]) {
-                    delete stored[currentFileName][ultimoServico];
-                    localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
+                    // Criar novo objeto sem os dados do serviço anterior
+                    const newStored = {
+                        ...stored,
+                        [currentFileName]: {
+                            ...stored[currentFileName],
+                            [ultimoServico]: {}  // Limpa as edições do serviço anterior
+                        }
+                    };
+                    localStorage.setItem("edicoesServicoAtual", JSON.stringify(newStored));
                 }
             }
 
+            // Filtrar dados para o serviço selecionado
             filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
 
             // Carregar edições apenas para o serviço selecionado
@@ -317,17 +325,22 @@
             const fileEdits = stored[currentFileName] || {};
             const edits = fileEdits[selectedServico] || {};
 
+            // Aplicar edições salvas
             Object.keys(edits).forEach(index => {
                 const idx = parseInt(index);
-                if (!isNaN(idx) && data[idx]) {
-                    data[idx][columnIndexes["data do romaneio"]] = edits[index].dataRomaneio;
-                    data[idx][columnIndexes["qtd enviada"]] = edits[index].qtdEnviada;
-                    data[idx][columnIndexes["obs romaneio"]] = edits[index].obsRomaneio;
+                if (!isNaN(idx) && idx < data.length) {
+                    data[idx][columnIndexes["data do romaneio"]] = edits[index].dataRomaneio || "";
+                    data[idx][columnIndexes["qtd enviada"]] = edits[index].qtdEnviada || "";
+                    data[idx][columnIndexes["obs romaneio"]] = edits[index].obsRomaneio || "";
                     editedRows.add(idx);
                 }
             });
 
+            // Atualizar serviço atual no localStorage
             localStorage.setItem("ultimoServico", selectedServico);
+
+            // Renderizar tabela limpa
+            document.getElementById("dataTable").innerHTML = "";
             renderTable();
         }
 
@@ -447,16 +460,21 @@
 
             const selectedServico = document.getElementById("servicoSelect").value;
 
+            // Atualizar dados na matriz
             data[originalIndex][columnIndexes["data do romaneio"]] = document.getElementById("DATADOROMANEIO").value;
             data[originalIndex][columnIndexes["qtd enviada"]] = document.getElementById("QTDENVIADA").value;
             data[originalIndex][columnIndexes["obs romaneio"]] = document.getElementById("OBSROMANEIO").value;
 
-            if (!document.getElementById("DATADOROMANEIO").value) {
+            // Atualizar conjunto de linhas editadas
+            if (!document.getElementById("DATADOROMANEIO").value &&
+                !document.getElementById("QTDENVIADA").value &&
+                !document.getElementById("OBSROMANEIO").value) {
                 editedRows.delete(originalIndex);
             } else {
                 editedRows.add(originalIndex);
             }
 
+            // Atualizar localStorage
             const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
 
             if (!stored[currentFileName]) {
@@ -477,6 +495,7 @@
                 delete stored[currentFileName][selectedServico][originalIndex];
             }
 
+            // Salvar apenas as edições do serviço atual
             localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
             localStorage.setItem("ultimoServico", selectedServico);
 
