@@ -139,7 +139,6 @@
     </style>
 </head>
 <body>
-    <!-- Cabeçalho com Logo e Título -->
     <h2 style="display: flex; align-items: center;">
         <img src="image.png" alt="Logo" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;">
         <span style="font-size: 23px;">ROMANEIO DE SUPORTE</span>
@@ -189,11 +188,9 @@
         let columnIndexes = {};
         let editedRows = new Set();
         let qrScanner;
-        let currentFileName = "";
+        let currentFileName = "TESTE.xlsx";
 
-        const rowsPerPage = 500; // Número de linhas por página
-        const localExcelPath = "TESTE.xlsx";
-
+        const rowsPerPage = 500;
         const hiddenColumns = [
             "desenho suporte", "informações", "isométrico", "peso (kg)", "cond. pintura",
             "área superfície", "data corte", "data acoplamento", "data solda",
@@ -204,31 +201,25 @@
         ];
 
         function loadExcelFromDirectory() {
-            fetch(localExcelPath)
+            fetch(currentFileName)
                 .then(response => {
                     if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
                     return response.arrayBuffer();
                 })
                 .then(arrayBuffer => {
-                    // Limpar dados salvos do arquivo anterior
                     clearPreviousFileData();
-
-                    // Atualizar o nome do arquivo atual
-                    currentFileName = localExcelPath;
-                    localStorage.setItem("currentFileName", currentFileName);
 
                     const workbook = XLSX.read(arrayBuffer, { type: 'array' });
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
                     const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
                     data = jsonData;
-                    filteredData = data.slice(1); // Remove cabeçalho
+                    filteredData = data.slice(1);
 
                     findColumnIndexes();
                     mapColumnIndexes();
                     populateServicoOptions();
 
-                    // Renderizar o serviço selecionado automaticamente
                     const servicoSelect = document.getElementById("servicoSelect");
                     if (servicoSelect.value) {
                         renderSelectedServico();
@@ -241,26 +232,16 @@
         }
 
         function clearPreviousFileData() {
-            // Verificar se estamos trocando de arquivo
-            const previousFileName = localStorage.getItem("currentFileName");
-            if (previousFileName && previousFileName !== currentFileName) {
-                // Limpar todos os dados salvos associados ao arquivo anterior
-                localStorage.removeItem("edicoesServicoAtual");
-                localStorage.removeItem("ultimoServico");
-                editedRows.clear();
-            }
+            editedRows.clear();
         }
 
         function formatDate(dateString) {
             if (!dateString) return "";
-
             const date = new Date(dateString);
             if (isNaN(date.getTime())) return "";
-
             const day = String(date.getUTCDate()).padStart(2, "0");
             const month = String(date.getUTCMonth() + 1).padStart(2, "0");
             const year = date.getUTCFullYear();
-
             return `${day}/${month}/${year}`;
         }
 
@@ -298,7 +279,6 @@
             const servicoSelect = document.getElementById("servicoSelect");
             servicoSelect.innerHTML = "";
 
-            // Ordenar os serviços antes de adicionar ao select
             const servicosOrdenados = Array.from(servicoSet).sort();
 
             servicosOrdenados.forEach(servico => {
@@ -308,7 +288,6 @@
                 servicoSelect.appendChild(option);
             });
 
-            // Selecionar o último serviço usado, se existir
             const ultimoServico = localStorage.getItem("ultimoServico");
             if (ultimoServico && servicosOrdenados.includes(ultimoServico)) {
                 servicoSelect.value = ultimoServico;
@@ -319,20 +298,14 @@
             const selectedServico = document.getElementById("servicoSelect").value;
             const ultimoServico = localStorage.getItem("ultimoServico");
 
-            // Se já tiver um serviço carregado e o novo for diferente, perguntar:
+            // Limpar edições ao trocar de serviço
             if (ultimoServico && ultimoServico !== selectedServico) {
-                const confirmar = confirm("Deseja realmente trocar de serviço? Alterações salvas localmente serão perdidas.");
-                if (!confirmar) {
-                    // Reverter seleção
-                    document.getElementById("servicoSelect").value = ultimoServico;
-                    return;
-                }
+                editedRows.clear();
             }
 
             filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
-            editedRows.clear();
 
-            // Carregar edições apenas para o arquivo atual
+            // Carregar edições apenas para o serviço selecionado
             const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
             const fileEdits = stored[currentFileName] || {};
             const edits = fileEdits[selectedServico] || {};
@@ -353,8 +326,6 @@
 
         function applyFilter() {
             const filterValue = document.getElementById("identificacaoFilter").value.trim().toLowerCase();
-
-            // Verifica se as colunas "QR" e "Identificação 1" existem
             const qrColumnIndex = columnIndexes["qr"];
             const identificacao1Index = columnIndexes["identificação 1"];
 
@@ -363,7 +334,6 @@
                 return;
             }
 
-            // Filtra os dados com base no valor do filtro
             const currentServico = document.getElementById("servicoSelect").value;
             filteredData = data.slice(1).filter(row => {
                 if (currentServico && row[servicoIndex] !== currentServico) {
@@ -373,7 +343,6 @@
                 const qrValue = String(row[qrColumnIndex]).toLowerCase();
                 const identificacao1Value = String(row[identificacao1Index]).toLowerCase();
 
-                // Retorna true se o valor do filtro estiver presente em qualquer uma das colunas
                 return qrValue.includes(filterValue) || identificacao1Value.includes(filterValue);
             });
 
@@ -448,7 +417,6 @@
             const saldoInput = document.getElementById("Saldo");
             saldoInput.value = saldo;
 
-            // Aplicar estilo com base no valor do saldo
             if (saldo <= 0) {
                 saldoInput.classList.add("saldo-negativo");
                 saldoInput.classList.remove("saldo-positivo");
@@ -462,7 +430,7 @@
 
         function closeModal() {
             const saldoInput = document.getElementById("Saldo");
-            saldoInput.classList.remove("saldo-negativo", "saldo-positivo"); // Limpa os estilos ao fechar o modal
+            saldoInput.classList.remove("saldo-negativo", "saldo-positivo");
             document.getElementById("editModal").style.display = "none";
         }
 
@@ -482,17 +450,15 @@
                 editedRows.add(originalIndex);
             }
 
-            // Salvar edições associadas ao arquivo atual
             const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
 
-            // Criar estrutura para armazenar por arquivo e depois por serviço
             if (!stored[currentFileName]) {
                 stored[currentFileName] = {};
             }
 
-            if (!stored[currentFileName][selectedServico]) {
-                stored[currentFileName][selectedServico] = {};
-            }
+            stored[currentFileName] = {
+                [selectedServico]: stored[currentFileName][selectedServico] || {}
+            };
 
             if (editedRows.has(originalIndex)) {
                 stored[currentFileName][selectedServico][originalIndex] = {
@@ -568,7 +534,7 @@
             let obsRomaneioIndex = columnIndexes["obs romaneio"];
             let dataCadastroIndex = columnIndexes["data cadastro"];
 
-            let baseData = [data[0], ...filteredData]; // cabeçalho + serviço filtrado
+            let baseData = [data[0], ...filteredData];
             let newData = baseData.map((row, index) => {
                 if (index === 0) {
                     let reorderedHeader = [];
@@ -587,9 +553,9 @@
                             }
 
                         } else if (colIndex === statusIndex) {
-                            reorderedHeader.push(header); // Status
-                            reorderedHeader.push(headerRow[observacaoIndex]); // Observação
-                            reorderedHeader.push(headerRow[dataRomaneioIndex]); // Data do Romaneio
+                            reorderedHeader.push(header);
+                            reorderedHeader.push(headerRow[observacaoIndex]);
+                            reorderedHeader.push(headerRow[dataRomaneioIndex]);
 
                         } else if (colIndex === obsRomaneioIndex) {
                             reorderedHeader.push(header);
@@ -658,9 +624,9 @@
                         }
 
                     } else if (colIndex === statusIndex) {
-                        reorderedRow.push(cell !== undefined ? cell : ""); // Status
-                        reorderedRow.push(row[observacaoIndex] !== undefined ? row[observacaoIndex] : ""); // Observação
-                        reorderedRow.push(row[dataRomaneioIndex] !== undefined ? row[dataRomaneioIndex] : ""); // Data do Romaneio
+                        reorderedRow.push(cell !== undefined ? cell : "");
+                        reorderedRow.push(row[observacaoIndex] !== undefined ? row[observacaoIndex] : "");
+                        reorderedRow.push(row[dataRomaneioIndex] !== undefined ? row[dataRomaneioIndex] : "");
 
                     } else if (colIndex === obsRomaneioIndex) {
                         reorderedRow.push(cell !== undefined ? cell : "");
@@ -731,13 +697,9 @@
             const servicoSelect = document.getElementById("servicoSelect");
             const ultimoServico = localStorage.getItem("ultimoServico");
 
-            // Carregar o nome do arquivo atual se existir
-            currentFileName = localStorage.getItem("currentFileName") || "";
-
-            // Carregar o Excel automaticamente quando a página carrega
+            currentFileName = localStorage.getItem("currentFileName") || "TESTE.xlsx";
             loadExcelFromDirectory();
 
-            // Adicionar evento de mudança com confirmação
             servicoSelect.addEventListener("change", (event) => {
                 const confirmar = confirm("Ao mudar o serviço, os dados não salvos serão perdidos. Deseja continuar?");
                 if (confirmar) {
@@ -745,7 +707,6 @@
                     localStorage.setItem("ultimoServico", selectedServico);
                     renderSelectedServico();
                 } else {
-                    // Reverter para o serviço anteriormente selecionado
                     servicoSelect.value = localStorage.getItem("ultimoServico") || "";
                 }
             });
