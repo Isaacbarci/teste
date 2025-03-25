@@ -301,6 +301,13 @@
             // Limpar edições ao trocar de serviço
             if (ultimoServico && ultimoServico !== selectedServico) {
                 editedRows.clear();
+
+                // Limpar dados do localStorage para o serviço anterior
+                const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+                if (stored[currentFileName] && stored[currentFileName][ultimoServico]) {
+                    delete stored[currentFileName][ultimoServico];
+                    localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
+                }
             }
 
             filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
@@ -456,9 +463,9 @@
                 stored[currentFileName] = {};
             }
 
-            stored[currentFileName] = {
-                [selectedServico]: stored[currentFileName][selectedServico] || {}
-            };
+            if (!stored[currentFileName][selectedServico]) {
+                stored[currentFileName][selectedServico] = {};
+            }
 
             if (editedRows.has(originalIndex)) {
                 stored[currentFileName][selectedServico][originalIndex] = {
@@ -700,27 +707,29 @@
             currentFileName = localStorage.getItem("currentFileName") || "TESTE.xlsx";
             loadExcelFromDirectory();
 
-servicoSelect.addEventListener("change", (event) => {
-    const confirmar = confirm("Ao mudar o serviço, os dados não salvos serão perdidos. Deseja continuar?");
-    if (confirmar) {
-        const selectedServico = event.target.value;
-        const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+            servicoSelect.addEventListener("change", (event) => {
+                const confirmar = confirm("Ao mudar o serviço, os dados não salvos serão perdidos. Deseja continuar?");
+                if (confirmar) {
+                    const selectedServico = event.target.value;
+                    // Limpar a tabela antes de renderizar o novo serviço
+                    document.getElementById("dataTable").innerHTML = "";
+                    localStorage.setItem("ultimoServico", selectedServico);
+                    renderSelectedServico();
+                } else {
+                    servicoSelect.value = localStorage.getItem("ultimoServico") || "";
+                }
+            });
+        });
 
-        // Limpar edições do serviço anterior
-        const ultimoServico = localStorage.getItem("ultimoServico");
-        if (stored[currentFileName] && stored[currentFileName][ultimoServico]) {
-            delete stored[currentFileName][ultimoServico];
-            localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then((registration) => {
+                    console.log('Service Worker registrado com sucesso:', registration);
+                })
+                .catch((error) => {
+                    console.error('Erro ao registrar o Service Worker:', error);
+                });
         }
-
-        editedRows.clear(); // também limpa da sessão
-        localStorage.setItem("ultimoServico", selectedServico);
-        renderSelectedServico();
-    } else {
-        servicoSelect.value = localStorage.getItem("ultimoServico") || "";
-    }
-});
-
-</script>
+    </script>
 </body>
 </html>
