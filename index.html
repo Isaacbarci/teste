@@ -157,7 +157,7 @@
 
 
 </select>
-    
+
     <input type="text" id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação" onkeyup="applyFilter()">
     <button onclick="downloadExcel()">Download Excel</button>
     <button onclick="startQrScanner()">Escanear QR Code</button>
@@ -226,7 +226,7 @@
             }
         }
 
-   function loadExcelFromDirectory() {
+  function loadExcelFromDirectory() {
     fetch(localExcelPath)
         .then(response => {
             if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
@@ -239,7 +239,9 @@
 
             data = jsonData;
             filteredData = data.slice(1); // Remove cabeçalho
+
             findColumnIndexes();
+            mapColumnIndexes(); // necessário para o modal funcionar
             populateServicoOptions();
         })
         .catch(error => {
@@ -247,6 +249,7 @@
             alert("Não foi possível carregar o arquivo do diretório.");
         });
 }
+
 
         function formatDate(dateString) {
             if (!dateString) return "";
@@ -275,6 +278,15 @@
     const headers = data[0];
     servicoIndex = headers.indexOf("Serviço");
 }
+
+function mapColumnIndexes() {
+    const headers = data[0];
+    columnIndexes = {};
+    headers.forEach((name, index) => {
+        columnIndexes[name.trim().toLowerCase()] = index;
+    });
+}
+
 
 function populateServicoOptions() {
     const servicoSet = new Set(filteredData.map(row => row[servicoIndex]));
