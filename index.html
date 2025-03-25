@@ -240,21 +240,27 @@
 
         function renderSelectedServico() {
             const selectedServico = document.getElementById("servicoSelect").value;
-            const ultimoServico = localStorage.getItem("ultimoServico");
 
-            // Restaura os dados originais antes de aplicar filtros
+            // Restaura os dados originais completamente limpos
             if (window.originalData) {
                 data = JSON.parse(JSON.stringify(window.originalData));
                 filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
             }
 
+            // Limpa todas as edições para este serviço
+            editedRows.clear();
+
+            // Remove as edições do localStorage para este serviço
+            const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+            if (stored[currentFileName] && stored[currentFileName][selectedServico]) {
+                delete stored[currentFileName][selectedServico];
+                localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
+            }
+
             // Atualiza o serviço atual
             localStorage.setItem("ultimoServico", selectedServico);
 
-            // Carrega edições salvas para este serviço
-            loadSavedEdits();
-
-            // Renderiza a tabela
+            // Renderiza a tabela limpa
             document.getElementById("dataTable").innerHTML = "";
             renderTable();
         }
