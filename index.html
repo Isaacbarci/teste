@@ -714,12 +714,26 @@ let newData = baseData.map((row, index) => {
     XLSX.writeFile(newWorkbook, "Romaneio_Suporte.xlsx");
 }
 
-      document.addEventListener("DOMContentLoaded", () => {
-    loadExcelFromDirectory().then(() => {
-        const ultimoServico = localStorage.getItem("ultimoServico");
-        if (ultimoServico) {
-            document.getElementById("servicoSelect").value = ultimoServico;
+ document.addEventListener("DOMContentLoaded", () => {
+    const servicoSelect = document.getElementById("servicoSelect");
+    const ultimoServico = localStorage.getItem("ultimoServico");
+
+    // Carregar o último serviço selecionado, se existir
+    if (ultimoServico) {
+        servicoSelect.value = ultimoServico;
+        renderSelectedServico();
+    }
+
+    // Adicionar evento de mudança com confirmação
+    servicoSelect.addEventListener("change", (event) => {
+        const confirmar = confirm("Ao mudar o serviço, os dados não salvos serão perdidos. Deseja continuar?");
+        if (confirmar) {
+            const selectedServico = event.target.value;
+            localStorage.setItem("ultimoServico", selectedServico);
             renderSelectedServico();
+        } else {
+            // Reverter para o serviço anteriormente selecionado
+            servicoSelect.value = localStorage.getItem("ultimoServico");
         }
     });
 });
