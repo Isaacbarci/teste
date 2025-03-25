@@ -220,8 +220,11 @@
                     mapColumnIndexes();
                     populateServicoOptions();
 
-                    // Carregar edições salvas após carregar os dados
-                    loadSavedEdits();
+                    // Carrega edições salvas APENAS se for o mesmo serviço
+                    const currentServico = localStorage.getItem("ultimoServico");
+                    if (document.getElementById("servicoSelect").value === currentServico) {
+                        loadSavedEdits();
+                    }
 
                     const servicoSelect = document.getElementById("servicoSelect");
                     if (servicoSelect.value) {
@@ -345,8 +348,9 @@
                     localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
                 }
 
-                // 3. Força limpeza total do modal
-                resetModalCompleto();
+                // 3. Recarrega os dados originais do Excel
+                loadExcelFromDirectory();
+                return; // Sai da função para evitar renderização duplicada
             }
 
             // Carrega os dados do novo serviço
