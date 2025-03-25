@@ -194,7 +194,7 @@
         ];
 
         // Inicialização
-        document.addEventListener("DOMContentLoaded", () => {
+        document.addEventListener("DOMContentLoaded", function() {
             loadExcelFromDirectory();
 
             // Carrega edições salvas
@@ -205,26 +205,47 @@
 
             // Configura eventos
             document.getElementById("servicoSelect").addEventListener("change", renderSelectedServico);
-            document.getElementById("identificacaoFilter").addEventListener("input", applyFilter);
+            document.getElementById("identificacaoFilter").addEventListener("input", function() {
+                setTimeout(applyFilter, 300); // Debounce para melhor performance
+            });
         });
 
         // Carrega o arquivo Excel
         function loadExcelFromDirectory() {
             fetch(currentFileName)
                 .then(response => {
-                    if (!response.ok) throw new Error("Erro ao carregar o arquivo.");
+                    if (!response.ok) {
+                        throw new Error(`Arquivo não encontrado ou erro ao carregar (status ${response.status})`);
+                    }
                     return response.arrayBuffer();
                 })
                 .then(arrayBuffer => {
-                    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
+                    try {
+                        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                        const firstSheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[firstSheetName];
 
-                    processLoadedData(jsonData);
+                        // Converter para JSON mantendo estrutura original
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+                            header: 1,
+                            defval: "",
+                            raw: false,
+                            blankrows: true
+                        });
+
+                        if (!jsonData || jsonData.length === 0) {
+                            throw new Error("O arquivo Excel está vazio ou não contém dados válidos.");
+                        }
+
+                        processLoadedData(jsonData);
+                    } catch (e) {
+                        console.error("Erro ao processar Excel:", e);
+                        alert("Erro ao processar arquivo Excel: " + e.message);
+                    }
                 })
                 .catch(error => {
-                    console.error("Erro:", error);
-                    alert("Não foi possível carregar o arquivo: " + error.message);
+                    console.error("Erro ao carregar arquivo:", error);
+                    alert("Erro ao carregar arquivo: " + error.message + "\nVerifique se o arquivo TESTE.xlsx está na mesma pasta.");
                 });
         }
 
@@ -235,13 +256,15 @@
 
             // Encontra o índice da coluna de serviço
             servicoIndex = data[0].findIndex(col =>
-                col.toString().trim().toLowerCase() === "serviço"
+                col && col.toString().trim().toLowerCase() === "serviço"
             );
 
             // Mapeia os índices das colunas
             columnIndexes = {};
             data[0].forEach((header, index) => {
-                columnIndexes[header.trim().toLowerCase()] = index;
+                if (header) {
+                    columnIndexes[header.toString().trim().toLowerCase()] = index;
+                }
             });
 
             // Popula o dropdown de serviços
