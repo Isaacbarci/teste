@@ -431,15 +431,30 @@
         }
 
         function saveEdit() {
-            const originalIndex = parseInt(document.getElementById("editIndex").value);
-            const selectedServico = document.getElementById("servicoSelect").value;
+    const originalIndex = parseInt(document.getElementById("editIndex").value);
+    if (originalIndex < 0) return;
 
-            // Verifica se o item pertence ao serviço selecionado
-            if (data[originalIndex][servicoIndex] !== selectedServico) {
-                alert("ERRO: O item não pertence ao serviço selecionado!");
-                closeModal();
-                return;
-            }
+    const selectedServico = document.getElementById("servicoSelect").value;
+
+    // Verifica se o item pertence ao serviço selecionado
+    const servicoIndex = 2; // <- ajuste conforme o índice real do serviço no array "data"
+    if (data[originalIndex][servicoIndex] !== selectedServico) {
+        alert("ERRO: O item não pertence ao serviço selecionado!");
+        closeModal();
+        return;
+    }
+
+    const editedRow = [
+        document.getElementById("DATADOROMANEIO").value,
+        document.getElementById("OBSROMANEIO").value
+        // Adicione mais campos se necessário
+    ];
+
+    data[originalIndex] = editedRow;
+    updateTable(); // Atualize a tabela, se essa função existir
+    closeModal();
+}
+
 
             if (
                 originalRow[columnIndexes["data do romaneio"]] !== editedRow[0] ||
