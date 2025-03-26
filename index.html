@@ -434,10 +434,9 @@
     const originalIndex = parseInt(document.getElementById("editIndex").value);
     if (originalIndex < 0) return;
 
-    const selectedServico = document.getElementById("servicoSelect").value;
+    const selectedServico = document.getElementById("serviceList").value;
     const originalRow = data[originalIndex];
 
-    // Verifica se o item pertence ao serviço selecionado
     if (originalRow[columnIndexes["serviço"]] !== selectedServico) {
         alert("ERRO: O item não pertence ao serviço selecionado!");
         document.getElementById("editModal").style.display = "none";
@@ -464,6 +463,7 @@
     document.getElementById("editModal").style.display = "none";
     renderTable();
 }
+
 
 
         function closeModal() {
