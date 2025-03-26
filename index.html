@@ -432,13 +432,14 @@
 
         function saveEdit() {
             const originalIndex = parseInt(document.getElementById("editIndex").value);
-            if (originalIndex < 0) return;
+            const selectedServico = document.getElementById("servicoSelect").value;
 
-            const originalRow = data[originalIndex];
-            const editedRow = [
-                document.getElementById("DATADOROMANEIO").value,
-                document.getElementById("OBSROMANEIO").value
-            ];
+            // Verifica se o item pertence ao serviço selecionado
+            if (data[originalIndex][servicoIndex] !== selectedServico) {
+                alert("ERRO: O item não pertence ao serviço selecionado!");
+                closeModal();
+                return;
+            }
 
             if (
                 originalRow[columnIndexes["data do romaneio"]] !== editedRow[0] ||
