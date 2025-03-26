@@ -638,7 +638,7 @@
         return undefined;
     };
 
-    // Obter índices das colunas relevantes
+    // Obter índices das colunas relevantes (removida a referência a dataRomaneio)
     const colIndexes = {
         qtde: findColumnIndex("qtde"),
         qtdeEnviada: findColumnIndex("qtdeenviada"),
@@ -650,33 +650,7 @@
         pesoUnitario: findColumnIndex("peso unitário"),
         areaUnitario: findColumnIndex("area m² unitário"),
         pesoTotal: findColumnIndex("peso total"),
-        areaTotal: findColumnIndex("área m² total"),
-        dataRomaneio: findColumnIndex("dataromaneio") ?? findColumnIndex("datadoromaneio")
-    };
-
-    // Função para formatar datas como DD/MM/AAAA
-    const formatDate = (dateString) => {
-        if (!dateString) return "";
-
-        // Tentar parsear a data de diferentes formatos
-        let date;
-
-        // Se já estiver no formato DD/MM/AAAA
-        if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
-            const [day, month, year] = dateString.split('/');
-            date = new Date(year, month - 1, day);
-        }
-        // Se for um timestamp ou formato ISO
-        else {
-            date = new Date(dateString);
-        }
-
-        if (isNaN(date.getTime())) return dateString; // Retorna original se não for data válida
-
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
+        areaTotal: findColumnIndex("área m² total")
     };
 
     // Processar cada linha
@@ -707,11 +681,6 @@
             if (originalValue !== "" && !isNaN(Number(originalValue))) {
                 row[colIndexes.qtdeEnviada] = Math.round(Number(originalValue));
             }
-        }
-
-        // ====== FORMATAR DATAS ======
-        if (colIndexes.dataRomaneio !== undefined) {
-            row[colIndexes.dataRomaneio] = formatDate(row[colIndexes.dataRomaneio]);
         }
 
         // Formatar outras colunas numéricas
@@ -759,11 +728,11 @@
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Romaneio");
 
-    // Aplicar formatação de células no Excel
+    // Aplicar formatação de células no Excel (removida a formatação de datas)
     if (worksheet["!ref"]) {
         const range = XLSX.utils.decode_range(worksheet["!ref"]);
 
-        // 1. FORMATAR Qtde Enviada como número inteiro
+        // FORMATAR Qtde Enviada como número inteiro
         if (colIndexes.qtdeEnviada !== undefined) {
             for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
                 const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: colIndexes.qtdeEnviada});
@@ -774,32 +743,7 @@
             }
         }
 
-        // 2. FORMATAR DATAS corretamente como datas do Excel (dd/mm/yyyy)
-if (colIndexes.dataRomaneioIndexes.length) {
-    colIndexes.dataRomaneioIndexes.forEach(colIndex => {
-        for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
-            const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: colIndex});
-            const cell = worksheet[cellAddress];
-
-            if (cell && typeof cell.v === 'string') {
-                const parts = cell.v.split('/');
-                if (parts.length === 3) {
-                    const [day, month, year] = parts.map(Number);
-                    const jsDate = new Date(year, month - 1, day);
-
-                    if (!isNaN(jsDate.getTime())) {
-                        const excelDate = (jsDate - new Date(Date.UTC(1899, 11, 30))) / (24 * 60 * 60 * 1000);
-                        worksheet[cellAddress].t = 'n';
-                        worksheet[cellAddress].v = excelDate;
-                        worksheet[cellAddress].z = 'dd/mm/yyyy';
-                }
-            }
-        }
-    }
-}
-
-
-        // 3. FORMATAR OUTRAS COLUNAS NUMÉRICAS
+        // FORMATAR OUTRAS COLUNAS NUMÉRICAS
         const numericColumns = {
             inteiros: [colIndexes.qtde, colIndexes.saldo],
             decimais: [
