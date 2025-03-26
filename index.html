@@ -184,13 +184,12 @@
     <script>
         let data = [];
         let filteredData = [];
-        let servicoIndex = 0;
         let columnIndexes = {};
         let editedRows = new Set();
         let qrScanner;
-        let currentFileName = "Spools.xlsx";
-        const rowsPerPage = 500;
+        const itemsPerPage = 500;
         let services = new Set();
+        let currentService = "";
 
         const hiddenColumns = [
             "ÁREA", "REV", "MATERIAL", "PROG FAB", "EXECUTANTE FAB",
