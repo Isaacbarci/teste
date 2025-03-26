@@ -230,6 +230,10 @@
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
                     const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
+                    if (jsonData.length === 0) {
+                        throw new Error("O arquivo está vazio ou não contém dados.");
+                    }
+
                     window.originalData = JSON.parse(JSON.stringify(jsonData));
                     data = JSON.parse(JSON.stringify(jsonData));
                     filteredData = data.slice(1);
@@ -348,6 +352,16 @@
         function findColumnIndexes() {
             const headers = data[0];
             servicoIndex = headers.findIndex(header => header.trim().toLowerCase() === "serviço");
+            
+            if (servicoIndex === -1) {
+                alert("Coluna 'SERVIÇO' não encontrada no arquivo. Certifique-se de que existe uma coluna com este nome.");
+                return;
+            }
+
+            columnIndexes = {};
+            headers.forEach((name, index) => {
+                columnIndexes[name.trim().toLowerCase()] = index;
+            });
         }
 
         function mapColumnIndexes() {
@@ -360,11 +374,19 @@
 
         function populateServicoOptions() {
             const servicoSet = new Set();
-            filteredData.forEach(row => {
-                if (row[servicoIndex]) {
-                    servicoSet.add(row[servicoIndex]);
+            
+            // Verifica se já encontramos o índice da coluna de serviço
+            if (servicoIndex === -1 || !data.length) {
+                return;
+            }
+
+            // Coleta todos os serviços únicos
+            for (let i = 1; i < data.length; i++) {
+                const servico = data[i][servicoIndex];
+                if (servico && servico.trim() !== "") {
+                    servicoSet.add(servico.trim());
                 }
-            });
+            }
 
             const servicoSelect = document.getElementById("servicoSelect");
             servicoSelect.innerHTML = '<option value="">Selecione um serviço</option>';
@@ -389,14 +411,16 @@
             const currentServico = document.getElementById("servicoSelect").value;
             
             filteredData = data.slice(1).filter(row => {
+                // Filtra pelo serviço selecionado
                 if (currentServico && row[servicoIndex] !== currentServico) {
                     return false;
                 }
 
-                const identificacao1Value = String(row[columnIndexes["identificação 1"]] || "").toLowerCase();
-                const qrValue = String(row[columnIndexes["qr"]] || "").toLowerCase();
-                
-                return identificacao1Value.includes(filterValue) || qrValue.includes(filterValue);
+                // Verifica se o valor do filtro está presente em qualquer coluna
+                return Object.keys(columnIndexes).some(key => {
+                    const colIndex = columnIndexes[key];
+                    return String(row[colIndex] || "").toLowerCase().includes(filterValue);
+                });
             });
 
             renderTable();
@@ -411,6 +435,7 @@
             const fragment = document.createDocumentFragment();
             const headerRow = document.createElement("tr");
 
+            // Cria cabeçalho da tabela
             data[0].forEach((header, colIndex) => {
                 if (!hiddenColumns.includes(header.trim().toLowerCase())) {
                     const th = document.createElement("th");
@@ -421,6 +446,7 @@
 
             fragment.appendChild(headerRow);
 
+            // Adiciona linhas de dados
             filteredData.slice(0, rowsPerPage).forEach((row, index) => {
                 const originalIndex = data.indexOf(row);
                 if (originalIndex === -1) return;
@@ -432,6 +458,7 @@
                     if (!hiddenColumns.includes(data[0][colIndex].trim().toLowerCase())) {
                         const td = document.createElement("td");
 
+                        // Formata datas
                         if (data[0][colIndex].toLowerCase() === "data do romaneio") {
                             td.textContent = formatDate(cell);
                         } else {
@@ -442,6 +469,7 @@
                     }
                 });
 
+                // Destaca linhas editadas
                 if (editedRows.has(originalIndex)) {
                     tr.classList.add("edited-row");
                 }
@@ -465,10 +493,12 @@
             document.getElementById("OBSROMANEIO").value = data[index][columnIndexes["obs romaneio"]] || "";
             document.getElementById("Qtde").value = data[index][columnIndexes["qtde"]] || "";
 
+            // Calcula e formata o saldo
             const saldo = parseFloat(data[index][columnIndexes["saldo"]] || 0);
             const saldoInput = document.getElementById("Saldo");
             saldoInput.value = saldo;
 
+            // Aplica estilo com base no saldo
             if (saldo <= 0) {
                 saldoInput.classList.add("saldo-negativo");
                 saldoInput.classList.remove("saldo-positivo");
@@ -484,16 +514,19 @@
             const originalIndex = parseInt(document.getElementById("editIndex").value);
             const selectedServico = document.getElementById("servicoSelect").value;
 
+            // Verifica se o item pertence ao serviço selecionado
             if (data[originalIndex][servicoIndex] !== selectedServico) {
                 alert("ERRO: O item não pertence ao serviço selecionado!");
                 closeModal();
                 return;
             }
 
+            // Atualiza os dados
             data[originalIndex][columnIndexes["data do romaneio"]] = document.getElementById("DATADOROMANEIO").value;
             data[originalIndex][columnIndexes["qtd enviada"]] = document.getElementById("QTDENVIADA").value;
             data[originalIndex][columnIndexes["obs romaneio"]] = document.getElementById("OBSROMANEIO").value;
 
+            // Atualiza o conjunto de linhas editadas
             if (!document.getElementById("DATADOROMANEIO").value && 
                 !document.getElementById("QTDENVIADA").value && 
                 !document.getElementById("OBSROMANEIO").value) {
@@ -502,6 +535,7 @@
                 editedRows.add(originalIndex);
             }
 
+            // Atualiza o localStorage
             const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
 
             if (!stored[currentFileName]) {
@@ -584,23 +618,27 @@
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Romaneio");
 
+            // Ajusta a largura das colunas
             const colWidths = data[0].map((_, i) => ({
-                wch: Math.max(...dataToExport.map(row => (row[i] ? row[i].toString().length : 10)) + 2
+                wch: Math.max(...dataToExport.map(row => (row[i] ? row[i].toString().length : 10))) + 2
             }));
             worksheet["!cols"] = colWidths;
 
             XLSX.writeFile(workbook, `Romaneio_Suporte_${currentServico || ''}.xlsx`);
         }
 
+        // Carrega os dados quando a página é aberta
         document.addEventListener("DOMContentLoaded", () => {
             loadServices();
         });
 
+        // Salva as edições antes de descarregar a página
         window.addEventListener('beforeunload', function() {
             const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
             localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
         });
 
+        // Registra o Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('service-worker.js')
                 .then((registration) => {
