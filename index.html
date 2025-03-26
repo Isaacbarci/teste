@@ -641,7 +641,7 @@
     // Obter índices das colunas relevantes (incluindo datas)
     const colIndexes = {
         qtde: findColumnIndex("qtde"),
-        qtdEnviada: findColumnIndex("QTD ENVIADA"),
+        qtdeEnviada: findColumnIndex("QTD ENVIADA"),
         saldo: findColumnIndex("saldo"),
         pesoKg: findColumnIndex("peso (kg)"),
         areaSuperficie: findColumnIndex("área superfície"),
@@ -699,20 +699,20 @@
         if (colIndexes.pesoTotal !== undefined) row[colIndexes.pesoTotal] = toDecimal(row[colIndexes.pesoTotal]);
         if (colIndexes.areaTotal !== undefined) row[colIndexes.areaTotal] = toDecimal(row[colIndexes.areaTotal]);
 
-        if (colIndexes.qtdeEnviada !== undefined && row[colIndexes.qtdEnviada] !== "") {
+        if (colIndexes.qtdeEnviada !== undefined && row[colIndexes.qtdeEnviada] !== "") {
             if (colIndexes.pesoUnitario !== undefined && colIndexes.pesoEnviado !== undefined) {
                 const pesoUnitario = toDecimal(row[colIndexes.pesoUnitario]);
-                const qtdEnviada = toInt(row[colIndexes.qtdEnviada]);
-                if (!isNaN(pesoUnitario) && !isNaN(qtdEnviada)) {
-                    row[colIndexes.pesoEnviado] = pesoUnitario * qtdEnviada;
+                const qtdeEnviada = toInt(row[colIndexes.qtdeEnviada]);
+                if (!isNaN(pesoUnitario) && !isNaN(qtdeEnviada)) {
+                    row[colIndexes.pesoEnviado] = pesoUnitario * qtdeEnviada;
                 }
             }
 
             if (colIndexes.areaUnitario !== undefined && colIndexes.areaEnviada !== undefined) {
                 const areaUnitario = toDecimal(row[colIndexes.areaUnitario]);
-                const qtdEnviada = toInt(row[colIndexes.qtdEnviada]);
-                if (!isNaN(areaUnitario) && !isNaN(qtdEnviada)) {
-                    row[colIndexes.areaEnviada] = areaUnitario * qtdEnviada;
+                const qtdeEnviada = toInt(row[colIndexes.qtdeEnviada]);
+                if (!isNaN(areaUnitario) && !isNaN(qtdeEnviada)) {
+                    row[colIndexes.areaEnviada] = areaUnitario * qtdeEnviada;
                 }
             }
         } else {
@@ -736,9 +736,9 @@
     if (worksheet["!ref"]) {
         const range = XLSX.utils.decode_range(worksheet["!ref"]);
 
-        if (colIndexes.qtdEnviada !== undefined) {
+        if (colIndexes.qtdeEnviada !== undefined) {
             for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
-                const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: colIndexes.qtdEnviada});
+                const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: colIndexes.qtdeEnviada});
                 if (worksheet[cellAddress]) {
                     worksheet[cellAddress].t = 'n';
                     worksheet[cellAddress].z = '#,##0';
