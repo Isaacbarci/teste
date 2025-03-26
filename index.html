@@ -194,12 +194,11 @@
         let currentService = "";
 
         const hiddenColumns = [
-            "desenho suporte", "informações", "isométrico", "peso (kg)", "cond. pintura",
-            "área superfície", "data corte", "data acoplamento", "data solda",
-            "data jato/pintura", "número romaneio", "data romaneio", "data recebimento",
-            "observação", "area m² unitário", "data cadastro", "rev", "prog. fab.", "executante", "linha", "spool",
-            "localização", "status", "peso unitário", "qtde enviada", "obs romaneio", "qtde", "saldo", "tipo de suporte", "tipo estrutura", "id", "serviço",
-            "identificação 2", "area m²", "peso"
+            "desenho suporte", "informações", "isométrico", "cond. pintura",
+            "data corte", "data acoplamento", "data solda", "data jato/pintura",
+            "número romaneio", "data recebimento", "observação", "data cadastro",
+            "rev", "prog. fab.", "executante", "linha", "spool", "localização",
+            "status", "tipo de suporte", "tipo estrutura", "id", "area m²", "peso"
         ];
 
         function debounce(func, wait) {
@@ -533,50 +532,136 @@
                 return;
             }
 
-            const formattedData = data.map((row, rowIndex) => {
-                if (rowIndex === 0) return row;
+            // Mapear índices das colunas necessárias
+            const col = {
+                posicaoTag: columnIndexes["posição / tag"],
+                identificacao1: columnIndexes["identificação 1"],
+                identificacao2: columnIndexes["identificação 2"],
+                tipoSuporte: columnIndexes["tipo de suporte"],
+                pesoKg: columnIndexes["peso (kg)"],
+                qtde: columnIndexes["qtde"],
+                qtdEnviada: columnIndexes["qtd enviada"],
+                saldo: columnIndexes["saldo"],
+                dataRomaneio: columnIndexes["data do romaneio"],
+                obsRomaneio: columnIndexes["obs romaneio"],
+                areaSuperficie: columnIndexes["área superfície"]
+            };
 
-                return row.map((cell, colIndex) => {
-                    let header = data[0][colIndex].trim().toLowerCase();
+            // Preparar dados para exportação
+            const exportData = [
+                // Cabeçalho renomeado e com novas colunas
+                [
+                    "POSIÇÃO/TAG", 
+                    "IDENTIFICAÇÃO 1",
+                    "IDENTIFICAÇÃO 2",
+                    "TIPO DE SUPORTE",
+                    "PESO UNITÁRIO (kg)",
+                    "QTDE TOTAL",
+                    "PESO TOTAL (kg)",
+                    "QTDE ENVIADA",
+                    "SALDO",
+                    "ÁREA UNITÁRIO (m²)",
+                    "ÁREA TOTAL (m²)",
+                    "DATA ROMANEIO",
+                    "OBS ROMANEIO",
+                    "PESO ENVIADO (kg)",
+                    "ÁREA ENVIADA (m²)"
+                ]
+            ];
 
-                    if (header === "data do romaneio") {
-                        return formatDate(cell);
-                    }
+            // Processar cada linha
+            for (let i = 1; i < data.length; i++) {
+                const row = data[i];
+                
+                // Calcular valores das novas colunas
+                const qtdeTotal = parseFloat(row[col.qtde]) || 0;
+                const pesoTotal = parseFloat(row[col.pesoKg]) || 0;
+                const areaTotal = parseFloat(row[col.areaSuperficie]) || 0;
+                const qtdEnviada = parseFloat(row[col.qtdEnviada]) || 0;
+                
+                const pesoUnitario = qtdeTotal > 0 ? (pesoTotal / qtdeTotal) : 0;
+                const areaUnitario = qtdeTotal > 0 ? (areaTotal / qtdeTotal) : 0;
+                const saldo = qtdeTotal - qtdEnviada;
+                const pesoEnviado = pesoUnitario * qtdEnviada;
+                const areaEnviada = areaUnitario * qtdEnviada;
 
-                    if (header === "peso (kg)" || header === "área superfície" || 
-                        header === "peso unitário" || header === "area m² unitário" ||
-                        header === "qtde" || header === "qtd enviada" || header === "saldo") {
-                        if (cell === "" || cell === null || cell === undefined) {
-                            return "";
-                        }
-                        const numericValue = parseFloat(cell.toString().replace(",", "."));
-                        return isNaN(numericValue) ? "" : numericValue;
-                    }
+                exportData.push([
+                    // Colunas originais
+                    row[col.posicaoTag] || "",
+                    row[col.identificacao1] || "",
+                    row[col.identificacao2] || "",
+                    row[col.tipoSuporte] || "",
+                    
+                    // Novas colunas calculadas
+                    pesoUnitario.toFixed(2),
+                    qtdeTotal,
+                    pesoTotal.toFixed(2),
+                    qtdEnviada,
+                    saldo,
+                    areaUnitario.toFixed(2),
+                    areaTotal.toFixed(2),
+                    
+                    // Colunas com formatação especial
+                    formatDate(row[col.dataRomaneio]),
+                    row[col.obsRomaneio] || "",
+                    
+                    // Últimas colunas calculadas
+                    pesoEnviado.toFixed(2),
+                    areaEnviada.toFixed(2)
+                ]);
+            }
 
-                    return cell;
-                });
-            });
-
-            const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
+            // Criar planilha Excel
+            const worksheet = XLSX.utils.aoa_to_sheet(exportData);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, currentService || "Romaneio de Suporte");
+            XLSX.utils.book_append_sheet(workbook, worksheet, currentService || "Romaneio Suporte");
 
-            const colWidths = formattedData[0].map((_, i) => ({
-                wch: Math.max(...formattedData.map(row => (row[i] ? row[i].toString().length : 10))) + 2
+            // Configurar largura das colunas
+            worksheet['!cols'] = exportData[0].map((_, i) => ({
+                wch: Math.max(...exportData.map(row => row[i] ? row[i].toString().length : 0)) + 2
             }));
-            worksheet["!cols"] = colWidths;
 
-            const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-            const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+            // Aplicar formatação condicional
+            const applyConditionalFormatting = (colIndex, condition) => {
+                for (let i = 1; i < exportData.length; i++) {
+                    const cellAddress = XLSX.utils.encode_cell({r: i, c: colIndex});
+                    if (worksheet[cellAddress]) {
+                        const value = parseFloat(exportData[i][colIndex]);
+                        if (!isNaN(value) && condition(value)) {
+                            worksheet[cellAddress].s = { 
+                                font: { color: { rgb: value <= 0 ? "FF0000" : "00AA00" }, bold: true } 
+                            };
+                        }
+                    }
+                }
+            };
 
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
+            // Formatando colunas de saldo e quantidades
+            applyConditionalFormatting(8, val => true);  // Saldo
+            applyConditionalFormatting(7, val => val > 0); // Qtd Enviada
+
+            // Gerar e baixar o arquivo
+            const excelBuffer = XLSX.write(workbook, { 
+                bookType: 'xlsx', 
+                type: 'array',
+                cellStyles: true 
+            });
+            
+            const blob = new Blob([excelBuffer], { 
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+            });
+            
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
             a.href = url;
-            a.download = `Romaneio_Suporte_${currentService || ''}.xlsx`;
+            a.download = `Romaneio_Suporte_${currentService || 'GERAL'}_${formatDate(new Date()).replace(/\//g, '-')}.xlsx`;
             document.body.appendChild(a);
             a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
+            
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
         }
 
         function compressData(data) {
