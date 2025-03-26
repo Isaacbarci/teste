@@ -435,42 +435,36 @@
     if (originalIndex < 0) return;
 
     const selectedServico = document.getElementById("servicoSelect").value;
+    const originalRow = data[originalIndex];
 
     // Verifica se o item pertence ao serviço selecionado
-    const servicoIndex = 2; // <- ajuste conforme o índice real do serviço no array "data"
-    if (data[originalIndex][servicoIndex] !== selectedServico) {
+    if (originalRow[columnIndexes["serviço"]] !== selectedServico) {
         alert("ERRO: O item não pertence ao serviço selecionado!");
-        closeModal();
+        document.getElementById("editModal").style.display = "none";
         return;
     }
 
     const editedRow = [
         document.getElementById("DATADOROMANEIO").value,
         document.getElementById("OBSROMANEIO").value
-        // Adicione mais campos se necessário
     ];
 
-    data[originalIndex] = editedRow;
-    updateTable(); // Atualize a tabela, se essa função existir
-    closeModal();
+    if (
+        originalRow[columnIndexes["data do romaneio"]] !== editedRow[0] ||
+        originalRow[columnIndexes["obs romaneio"]] !== editedRow[1]
+    ) {
+        data[originalIndex][columnIndexes["data do romaneio"]] = editedRow[0];
+        data[originalIndex][columnIndexes["obs romaneio"]] = editedRow[1];
+
+        editedRows.add(originalIndex);
+        saveToLocalStorage("uploadedData", data);
+        saveToLocalStorage("editedRows", Array.from(editedRows));
+    }
+
+    document.getElementById("editModal").style.display = "none";
+    renderTable();
 }
 
-
-            if (
-                originalRow[columnIndexes["data do romaneio"]] !== editedRow[0] ||
-                originalRow[columnIndexes["obs romaneio"]] !== editedRow[1]
-            ) {
-                data[originalIndex][columnIndexes["data do romaneio"]] = editedRow[0];
-                data[originalIndex][columnIndexes["obs romaneio"]] = editedRow[1];
-
-                editedRows.add(originalIndex);
-                saveToLocalStorage("uploadedData", data);
-                saveToLocalStorage("editedRows", Array.from(editedRows));
-            }
-
-            document.getElementById("editModal").style.display = "none";
-            renderTable();
-        }
 
         function closeModal() {
             document.getElementById("editModal").style.display = "none";
