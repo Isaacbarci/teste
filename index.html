@@ -185,7 +185,7 @@
         <label>Posição / TAG: <input type="text" id="POSICAOTAG" readonly></label>
         <label>Identificação 1: <input type="text" id="IDENTIFICACAO1" readonly></label>
         <label>Identificação 2: <input type="text" id="IDENTIFICACAO2" readonly></label>
-        <label>Peso (kg): <input type="text" id="PesoKg" readonly></label>
+        <label>Peso (Kg): <input type="text" id="PesoKg" readonly></label>
         <label>Data do Romaneio: <input type="date" id="DATADOROMANEIO"></label>
         <label>Qtd Enviada: <input type="text" id="QTDENVIADA"></label>
         <label>Obs Romaneio: <input type="text" id="OBSROMANEIO"></label>
@@ -357,6 +357,33 @@
             return `${year}-${month}-${day}`;
         }
 
+        function formatNumber(number) {
+            if (number === null || number === undefined || number === "") return "";
+
+            // Verifica se é um número
+            const num = Number(number);
+            if (isNaN(num)) return number;
+
+            // Verifica se é inteiro
+            if (Number.isInteger(num)) {
+                return num.toString();
+            }
+
+            // Formata números decimais com vírgula
+            return num.toString().replace(".", ",");
+        }
+
+        function formatInteger(number) {
+            if (number === null || number === undefined || number === "") return "";
+
+            // Verifica se é um número
+            const num = Number(number);
+            if (isNaN(num)) return number;
+
+            // Retorna como inteiro
+            return Math.round(num).toString();
+        }
+
         function findColumnIndexes() {
             const headers = data[0];
             servicoIndex = headers.findIndex(header => header.trim().toLowerCase() === "serviço");
@@ -465,11 +492,19 @@
                 row.forEach((cell, colIndex) => {
                     if (!hiddenColumns.includes(data[0][colIndex].trim().toLowerCase())) {
                         const td = document.createElement("td");
+                        const headerName = data[0][colIndex].toLowerCase();
 
-                        // Formata datas
-                        if (data[0][colIndex].toLowerCase() === "data do romaneio") {
+                        // Formata os valores conforme o tipo de coluna
+                        if (headerName === "data do romaneio") {
                             td.textContent = formatDate(cell);
-                        } else {
+                        }
+                        else if (headerName === "qtde" || headerName === "qtd enviada" || headerName === "saldo") {
+                            td.textContent = formatInteger(cell);
+                        }
+                        else if (headerName.includes("peso") || headerName.includes("área") || headerName.includes("area")) {
+                            td.textContent = formatNumber(cell);
+                        }
+                        else {
                             td.textContent = cell || "";
                         }
 
@@ -495,16 +530,27 @@
             document.getElementById("POSICAOTAG").value = data[index][columnIndexes["posição / tag"]] || "";
             document.getElementById("IDENTIFICACAO1").value = data[index][columnIndexes["identificação 1"]] || "";
             document.getElementById("IDENTIFICACAO2").value = data[index][columnIndexes["identificação 2"]] || "";
-            document.getElementById("PesoKg").value = data[index][columnIndexes["peso (kg)"]] || "";
-            document.getElementById("DATADOROMANEIO").value = formatDateForInput(data[index][columnIndexes["data do romaneio"]]);
-            document.getElementById("QTDENVIADA").value = data[index][columnIndexes["qtd enviada"]] || "";
-            document.getElementById("OBSROMANEIO").value = data[index][columnIndexes["obs romaneio"]] || "";
-            document.getElementById("Qtde").value = data[index][columnIndexes["qtde"]] || "";
 
-            // Calcula e formata o saldo
+            // Formata o Peso (Kg) com vírgula
+            const pesoKg = data[index][columnIndexes["peso (kg)"]] || "";
+            document.getElementById("PesoKg").value = formatNumber(pesoKg);
+
+            document.getElementById("DATADOROMANEIO").value = formatDateForInput(data[index][columnIndexes["data do romaneio"]]);
+
+            // Formata Qtd Enviada como inteiro
+            const qtdEnviada = data[index][columnIndexes["qtd enviada"]] || "";
+            document.getElementById("QTDENVIADA").value = formatInteger(qtdEnviada);
+
+            document.getElementById("OBSROMANEIO").value = data[index][columnIndexes["obs romaneio"]] || "";
+
+            // Formata Qtde como inteiro
+            const qtde = data[index][columnIndexes["qtde"]] || "";
+            document.getElementById("Qtde").value = formatInteger(qtde);
+
+            // Calcula e formata o saldo como inteiro
             const saldo = parseFloat(data[index][columnIndexes["saldo"]] || 0);
             const saldoInput = document.getElementById("Saldo");
-            saldoInput.value = saldo;
+            saldoInput.value = formatInteger(saldo);
 
             // Aplica estilo com base no saldo
             if (saldo <= 0) {
@@ -531,7 +577,11 @@
 
             // Atualiza os dados
             data[originalIndex][columnIndexes["data do romaneio"]] = document.getElementById("DATADOROMANEIO").value;
-            data[originalIndex][columnIndexes["qtd enviada"]] = document.getElementById("QTDENVIADA").value;
+
+            // Converte Qtd Enviada para número antes de salvar
+            const qtdEnviada = document.getElementById("QTDENVIADA").value;
+            data[originalIndex][columnIndexes["qtd enviada"]] = qtdEnviada ? parseInt(qtdEnviada) || 0 : "";
+
             data[originalIndex][columnIndexes["obs romaneio"]] = document.getElementById("OBSROMANEIO").value;
 
             // Atualiza o conjunto de linhas editadas
@@ -622,7 +672,29 @@
             const filteredDataToExport = data.slice(1).filter(row => row[servicoIndex] === currentServico);
             const dataToExport = [data[0], ...filteredDataToExport];
 
-            const worksheet = XLSX.utils.aoa_to_sheet(dataToExport);
+            // Processa os dados para exportação mantendo os formatos
+            const processedData = dataToExport.map(row => {
+                const newRow = [...row];
+
+                // Formata números decimais com ponto para o Excel
+                if (columnIndexes["peso (kg)"] !== undefined) {
+                    const pesoIndex = columnIndexes["peso (kg)"];
+                    if (newRow[pesoIndex] && typeof newRow[pesoIndex] === 'string') {
+                        newRow[pesoIndex] = newRow[pesoIndex].replace(",", ".");
+                    }
+                }
+
+                if (columnIndexes["área superfície"] !== undefined) {
+                    const areaIndex = columnIndexes["área superfície"];
+                    if (newRow[areaIndex] && typeof newRow[areaIndex] === 'string') {
+                        newRow[areaIndex] = newRow[areaIndex].replace(",", ".");
+                    }
+                }
+
+                return newRow;
+            });
+
+            const worksheet = XLSX.utils.aoa_to_sheet(processedData);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Romaneio");
 
