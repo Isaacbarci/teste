@@ -214,7 +214,7 @@
                 timeout = setTimeout(() => func.apply(this, args), wait);
             };
         }
-
+                    
         document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
 
         function loadServices() {
@@ -603,6 +603,7 @@
                 });
             }
         
+                    }
 
 function downloadExcel() {
     if (!data.length) {
