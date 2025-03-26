@@ -626,80 +626,84 @@
     // Criar cópia dos dados para manipulação
     let dataToExport = [data[0], ...filteredDataToExport.map(row => [...row])];
 
-    // Identificar colunas numéricas
+    // Obter índices das colunas (com verificação robusta)
     const colIndexes = {
-        // Inteiros
-        qtde: columnIndexes["qtde"],
-        qtdeEnviada: columnIndexes["qtd enviada"],
-        saldo: columnIndexes["saldo"],
-
-        // Decimais
-        pesoKg: columnIndexes["peso (kg)"],
-        areaSuperficie: columnIndexes["área superfície"],
-        pesoEnviado: columnIndexes["peso enviado"],
-        areaEnviada: columnIndexes["área enviada"],
-        pesoUnitario: columnIndexes["peso unitário"],
-        areaUnitario: columnIndexes["area m² unitário"],
-        pesoTotal: columnIndexes["peso total"],
-        areaTotal: columnIndexes["área m² total"],
-
-        // Datas
-        dataRomaneio: columnIndexes["data do romaneio"]
+        qtde: safeGetIndex(columnIndexes, "qtde"),
+        qtdeEnviada: safeGetIndex(columnIndexes, "qtd enviada"),
+        saldo: safeGetIndex(columnIndexes, "saldo"),
+        pesoKg: safeGetIndex(columnIndexes, "peso (kg)"),
+        areaSuperficie: safeGetIndex(columnIndexes, "área superfície"),
+        pesoEnviado: safeGetIndex(columnIndexes, "peso enviado"),
+        areaEnviada: safeGetIndex(columnIndexes, "área enviada"),
+        pesoUnitario: safeGetIndex(columnIndexes, "peso unitário"),
+        areaUnitario: safeGetIndex(columnIndexes, "area m² unitário"),
+        pesoTotal: safeGetIndex(columnIndexes, "peso total"),
+        areaTotal: safeGetIndex(columnIndexes, "área m² total"),
+        dataRomaneio: safeGetIndex(columnIndexes, "data do romaneio")
     };
+
+    // Função auxiliar para evitar undefined
+    function safeGetIndex(obj, key) {
+        return obj && obj[key.toLowerCase()] !== undefined ? obj[key.toLowerCase()] : -1;
+    }
 
     // Processar cada linha
     dataToExport.forEach((row, rowIndex) => {
         if (rowIndex === 0) return;
 
-        // ========== FORMATAR NÚMEROS ==========
-        // Inteiros
-        ["qtde", "qtdeEnviada", "saldo"].forEach(key => {
-            if (colIndexes[key] !== undefined) {
-                const val = row[colIndexes[key]];
-                row[colIndexes[key]] = val === "" ? "" : Math.round(Number(val)) || "";
+        // ===== [1] CORREÇÃO DA Qtde Enviada =====
+        if (colIndexes.qtdeEnviada >= 0) {
+            const originalValue = row[colIndexes.qtdeEnviada];
+            if (originalValue !== "" && !isNaN(originalValue)) {
+                row[colIndexes.qtdeEnviada] = parseInt(originalValue);
+            } else {
+                row[colIndexes.qtdeEnviada] = ""; // Manter vazio se inválido
             }
-        });
+        }
 
-        // Decimais (todas outras colunas numéricas)
+        // ===== [2] CORREÇÃO DOS DECIMAIS (PESO/ÁREA ENVIADA) =====
+        const formatDecimal = (value) => {
+            if (value === "" || isNaN(value)) return "";
+            const num = parseFloat(value);
+            return isNaN(num) ? "" : num; // Retorna número ou vazio
+        };
+
+        // Aplicar a todas colunas decimais
         [
-            "pesoKg", "areaSuperficie", "pesoEnviado", "areaEnviada",
-            "pesoUnitario", "areaUnitario", "pesoTotal", "areaTotal"
-        ].forEach(key => {
-            if (colIndexes[key] !== undefined) {
-                const val = row[colIndexes[key]];
-                row[colIndexes[key]] = val === "" ? "" : Number(val) || "";
-            }
+            colIndexes.pesoKg,
+            colIndexes.areaSuperficie,
+            colIndexes.pesoEnviado,
+            colIndexes.areaEnviada,
+            colIndexes.pesoUnitario,
+            colIndexes.areaUnitario,
+            colIndexes.pesoTotal,
+            colIndexes.areaTotal
+        ].forEach(col => {
+            if (col >= 0) row[col] = formatDecimal(row[col]);
         });
 
-        // ========== CÁLCULOS AUTOMÁTICOS ==========
-        if (colIndexes.qtdeEnviada !== undefined && row[colIndexes.qtdeEnviada] !== "") {
+        // ===== [3] CÁLCULOS AUTOMÁTICOS =====
+        if (colIndexes.qtdeEnviada >= 0 && row[colIndexes.qtdeEnviada] !== "") {
             // PESO ENVIADO = PESO UNITÁRIO * QTD ENVIADA
-            if (colIndexes.pesoUnitario !== undefined && colIndexes.pesoEnviado !== undefined) {
-                const pesoUnitario = Number(row[colIndexes.pesoUnitario]) || 0;
-                const qtdeEnviada = Number(row[colIndexes.qtdeEnviada]) || 0;
+            if (colIndexes.pesoUnitario >= 0 && colIndexes.pesoEnviado >= 0) {
+                const pesoUnitario = parseFloat(row[colIndexes.pesoUnitario]) || 0;
+                const qtdeEnviada = parseInt(row[colIndexes.qtdeEnviada]) || 0;
                 row[colIndexes.pesoEnviado] = qtdeEnviada ? (pesoUnitario * qtdeEnviada) : "";
             }
 
             // ÁREA ENVIADA = ÁREA UNITÁRIA * QTD ENVIADA
-            if (colIndexes.areaUnitario !== undefined && colIndexes.areaEnviada !== undefined) {
-                const areaUnitario = Number(row[colIndexes.areaUnitario]) || 0;
-                const qtdeEnviada = Number(row[colIndexes.qtdeEnviada]) || 0;
+            if (colIndexes.areaUnitario >= 0 && colIndexes.areaEnviada >= 0) {
+                const areaUnitario = parseFloat(row[colIndexes.areaUnitario]) || 0;
+                const qtdeEnviada = parseInt(row[colIndexes.qtdeEnviada]) || 0;
                 row[colIndexes.areaEnviada] = qtdeEnviada ? (areaUnitario * qtdeEnviada) : "";
             }
-        } else {
-            // Limpar se QTD ENVIADA estiver vazia
-            if (colIndexes.pesoEnviado !== undefined) row[colIndexes.pesoEnviado] = "";
-            if (colIndexes.areaEnviada !== undefined) row[colIndexes.areaEnviada] = "";
         }
 
-        // ========== FORMATAR DATAS ==========
-        if (colIndexes.dataRomaneio !== undefined) {
+        // ===== [4] FORMATAÇÃO DE DATAS =====
+        if (colIndexes.dataRomaneio >= 0) {
             const date = new Date(row[colIndexes.dataRomaneio]);
             if (!isNaN(date.getTime())) {
-                const day = String(date.getDate()).padStart(2, '0');
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const year = date.getFullYear();
-                row[colIndexes.dataRomaneio] = `${day}/${month}/${year}`;
+                row[colIndexes.dataRomaneio] = date.toLocaleDateString('pt-BR');
             }
         }
     });
@@ -709,45 +713,49 @@
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Romaneio");
 
-    // Aplicar formatação numérica
+    // ===== APLICAR FORMATAÇÃO NO EXCEL =====
     if (worksheet["!ref"]) {
         const range = XLSX.utils.decode_range(worksheet["!ref"]);
 
-        // Formatar inteiros
-        ["qtde", "qtdeEnviada", "saldo"].forEach(key => {
-            if (colIndexes[key] !== undefined) {
-                for (let r = 1; r <= range.e.r; r++) {
-                    const cell = worksheet[XLSX.utils.encode_cell({r, c: colIndexes[key]})];
-                    if (cell && cell.v !== "") {
-                        cell.t = 'n';  // Tipo numérico
-                        cell.z = '#,##0';  // Formato inteiro
-                    }
+        // [A] Formatar Qtde Enviada como número inteiro
+        if (colIndexes.qtdeEnviada >= 0) {
+            for (let r = 1; r <= range.e.r; r++) {
+                const cell = worksheet[XLSX.utils.encode_cell({r, c: colIndexes.qtdeEnviada})];
+                if (cell && cell.v !== "") {
+                    cell.t = 'n'; // Tipo numérico
+                    cell.z = '#,##0'; // Formato inteiro
+                }
+            }
+        }
+
+        // [B] Formatar colunas decimais (PESO/ÁREA ENVIADA e outras)
+        const decimalCols = [
+            colIndexes.pesoKg,
+            colIndexes.areaSuperficie,
+            colIndexes.pesoEnviado,
+            colIndexes.areaEnviada,
+            colIndexes.pesoUnitario,
+            colIndexes.areaUnitario,
+            colIndexes.pesoTotal,
+            colIndexes.areaTotal
+        ].filter(col => col >= 0);
+
+        decimalCols.forEach(col => {
+            for (let r = 1; r <= range.e.r; r++) {
+                const cell = worksheet[XLSX.utils.encode_cell({r, c: col})];
+                if (cell && cell.v !== "") {
+                    cell.t = 'n'; // Tipo numérico
+                    cell.z = '#,##0.00'; // 2 casas decimais
                 }
             }
         });
 
-        // Formatar decimais (todas outras numéricas)
-        [
-            "pesoKg", "areaSuperficie", "pesoEnviado", "areaEnviada",
-            "pesoUnitario", "areaUnitario", "pesoTotal", "areaTotal"
-        ].forEach(key => {
-            if (colIndexes[key] !== undefined) {
-                for (let r = 1; r <= range.e.r; r++) {
-                    const cell = worksheet[XLSX.utils.encode_cell({r, c: colIndexes[key]})];
-                    if (cell && cell.v !== "") {
-                        cell.t = 'n';  // Tipo numérico
-                        cell.z = '#,##0.00';  // 2 decimais
-                    }
-                }
-            }
-        });
-
-        // Formatar datas
-        if (colIndexes.dataRomaneio !== undefined) {
+        // [C] Formatar datas
+        if (colIndexes.dataRomaneio >= 0) {
             for (let r = 1; r <= range.e.r; r++) {
                 const cell = worksheet[XLSX.utils.encode_cell({r, c: colIndexes.dataRomaneio})];
                 if (cell && cell.v) {
-                    cell.z = 'dd/mm/yyyy';  // Formato brasileiro
+                    cell.z = 'dd/mm/yyyy'; // Formato brasileiro
                 }
             }
         }
