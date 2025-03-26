@@ -148,6 +148,19 @@
         #qr-container {
             margin-left: 5px;
         }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -167,6 +180,7 @@
         <input type="text" id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação">
         <button onclick="downloadExcel()">Download Excel</button>
         <button onclick="startQrScanner()">Escanear QR Code</button>
+        <span id="loadingIndicator" class="loading" style="display: none;"></span>
     </div>
 
     <div id="qr-container" style="display: none;">
@@ -197,7 +211,7 @@
         // Configurações globais
         let data = [];
         let filteredData = [];
-        let servicoIndex = 0;
+        let servicoIndex = -1;
         let columnIndexes = {};
         let editedRows = new Set();
         let qrScanner;
@@ -218,10 +232,19 @@
         ];
 
         // Inicialização
-        document.addEventListener("DOMContentLoaded", loadServices);
+        document.addEventListener("DOMContentLoaded", function() {
+            console.log("Página carregada - iniciando carregamento de serviços");
+            showLoading(true);
+            loadServices();
+        });
+
         document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
 
         // Funções utilitárias
+        function showLoading(show) {
+            document.getElementById("loadingIndicator").style.display = show ? "inline-block" : "none";
+        }
+
         function debounce(func, wait) {
             let timeout;
             return function (...args) {
@@ -232,48 +255,74 @@
 
         function formatDate(dateString) {
             if (!dateString) return "";
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return "";
-            const day = String(date.getUTCDate()).padStart(2, "0");
-            const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-            const year = date.getUTCFullYear();
-            return `${day}/${month}/${year}`;
+            try {
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return "";
+                const day = String(date.getDate()).padStart(2, "0");
+                const month = String(date.getMonth() + 1).padStart(2, "0");
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
+            } catch (e) {
+                console.error("Erro ao formatar data:", dateString, e);
+                return dateString;
+            }
         }
 
         function formatDateForInput(dateString) {
             if (!dateString) return "";
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return "";
-            const day = String(date.getUTCDate()).padStart(2, "0");
-            const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-            const year = date.getUTCFullYear();
-            return `${year}-${month}-${day}`;
+            try {
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return "";
+                const day = String(date.getDate()).padStart(2, "0");
+                const month = String(date.getMonth() + 1).padStart(2, "0");
+                const year = date.getFullYear();
+                return `${year}-${month}-${day}`;
+            } catch (e) {
+                console.error("Erro ao formatar data para input:", dateString, e);
+                return "";
+            }
         }
 
         // Funções principais
         function loadServices() {
+            console.log("Iniciando carregamento de serviços do arquivo:", currentFileName);
+
             fetch(currentFileName)
                 .then(response => {
-                    if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
+                    if (!response.ok) {
+                        throw new Error(`Erro HTTP: ${response.status} - ${response.statusText}`);
+                    }
                     return response.arrayBuffer();
                 })
                 .then(arrayBuffer => {
+                    console.log("Arquivo carregado com sucesso - processando...");
                     clearPreviousFileData();
 
                     const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+
+                    // Converter para JSON mantendo valores vazios
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+                        header: 1,
+                        defval: "",
+                        raw: false
+                    });
 
                     if (jsonData.length === 0) {
                         throw new Error("O arquivo está vazio ou não contém dados.");
                     }
 
-                    window.originalData = JSON.parse(JSON.stringify(jsonData));
-                    data = JSON.parse(JSON.stringify(jsonData));
+                    window.originalData = jsonData;
+                    data = jsonData.map(row => [...row]);
                     filteredData = data.slice(1);
 
                     findColumnIndexes();
-                    mapColumnIndexes();
+
+                    if (servicoIndex === -1) {
+                        throw new Error("Coluna 'SERVIÇO' não encontrada. Verifique se existe uma coluna com este nome exato no arquivo.");
+                    }
+
                     populateServicoOptions();
 
                     const ultimoServico = localStorage.getItem("ultimoServico");
@@ -282,74 +331,81 @@
                     if (ultimoServico && Array.from(servicoSelect.options).some(o => o.value === ultimoServico)) {
                         servicoSelect.value = ultimoServico;
                         renderSelectedServico(true);
-                    } else if (servicoSelect.options.length > 0) {
-                        servicoSelect.value = servicoSelect.options[0].value;
+                    } else if (servicoSelect.options.length > 1) {
+                        servicoSelect.selectedIndex = 1;
                         renderSelectedServico(true);
                     }
+
+                    console.log("Carregamento concluído com sucesso!");
+                    showLoading(false);
                 })
                 .catch(error => {
-                    console.error("Erro ao carregar Excel:", error);
-                    alert("Não foi possível carregar o arquivo do diretório.");
+                    console.error("Erro ao carregar serviços:", error);
+                    alert(`Erro ao carregar o arquivo: ${error.message}`);
+                    showLoading(false);
                 });
         }
 
         function clearPreviousFileData() {
             editedRows.clear();
+            data = [];
+            filteredData = [];
+            servicoIndex = -1;
+            columnIndexes = {};
+            document.getElementById("dataTable").innerHTML = "";
         }
 
         function findColumnIndexes() {
-            const headers = data[0];
-            servicoIndex = headers.findIndex(header => header.trim().toLowerCase() === "serviço");
-
-            if (servicoIndex === -1) {
-                alert("Coluna 'SERVIÇO' não encontrada no arquivo. Certifique-se de que existe uma coluna com este nome.");
+            if (!data.length) {
+                console.error("Dados não carregados para mapear índices");
                 return;
             }
 
-            columnIndexes = {};
-            headers.forEach((name, index) => {
-                columnIndexes[name.trim().toLowerCase()] = index;
-            });
-        }
-
-        function mapColumnIndexes() {
             const headers = data[0];
+            servicoIndex = headers.findIndex(header =>
+                header && header.toString().trim().toLowerCase() === "serviço"
+            );
+
             columnIndexes = {};
             headers.forEach((name, index) => {
-                columnIndexes[name.trim().toLowerCase()] = index;
+                if (name && typeof name === 'string') {
+                    columnIndexes[name.trim().toLowerCase()] = index;
+                }
             });
+
+            console.log("Índices mapeados:", columnIndexes);
+            console.log("Índice da coluna SERVIÇO:", servicoIndex);
         }
 
         function populateServicoOptions() {
-            const servicoSet = new Set();
-
-            if (servicoIndex === -1 || !data.length) {
-                return;
-            }
-
-            for (let i = 1; i < data.length; i++) {
-                const servico = data[i][servicoIndex];
-                if (servico && servico.trim() !== "") {
-                    servicoSet.add(servico.trim());
-                }
-            }
-
             const servicoSelect = document.getElementById("servicoSelect");
             servicoSelect.innerHTML = '<option value="">Selecione um serviço</option>';
 
-            const servicosOrdenados = Array.from(servicoSet).sort();
+            if (!data.length || servicoIndex === -1) {
+                console.error("Dados não carregados ou coluna SERVIÇO não encontrada");
+                return;
+            }
 
-            servicosOrdenados.forEach(servico => {
+            // Extrai serviços únicos (ignorando vazios/nulos)
+            const servicos = [...new Set(
+                data.slice(1)
+                    .map(row => row[servicoIndex])
+                    .filter(servico => servico && servico.toString().trim() !== "")
+            )].sort();
+
+            if (servicos.length === 0) {
+                console.warn("Nenhum serviço encontrado na coluna SERVIÇO");
+                return;
+            }
+
+            servicos.forEach(servico => {
                 const option = document.createElement("option");
                 option.value = servico;
                 option.textContent = servico;
                 servicoSelect.appendChild(option);
             });
 
-            const ultimoServico = localStorage.getItem("ultimoServico");
-            if (ultimoServico && servicosOrdenados.includes(ultimoServico)) {
-                servicoSelect.value = ultimoServico;
-            }
+            console.log(`${servicos.length} serviços carregados no dropdown`);
         }
 
         function confirmLoadService() {
@@ -371,10 +427,13 @@
 
         function renderSelectedServico(manterEdicoes = false) {
             const selectedServico = document.getElementById("servicoSelect").value;
+            console.log(`Renderizando serviço: ${selectedServico}`);
 
             if (window.originalData) {
-                data = JSON.parse(JSON.stringify(window.originalData));
-                filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
+                data = window.originalData.map(row => [...row]);
+                filteredData = data.slice(1).filter(row =>
+                    row[servicoIndex] && row[servicoIndex].toString() === selectedServico
+                );
             }
 
             if (!manterEdicoes) {
@@ -440,15 +499,18 @@
             const table = document.getElementById("dataTable");
             table.innerHTML = "";
 
-            if (!data.length) return;
+            if (!data.length) {
+                console.warn("Nenhum dado para renderizar");
+                return;
+            }
 
             const fragment = document.createDocumentFragment();
             const headerRow = document.createElement("tr");
 
             // Cria cabeçalho apenas com colunas visíveis
             data[0].forEach((header, colIndex) => {
-                const headerName = header.trim().toLowerCase();
-                if (visibleColumns.includes(headerName)) {
+                const headerName = header && header.toString().trim().toLowerCase();
+                if (headerName && visibleColumns.includes(headerName)) {
                     const th = document.createElement("th");
                     th.textContent = header;
                     headerRow.appendChild(th);
@@ -466,8 +528,8 @@
                 tr.onclick = () => openEditModal(originalIndex);
 
                 row.forEach((cell, colIndex) => {
-                    const headerName = data[0][colIndex].trim().toLowerCase();
-                    if (visibleColumns.includes(headerName)) {
+                    const headerName = data[0][colIndex] && data[0][colIndex].toString().trim().toLowerCase();
+                    if (headerName && visibleColumns.includes(headerName)) {
                         const td = document.createElement("td");
 
                         if (headerName === "data do romaneio") {
@@ -488,10 +550,14 @@
             });
 
             table.appendChild(fragment);
+            console.log(`Tabela renderizada com ${filteredData.length} itens`);
         }
 
         function openEditModal(index) {
-            if (index < 0 || index >= data.length) return;
+            if (index < 0 || index >= data.length) {
+                console.error("Índice inválido para edição:", index);
+                return;
+            }
 
             document.getElementById("editIndex").value = index;
             document.getElementById("POSICAOTAG").value = data[index][columnIndexes["posição / tag"]] || "";
@@ -632,7 +698,7 @@
                 numericFields.forEach(field => {
                     if (columnIndexes[field] !== undefined && newRow[columnIndexes[field]]) {
                         if (field === "peso (kg)") {
-                            newRow[columnIndexes[field]] = parseFloat(newRow[columnIndexes[field]].replace(",", ".")) || 0;
+                            newRow[columnIndexes[field]] = parseFloat(newRow[columnIndexes[field]].toString().replace(",", ".")) || 0;
                         } else {
                             newRow[columnIndexes[field]] = parseInt(newRow[columnIndexes[field]]) || 0;
                         }
