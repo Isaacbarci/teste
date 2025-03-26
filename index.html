@@ -34,7 +34,7 @@
             border-radius: 5px;
             border: 1px solid #ccc;
             font-size: 12px;
-            width: 200px;
+            width: 205px;
             height: 25px;
 
 
@@ -774,24 +774,25 @@
             }
         }
 
-        // 2. FORMATAR DATAS como tipo Date do Excel
+        // 2. FORMATAR DATAS corretamente como datas do Excel (dd/mm/yyyy)
 if (colIndexes.dataRomaneio !== undefined) {
     for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
         const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: colIndexes.dataRomaneio});
         const cell = worksheet[cellAddress];
 
-        if (cell && cell.v) {
-            const parts = String(cell.v).split('/');
+        if (cell && typeof cell.v === 'string') {
+            const parts = cell.v.split('/');
             if (parts.length === 3) {
                 const [day, month, year] = parts.map(Number);
                 const jsDate = new Date(year, month - 1, day);
 
                 if (!isNaN(jsDate.getTime())) {
-                    // Converter para número de série do Excel
-                    const excelDate = XLSX.SSF.parse_date_code(XLSX.SSF.format('yyyy-mm-dd', jsDate));
-                    worksheet[cellAddress].t = 'n';
-                    worksheet[cellAddress].v = (jsDate - new Date(Date.UTC(1899, 11, 30))) / (24 * 60 * 60 * 1000);
-                    worksheet[cellAddress].z = 'dd/mm/yyyy';
+                    // Excel serial date (base: 30/12/1899)
+                    const excelDate = (jsDate - new Date(Date.UTC(1899, 11, 30))) / (24 * 60 * 60 * 1000);
+
+                    worksheet[cellAddress].t = 'n';             // Tipo número
+                    worksheet[cellAddress].v = excelDate;       // Valor serial da data
+                    worksheet[cellAddress].z = 'dd/mm/yyyy';    // Formato brasileiro
                 }
             }
         }
