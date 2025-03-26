@@ -29,7 +29,15 @@
             width: 300px;
         }
         select {
+           margin: 3px;
+            padding: 3px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 12px;
             width: 200px;
+            height: 25px;
+
+
         }
         button {
             background-color: #007BFF;
@@ -352,7 +360,7 @@
         function findColumnIndexes() {
             const headers = data[0];
             servicoIndex = headers.findIndex(header => header.trim().toLowerCase() === "serviço");
-            
+
             if (servicoIndex === -1) {
                 alert("Coluna 'SERVIÇO' não encontrada no arquivo. Certifique-se de que existe uma coluna com este nome.");
                 return;
@@ -374,7 +382,7 @@
 
         function populateServicoOptions() {
             const servicoSet = new Set();
-            
+
             // Verifica se já encontramos o índice da coluna de serviço
             if (servicoIndex === -1 || !data.length) {
                 return;
@@ -409,7 +417,7 @@
         function applyFilter() {
             const filterValue = document.getElementById("identificacaoFilter").value.trim().toLowerCase();
             const currentServico = document.getElementById("servicoSelect").value;
-            
+
             filteredData = data.slice(1).filter(row => {
                 // Filtra pelo serviço selecionado
                 if (currentServico && row[servicoIndex] !== currentServico) {
@@ -527,8 +535,8 @@
             data[originalIndex][columnIndexes["obs romaneio"]] = document.getElementById("OBSROMANEIO").value;
 
             // Atualiza o conjunto de linhas editadas
-            if (!document.getElementById("DATADOROMANEIO").value && 
-                !document.getElementById("QTDENVIADA").value && 
+            if (!document.getElementById("DATADOROMANEIO").value &&
+                !document.getElementById("QTDENVIADA").value &&
                 !document.getElementById("OBSROMANEIO").value) {
                 editedRows.delete(originalIndex);
             } else {
