@@ -615,27 +615,110 @@
         }
 
         function downloadExcel() {
-            if (!data.length) {
-                alert("Nenhum dado carregado para exportar.");
-                return;
+    if (!data.length) {
+        alert("Nenhum dado carregado para exportar.");
+        return;
+    }
+
+    const currentServico = document.getElementById("servicoSelect").value;
+    let filteredDataToExport = data.slice(1).filter(row => row[servicoIndex] === currentServico);
+
+    // Criar uma cópia dos dados para manipulação sem afetar os originais
+    let dataToExport = [data[0], ...filteredDataToExport.map(row => [...row])];
+
+    // Processar cada linha para formatação
+    dataToExport.forEach((row, rowIndex) => {
+        if (rowIndex === 0) return; // Pular cabeçalho
+
+        // Formatar números inteiros
+        const formatInt = (value) => {
+            if (value === "" || value === null || value === undefined) return "";
+            const num = parseInt(value);
+            return isNaN(num) ? value : num;
+        };
+
+        // Formatar números com vírgula como separador decimal
+        const formatDecimal = (value) => {
+            if (value === "" || value === null || value === undefined) return "";
+            const num = parseFloat(value);
+            if (isNaN(num)) return value;
+
+            // Formata com 2 casas decimais e substitui ponto por vírgula
+            return num.toFixed(2).replace('.', ',');
+        };
+
+        // Formatar datas para DD/MM/AAAA
+        const formatDateExcel = (dateString) => {
+            if (!dateString) return "";
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return "";
+            const day = String(date.getUTCDate()).padStart(2, "0");
+            const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+            const year = date.getUTCFullYear();
+            return `${day}/${month}/${year}`;
+        };
+
+        // Aplicar formatações
+        Object.keys(columnIndexes).forEach(key => {
+            const colIndex = columnIndexes[key];
+
+            // Formatar números inteiros
+            if (["qtde", "qtd enviada", "saldo"].includes(key.toLowerCase())) {
+                row[colIndex] = formatInt(row[colIndex]);
             }
 
-            const currentServico = document.getElementById("servicoSelect").value;
-            const filteredDataToExport = data.slice(1).filter(row => row[servicoIndex] === currentServico);
-            const dataToExport = [data[0], ...filteredDataToExport];
+            // Formatar números decimais com vírgula
+            else if (["peso (kg)", "área superfície", "peso enviado", "área enviada",
+                      "peso unitário", "area m² unitário", "peso total", "área m² total"].includes(key.toLowerCase())) {
+                row[colIndex] = formatDecimal(row[colIndex]);
+            }
 
-            const worksheet = XLSX.utils.aoa_to_sheet(dataToExport);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Romaneio");
+            // Formatar datas
+            else if (key.toLowerCase().includes("data")) {
+                row[colIndex] = formatDateExcel(row[colIndex]);
+            }
+        });
 
-            // Ajusta a largura das colunas
-            const colWidths = data[0].map((_, i) => ({
-                wch: Math.max(...dataToExport.map(row => (row[i] ? row[i].toString().length : 10))) + 2
-            }));
-            worksheet["!cols"] = colWidths;
+        // Calcular PESO ENVIADO se PESO Unitário e QTD ENVIADA existirem
+        const pesoUnitarioIndex = columnIndexes["peso unitário"];
+        const qtdEnviadaIndex = columnIndexes["qtd enviada"];
+        const pesoEnviadoIndex = columnIndexes["peso enviado"];
 
-            XLSX.writeFile(workbook, `Romaneio_Suporte_${currentServico || ''}.xlsx`);
+        if (pesoUnitarioIndex !== undefined && qtdEnviadaIndex !== undefined && pesoEnviadoIndex !== undefined) {
+            const pesoUnitario = parseFloat(row[pesoUnitarioIndex]) || 0;
+            const qtdEnviada = parseInt(row[qtdEnviadaIndex]) || 0;
+
+            if (pesoUnitario && qtdEnviada) {
+                row[pesoEnviadoIndex] = (pesoUnitario * qtdEnviada).toFixed(2).replace('.', ',');
+            }
         }
+
+        // Calcular ÁREA ENVIADA se AREA M² Unitário e QTD ENVIADA existirem
+        const areaUnitarioIndex = columnIndexes["area m² unitário"];
+        const areaEnviadaIndex = columnIndexes["área enviada"];
+
+        if (areaUnitarioIndex !== undefined && qtdEnviadaIndex !== undefined && areaEnviadaIndex !== undefined) {
+            const areaUnitario = parseFloat(row[areaUnitarioIndex]) || 0;
+            const qtdEnviada = parseInt(row[qtdEnviadaIndex]) || 0;
+
+            if (areaUnitario && qtdEnviada) {
+                row[areaEnviadaIndex] = (areaUnitario * qtdEnviada).toFixed(2).replace('.', ',');
+            }
+        }
+    });
+
+    const worksheet = XLSX.utils.aoa_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Romaneio");
+
+    // Ajustar a largura das colunas
+    const colWidths = data[0].map((_, i) => ({
+        wch: Math.max(...dataToExport.map(row => (row[i] ? row[i].toString().length : 10))) + 2
+    }));
+    worksheet["!cols"] = colWidths;
+
+    XLSX.writeFile(workbook, `Romaneio_Suporte_${currentServico || ''}.xlsx`);
+}
 
         // Carrega os dados quando a página é aberta
         document.addEventListener("DOMContentLoaded", () => {
