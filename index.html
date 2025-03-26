@@ -614,7 +614,7 @@
             }
         }
 
-        function downloadExcel() {
+      function downloadExcel() {
     if (!data.length) {
         alert("Nenhum dado carregado para exportar.");
         return;
@@ -626,83 +626,72 @@
     // Criar uma cópia dos dados para manipulação sem afetar os originais
     let dataToExport = [data[0], ...filteredDataToExport.map(row => [...row])];
 
+    // Obter índices das colunas relevantes
+    const columnIndices = {
+        qtde: columnIndexes["qtde"],
+        qtdEnviada: columnIndexes["qtd enviada"],
+        saldo: columnIndexes["saldo"],
+        pesoKg: columnIndexes["peso (kg)"],
+        areaSuperficie: columnIndexes["área superfície"],
+        pesoEnviado: columnIndexes["peso enviado"],
+        areaEnviada: columnIndexes["área enviada"],
+        pesoUnitario: columnIndexes["peso unitário"],
+        areaUnitario: columnIndexes["area m² unitário"],
+        pesoTotal: columnIndexes["peso total"],
+        areaTotal: columnIndexes["área m² total"]
+    };
+
     // Processar cada linha para formatação
     dataToExport.forEach((row, rowIndex) => {
         if (rowIndex === 0) return; // Pular cabeçalho
 
-        // Formatar números inteiros
+        // Função para formatar números inteiros
         const formatInt = (value) => {
             if (value === "" || value === null || value === undefined) return "";
-            const num = parseInt(value);
+            const num = Number(value);
+            return isNaN(num) ? value : Math.round(num);
+        };
+
+        // Função para formatar números decimais
+        const formatDecimal = (value) => {
+            if (value === "" || value === null || value === undefined) return "";
+            const num = Number(value);
             return isNaN(num) ? value : num;
         };
 
-        // Formatar números com vírgula como separador decimal
-        const formatDecimal = (value) => {
-            if (value === "" || value === null || value === undefined) return "";
-            const num = parseFloat(value);
-            if (isNaN(num)) return value;
-
-            // Formata com 2 casas decimais e substitui ponto por vírgula
-            return num.toFixed(2).replace('.', ',');
-        };
-
-        // Formatar datas para DD/MM/AAAA
-        const formatDateExcel = (dateString) => {
-            if (!dateString) return "";
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return "";
-            const day = String(date.getUTCDate()).padStart(2, "0");
-            const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-            const year = date.getUTCFullYear();
-            return `${day}/${month}/${year}`;
-        };
-
         // Aplicar formatações
-        Object.keys(columnIndexes).forEach(key => {
-            const colIndex = columnIndexes[key];
+        // Números inteiros
+        if (columnIndices.qtde !== undefined) row[columnIndices.qtde] = formatInt(row[columnIndices.qtde]);
+        if (columnIndices.qtdEnviada !== undefined) row[columnIndices.qtdEnviada] = formatInt(row[columnIndices.qtdEnviada]);
+        if (columnIndices.saldo !== undefined) row[columnIndices.saldo] = formatInt(row[columnIndices.saldo]);
 
-            // Formatar números inteiros
-            if (["qtde", "qtd enviada", "saldo"].includes(key.toLowerCase())) {
-                row[colIndex] = formatInt(row[colIndex]);
-            }
-
-            // Formatar números decimais com vírgula
-            else if (["peso (kg)", "área superfície", "peso enviado", "área enviada",
-                      "peso unitário", "area m² unitário", "peso total", "área m² total"].includes(key.toLowerCase())) {
-                row[colIndex] = formatDecimal(row[colIndex]);
-            }
-
-            // Formatar datas
-            else if (key.toLowerCase().includes("data")) {
-                row[colIndex] = formatDateExcel(row[colIndex]);
-            }
-        });
+        // Números decimais
+        if (columnIndices.pesoKg !== undefined) row[columnIndices.pesoKg] = formatDecimal(row[columnIndices.pesoKg]);
+        if (columnIndices.areaSuperficie !== undefined) row[columnIndices.areaSuperficie] = formatDecimal(row[columnIndices.areaSuperficie]);
+        if (columnIndices.pesoEnviado !== undefined) row[columnIndices.pesoEnviado] = formatDecimal(row[columnIndices.pesoEnviado]);
+        if (columnIndices.areaEnviada !== undefined) row[columnIndices.areaEnviada] = formatDecimal(row[columnIndices.areaEnviada]);
+        if (columnIndices.pesoUnitario !== undefined) row[columnIndices.pesoUnitario] = formatDecimal(row[columnIndices.pesoUnitario]);
+        if (columnIndices.areaUnitario !== undefined) row[columnIndices.areaUnitario] = formatDecimal(row[columnIndices.areaUnitario]);
+        if (columnIndices.pesoTotal !== undefined) row[columnIndices.pesoTotal] = formatDecimal(row[columnIndices.pesoTotal]);
+        if (columnIndices.areaTotal !== undefined) row[columnIndices.areaTotal] = formatDecimal(row[columnIndices.areaTotal]);
 
         // Calcular PESO ENVIADO se PESO Unitário e QTD ENVIADA existirem
-        const pesoUnitarioIndex = columnIndexes["peso unitário"];
-        const qtdEnviadaIndex = columnIndexes["qtd enviada"];
-        const pesoEnviadoIndex = columnIndexes["peso enviado"];
+        if (columnIndices.pesoUnitario !== undefined && columnIndices.qtdEnviada !== undefined && columnIndices.pesoEnviado !== undefined) {
+            const pesoUnitario = formatDecimal(row[columnIndices.pesoUnitario]);
+            const qtdEnviada = formatInt(row[columnIndices.qtdEnviada]);
 
-        if (pesoUnitarioIndex !== undefined && qtdEnviadaIndex !== undefined && pesoEnviadoIndex !== undefined) {
-            const pesoUnitario = parseFloat(row[pesoUnitarioIndex]) || 0;
-            const qtdEnviada = parseInt(row[qtdEnviadaIndex]) || 0;
-
-            if (pesoUnitario && qtdEnviada) {
-                row[pesoEnviadoIndex] = (pesoUnitario * qtdEnviada).toFixed(2).replace('.', ',');
+            if (!isNaN(pesoUnitario) && !isNaN(qtdEnviada)) {
+                row[columnIndices.pesoEnviado] = pesoUnitario * qtdEnviada;
             }
         }
 
         // Calcular ÁREA ENVIADA se AREA M² Unitário e QTD ENVIADA existirem
-        const areaUnitarioIndex = columnIndexes["area m² unitário"];
-        const areaEnviadaIndex = columnIndexes["área enviada"];
+        if (columnIndices.areaUnitario !== undefined && columnIndices.qtdEnviada !== undefined && columnIndices.areaEnviada !== undefined) {
+            const areaUnitario = formatDecimal(row[columnIndices.areaUnitario]);
+            const qtdEnviada = formatInt(row[columnIndices.qtdEnviada]);
 
-        if (areaUnitarioIndex !== undefined && qtdEnviadaIndex !== undefined && areaEnviadaIndex !== undefined) {
-            const areaUnitario = parseFloat(row[areaUnitarioIndex]) || 0;
-            const qtdEnviada = parseInt(row[qtdEnviadaIndex]) || 0;
-
-            if (areaUnitario && qtdEnviada) {
-                row[areaEnviadaIndex] = (areaUnitario * qtdEnviada).toFixed(2).replace('.', ',');
+            if (!isNaN(areaUnitario) && !isNaN(qtdEnviada)) {
+                row[columnIndices.areaEnviada] = areaUnitario * qtdEnviada;
             }
         }
     });
@@ -710,6 +699,31 @@
     const worksheet = XLSX.utils.aoa_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Romaneio");
+
+    // Adicionar estilos de formatação numérica
+    if (worksheet["!ref"]) {
+        const range = XLSX.utils.decode_range(worksheet["!ref"]);
+
+        // Formatar colunas numéricas
+        Object.keys(columnIndices).forEach(key => {
+            const colIndex = columnIndices[key];
+            if (colIndex === undefined) return;
+
+            for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
+                const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: colIndex});
+                const cell = worksheet[cellAddress];
+
+                if (cell) {
+                    // Determinar se é número inteiro ou decimal
+                    const isInteger = ["qtde", "qtdEnviada", "saldo"].includes(key);
+
+                    // Criar estilo de número
+                    cell.z = isInteger ? "#,##0" : "#,##0.00";
+                    cell.t = 'n'; // Definir como tipo numérico
+                }
+            }
+        });
+    }
 
     // Ajustar a largura das colunas
     const colWidths = data[0].map((_, i) => ({
