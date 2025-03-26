@@ -198,7 +198,7 @@
             "data corte", "data acoplamento", "data solda", "data jato/pintura",
             "número romaneio", "data recebimento", "observação", "data cadastro",
             "rev", "prog. fab.", "executante", "linha", "spool", "localização",
-            "status", "tipo de suporte", "tipo estrutura", "id", "area m²", "peso"
+            "status", "tipo estrutura", "id", "area m²", "peso", "serviço"
         ];
 
         function debounce(func, wait) {
@@ -549,7 +549,6 @@
 
             // Preparar dados para exportação
             const exportData = [
-                // Cabeçalho renomeado e com novas colunas
                 [
                     "POSIÇÃO/TAG", 
                     "IDENTIFICAÇÃO 1",
