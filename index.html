@@ -623,13 +623,13 @@
     const currentServico = document.getElementById("servicoSelect").value;
     let filteredDataToExport = data.slice(1).filter(row => row[servicoIndex] === currentServico);
 
-    // Criar uma cópia dos dados para manipulação sem afetar os originais
+    // Criar uma cópia dos dados para manipulação
     let dataToExport = [data[0], ...filteredDataToExport.map(row => [...row])];
 
     // Obter índices das colunas relevantes
-    const columnIndices = {
+    const colIndexes = {
         qtde: columnIndexes["qtde"],
-        qtdEnviada: columnIndexes["qtd enviada"],
+        qtdeEnviada: columnIndexes["qtd enviada"],
         saldo: columnIndexes["saldo"],
         pesoKg: columnIndexes["peso (kg)"],
         areaSuperficie: columnIndexes["área superfície"],
@@ -641,95 +641,114 @@
         areaTotal: columnIndexes["área m² total"]
     };
 
-    // Processar cada linha para formatação
+    // Processar cada linha
     dataToExport.forEach((row, rowIndex) => {
         if (rowIndex === 0) return; // Pular cabeçalho
 
-        // Função para formatar números inteiros
-        const formatInt = (value) => {
+        // Funções de formatação
+        const toInt = (value) => {
             if (value === "" || value === null || value === undefined) return "";
             const num = Number(value);
             return isNaN(num) ? value : Math.round(num);
         };
 
-        // Função para formatar números decimais
-        const formatDecimal = (value) => {
+        const toDecimal = (value) => {
             if (value === "" || value === null || value === undefined) return "";
             const num = Number(value);
             return isNaN(num) ? value : num;
         };
 
-        // Aplicar formatações
-        // Números inteiros
-        if (columnIndices.qtde !== undefined) row[columnIndices.qtde] = formatInt(row[columnIndices.qtde]);
-        if (columnIndices.qtdEnviada !== undefined) row[columnIndices.qtdEnviada] = formatInt(row[columnIndices.qtdEnviada]);
-        if (columnIndices.saldo !== undefined) row[columnIndices.saldo] = formatInt(row[columnIndices.saldo]);
+        // Formatar colunas numéricas
+        if (colIndexes.qtde !== undefined) row[colIndexes.qtde] = toInt(row[colIndexes.qtde]);
+        if (colIndexes.qtdeEnviada !== undefined) row[colIndexes.qtdeEnviada] = toInt(row[colIndexes.qtdeEnviada]);
+        if (colIndexes.saldo !== undefined) row[colIndexes.saldo] = toInt(row[colIndexes.saldo]);
 
-        // Números decimais
-        if (columnIndices.pesoKg !== undefined) row[columnIndices.pesoKg] = formatDecimal(row[columnIndices.pesoKg]);
-        if (columnIndices.areaSuperficie !== undefined) row[columnIndices.areaSuperficie] = formatDecimal(row[columnIndices.areaSuperficie]);
-        if (columnIndices.pesoEnviado !== undefined) row[columnIndices.pesoEnviado] = formatDecimal(row[columnIndices.pesoEnviado]);
-        if (columnIndices.areaEnviada !== undefined) row[columnIndices.areaEnviada] = formatDecimal(row[columnIndices.areaEnviada]);
-        if (columnIndices.pesoUnitario !== undefined) row[columnIndices.pesoUnitario] = formatDecimal(row[columnIndices.pesoUnitario]);
-        if (columnIndices.areaUnitario !== undefined) row[columnIndices.areaUnitario] = formatDecimal(row[columnIndices.areaUnitario]);
-        if (columnIndices.pesoTotal !== undefined) row[columnIndices.pesoTotal] = formatDecimal(row[columnIndices.pesoTotal]);
-        if (columnIndices.areaTotal !== undefined) row[columnIndices.areaTotal] = formatDecimal(row[columnIndices.areaTotal]);
+        // Colunas decimais
+        if (colIndexes.pesoKg !== undefined) row[colIndexes.pesoKg] = toDecimal(row[colIndexes.pesoKg]);
+        if (colIndexes.areaSuperficie !== undefined) row[colIndexes.areaSuperficie] = toDecimal(row[colIndexes.areaSuperficie]);
+        if (colIndexes.pesoUnitario !== undefined) row[colIndexes.pesoUnitario] = toDecimal(row[colIndexes.pesoUnitario]);
+        if (colIndexes.areaUnitario !== undefined) row[colIndexes.areaUnitario] = toDecimal(row[colIndexes.areaUnitario]);
+        if (colIndexes.pesoTotal !== undefined) row[colIndexes.pesoTotal] = toDecimal(row[colIndexes.pesoTotal]);
+        if (colIndexes.areaTotal !== undefined) row[colIndexes.areaTotal] = toDecimal(row[colIndexes.areaTotal]);
 
-        // Calcular PESO ENVIADO se PESO Unitário e QTD ENVIADA existirem
-        if (columnIndices.pesoUnitario !== undefined && columnIndices.qtdEnviada !== undefined && columnIndices.pesoEnviado !== undefined) {
-            const pesoUnitario = formatDecimal(row[columnIndices.pesoUnitario]);
-            const qtdEnviada = formatInt(row[columnIndices.qtdEnviada]);
+        // Cálculos automáticos - SOMENTE se QTD ENVIADA não for vazia
+        if (colIndexes.qtdeEnviada !== undefined && row[colIndexes.qtdeEnviada] !== "") {
+            // Calcular PESO ENVIADO
+            if (colIndexes.pesoUnitario !== undefined && colIndexes.pesoEnviado !== undefined) {
+                const pesoUnitario = toDecimal(row[colIndexes.pesoUnitario]);
+                const qtdeEnviada = toInt(row[colIndexes.qtdeEnviada]);
 
-            if (!isNaN(pesoUnitario) && !isNaN(qtdEnviada)) {
-                row[columnIndices.pesoEnviado] = pesoUnitario * qtdEnviada;
+                if (!isNaN(pesoUnitario) && !isNaN(qtdeEnviada)) {
+                    row[colIndexes.pesoEnviado] = pesoUnitario * qtdeEnviada;
+                }
             }
-        }
 
-        // Calcular ÁREA ENVIADA se AREA M² Unitário e QTD ENVIADA existirem
-        if (columnIndices.areaUnitario !== undefined && columnIndices.qtdEnviada !== undefined && columnIndices.areaEnviada !== undefined) {
-            const areaUnitario = formatDecimal(row[columnIndices.areaUnitario]);
-            const qtdEnviada = formatInt(row[columnIndices.qtdEnviada]);
+            // Calcular ÁREA ENVIADA
+            if (colIndexes.areaUnitario !== undefined && colIndexes.areaEnviada !== undefined) {
+                const areaUnitario = toDecimal(row[colIndexes.areaUnitario]);
+                const qtdeEnviada = toInt(row[colIndexes.qtdeEnviada]);
 
-            if (!isNaN(areaUnitario) && !isNaN(qtdEnviada)) {
-                row[columnIndices.areaEnviada] = areaUnitario * qtdEnviada;
+                if (!isNaN(areaUnitario) && !isNaN(qtdeEnviada)) {
+                    row[colIndexes.areaEnviada] = areaUnitario * qtdeEnviada;
+                }
             }
+        } else {
+            // Se QTD ENVIADA estiver vazia, limpar PESO ENVIADO e ÁREA ENVIADA
+            if (colIndexes.pesoEnviado !== undefined) row[colIndexes.pesoEnviado] = "";
+            if (colIndexes.areaEnviada !== undefined) row[colIndexes.areaEnviada] = "";
         }
     });
 
+    // Criar a planilha Excel
     const worksheet = XLSX.utils.aoa_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Romaneio");
 
-    // Adicionar estilos de formatação numérica
+    // Aplicar formatação de células no Excel
     if (worksheet["!ref"]) {
         const range = XLSX.utils.decode_range(worksheet["!ref"]);
 
-        // Formatar colunas numéricas
-        Object.keys(columnIndices).forEach(key => {
-            const colIndex = columnIndices[key];
-            if (colIndex === undefined) return;
+        // Formatando colunas numéricas
+        const numericColumns = {
+            inteiros: [colIndexes.qtde, colIndexes.qtdeEnviada, colIndexes.saldo],
+            decimais: [
+                colIndexes.pesoKg, colIndexes.areaSuperficie,
+                colIndexes.pesoEnviado, colIndexes.areaEnviada,
+                colIndexes.pesoUnitario, colIndexes.areaUnitario,
+                colIndexes.pesoTotal, colIndexes.areaTotal
+            ]
+        };
 
-            for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
-                const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: colIndex});
-                const cell = worksheet[cellAddress];
+        // Aplicar formatos
+        numericColumns.inteiros.forEach(col => {
+            if (col !== undefined) {
+                for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
+                    const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: col});
+                    if (worksheet[cellAddress] && worksheet[cellAddress].v !== "") {
+                        worksheet[cellAddress].t = 'n';
+                        worksheet[cellAddress].z = '#,##0';
+                    }
+                }
+            }
+        });
 
-                if (cell) {
-                    // Determinar se é número inteiro ou decimal
-                    const isInteger = ["qtde", "qtdEnviada", "saldo"].includes(key);
-
-                    // Criar estilo de número
-                    cell.z = isInteger ? "#,##0" : "#,##0.00";
-                    cell.t = 'n'; // Definir como tipo numérico
+        numericColumns.decimais.forEach(col => {
+            if (col !== undefined) {
+                for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
+                    const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: col});
+                    if (worksheet[cellAddress] && worksheet[cellAddress].v !== "") {
+                        worksheet[cellAddress].t = 'n';
+                        worksheet[cellAddress].z = '#,##0.00';
+                    }
                 }
             }
         });
     }
 
-    // Ajustar a largura das colunas
-    const colWidths = data[0].map((_, i) => ({
+    // Ajustar largura das colunas
+    worksheet["!cols"] = data[0].map((_, i) => ({
         wch: Math.max(...dataToExport.map(row => (row[i] ? row[i].toString().length : 10))) + 2
     }));
-    worksheet["!cols"] = colWidths;
 
     XLSX.writeFile(workbook, `Romaneio_Suporte_${currentServico || ''}.xlsx`);
 }
