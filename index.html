@@ -19,7 +19,7 @@
             padding: 20px;
             margin: 0;
         }
-        input[type="text"], button, select {
+        input[type="text"], button {
             margin: 5px;
             padding: 10px;
             border-radius: 5px;
@@ -28,6 +28,14 @@
         }
         input[type="text"] {
             width: 300px;
+        }
+        select {
+            margin: 5px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            width: 200px;
         }
         button {
             background-color: #007BFF;
@@ -126,23 +134,22 @@
         .edited-row {
             background-color: darkgray !important;
         }
- </style>
+    </style>
 </head>
 <body>
-     <!-- Cabeçalho com Logo e Título -->
-  <h2 style="display: flex; align-items: center;">
-    <img src="image.png" alt="Logo" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;">
-    ROMANEIO DE SPOOL
-</h2>
-<p style="font-size: 6px; color: white; margin-left: 17px; margin-top: -14px;">
-    Developed by Isaac Dutra
-</p>
+    <h2 style="display: flex; align-items: center;">
+        <img src="image.png" alt="Logo" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;">
+        ROMANEIO DE SPOOL
+    </h2>
+    <p style="font-size: 6px; color: white; margin-left: 17px; margin-top: -14px;">
+        Developed by Isaac Dutra
+    </p>
 
-    <select id="serviceList" style="margin-left: 5px;">
+    <select id="serviceList">
         <option value="">Selecione um serviço</option>
     </select>
 
-    <button onclick="loadSelectedService()">Carregar Serviço</button>
+    <button onclick="confirmLoadService()">Carregar Serviço</button>
     <input type="text" id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code">
     <button onclick="downloadExcel()">Download Excel</button>
     <button onclick="startQrScanner()">Escanear QR Code</button>
@@ -178,9 +185,9 @@
         let columnIndexes = {};
         let editedRows = new Set();
         let qrScanner;
-        const itemsPerPage = 500; // Itens por página
-        let services = new Set(); // Lista de serviços disponíveis (usando Set para valores únicos)
-        let currentService = ""; // Serviço atual selecionado
+        const itemsPerPage = 500;
+        let services = new Set();
+        let currentService = "";
 
         const hiddenColumns = [
             "ÁREA", "REV", "MATERIAL", "PROG FAB", "EXECUTANTE FAB",
@@ -188,7 +195,6 @@
             "ÁREA SUPERF.", "OBS ROMANEIO", "ID_SPOOL", "SERVIÇO"
         ];
 
-        // Função debounce para melhorar o desempenho do filtro
         function debounce(func, wait) {
             let timeout;
             return function (...args) {
@@ -197,13 +203,10 @@
             };
         }
 
-        // Aplica o filtro com debounce
         const applyFilterDebounced = debounce(applyFilter, 300);
 
-        // Configura o evento de input com debounce
         document.getElementById("identificacaoFilter").addEventListener("input", applyFilterDebounced);
 
-        // Carrega o arquivo TESTE.xlsx e extrai os serviços disponíveis da coluna "SERVIÇO"
         function loadServices() {
             fetch("TESTE.xlsx")
                 .then(response => {
@@ -214,7 +217,7 @@
                 })
                 .then(arrayBuffer => {
                     const workbook = XLSX.read(arrayBuffer, { type: 'array', cellFormula: true });
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]]; // Assume que todos os dados estão na primeira planilha
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
                     
                     const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
@@ -222,7 +225,6 @@
                         throw new Error("O arquivo está vazio ou não contém dados.");
                     }
 
-                    // Encontra o índice da coluna "SERVIÇO"
                     const headers = jsonData[0].map(h => h.trim().toLowerCase());
                     const servicoIndex = headers.indexOf("serviço");
 
@@ -230,7 +232,6 @@
                         throw new Error("Coluna 'SERVIÇO' não encontrada no arquivo.");
                     }
 
-                    // Coleta todos os serviços únicos
                     for (let i = 1; i < jsonData.length; i++) {
                         const servico = jsonData[i][servicoIndex];
                         if (servico && servico.trim() !== "") {
@@ -238,7 +239,6 @@
                         }
                     }
 
-                    // Preenche o dropdown de serviços
                     const serviceSelect = document.getElementById("serviceList");
                     serviceSelect.innerHTML = '<option value="">Selecione um serviço</option>';
                     
@@ -249,7 +249,6 @@
                         serviceSelect.appendChild(option);
                     });
 
-                    // Se já tiver um serviço selecionado anteriormente, marca no dropdown
                     const storedService = localStorage.getItem("currentService");
                     if (storedService && services.has(storedService)) {
                         serviceSelect.value = storedService;
@@ -261,11 +260,18 @@
                 });
         }
 
-        function loadSelectedService() {
+        function confirmLoadService() {
             const selectedService = document.getElementById("serviceList").value;
             if (!selectedService) {
                 alert("Selecione um serviço da lista para carregar.");
                 return;
+            }
+
+            if (editedRows.size > 0) {
+                const confirmChange = confirm("ATENÇÃO!\n\nAo trocar de serviço, todas as alterações não salvas serão perdidas.\n\nDeseja realmente trocar de serviço?");
+                if (!confirmChange) {
+                    return;
+                }
             }
 
             currentService = selectedService;
@@ -282,7 +288,7 @@
                 })
                 .then(arrayBuffer => {
                     const workbook = XLSX.read(arrayBuffer, { type: 'array', cellFormula: true });
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]]; // Assume que todos os dados estão na primeira planilha
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
                     
                     const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
@@ -290,7 +296,6 @@
                         throw new Error("O arquivo está vazio ou não contém dados.");
                     }
 
-                    // Encontra o índice da coluna "SERVIÇO"
                     const headers = jsonData[0].map(h => h.trim().toLowerCase());
                     const servicoIndex = headers.indexOf("serviço");
 
@@ -298,7 +303,6 @@
                         throw new Error("Coluna 'SERVIÇO' não encontrada no arquivo.");
                     }
 
-                    // Filtra os dados pelo serviço selecionado
                     const allData = jsonData;
                     const headerRow = allData[0];
                     const serviceData = allData.filter((row, index) => {
@@ -347,7 +351,6 @@
         function findColumnIndexes() {
             columnIndexes = {};
             data[0].forEach((header, index) => {
-                // Remove espaços extras e padroniza para minúsculas
                 const cleanHeader = header.trim().toLowerCase();
                 columnIndexes[cleanHeader] = index;
             });
@@ -358,27 +361,24 @@
             const thead = table.querySelector("thead");
             const tbody = table.querySelector("tbody");
 
-            // Limpa a tabela
             thead.innerHTML = "";
             tbody.innerHTML = "";
 
             if (!data.length) return;
 
-            // Identifica os índices das colunas a serem ocultadas
             findColumnIndexes();
             const hiddenColumnIndexes = new Set();
 
             data[0].forEach((header, colIndex) => {
-                const cleanHeader = header.trim().toUpperCase(); // Remove espaços extras e padroniza maiúsculas
+                const cleanHeader = header.trim().toUpperCase();
                 if (hiddenColumns.includes(cleanHeader)) {
                     hiddenColumnIndexes.add(colIndex);
                 }
             });
 
-            // Renderiza o cabeçalho
             const headerRow = document.createElement("tr");
             data[0].forEach((header, colIndex) => {
-                if (!hiddenColumnIndexes.has(colIndex)) { // Verifica se a coluna deve ser exibida
+                if (!hiddenColumnIndexes.has(colIndex)) {
                     const th = document.createElement("th");
                     th.textContent = header;
                     headerRow.appendChild(th);
@@ -386,7 +386,6 @@
             });
             thead.appendChild(headerRow);
 
-            // Renderiza os itens da página atual
             const pageData = filteredData.slice(0, itemsPerPage);
 
             pageData.forEach((row, rowIndex) => {
@@ -400,7 +399,7 @@
 
                 tr.onclick = () => openEditModal(rowIndex);
                 row.forEach((cell, colIndex) => {
-                    if (!hiddenColumnIndexes.has(colIndex)) { // Oculta as colunas especificadas
+                    if (!hiddenColumnIndexes.has(colIndex)) {
                         const td = document.createElement("td");
                         let cellValue = cell || "N/A";
                         if (data[0][colIndex].trim().toLowerCase() === "data do romaneio") {
@@ -419,7 +418,7 @@
             document.getElementById("editIndex").value = originalIndex;
             document.getElementById("ISOMETRICO").value = filteredData[index][columnIndexes["isométrico"]] || "N/A";
             document.getElementById("SPOOL").value = filteredData[index][columnIndexes["spool"]] || "N/A";
-            document.getElementById("AREA").value = filteredData[index][columnIndexes["área"]] || "N/A"; // Certifique-se de que "área" está em minúsculas
+            document.getElementById("AREA").value = filteredData[index][columnIndexes["área"]] || "N/A";
             document.getElementById("PROGFAB").value = filteredData[index][columnIndexes["prog fab"]] || "N/A";
             document.getElementById("PESO").value = filteredData[index][columnIndexes["peso"]] || "N/A";
             document.getElementById("DATADOROMANEIO").value = formatDateForInput(filteredData[index][columnIndexes["data do romaneio"]]);
@@ -502,64 +501,46 @@
             renderTable();
         }
 
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js')
-                .then((registration) => {
-                    console.log('Service Worker registrado com sucesso:', registration);
-                })
-                .catch((error) => {
-                    console.error('Erro ao registrar o Service Worker:', error);
-                });
-        }
-
         function downloadExcel() {
             if (data.length === 0) {
                 alert("Nenhum dado disponível para exportar.");
                 return;
             }
 
-            // Criar uma cópia dos dados formatados antes da exportação
             const formattedData = data.map((row, rowIndex) => {
-                if (rowIndex === 0) return row; // Mantém o cabeçalho original
+                if (rowIndex === 0) return row;
 
                 return row.map((cell, colIndex) => {
                     let header = data[0][colIndex].trim().toLowerCase();
 
-                    // Formatar DATA DO ROMANEIO no formato dia/mês/ano
                     if (header === "data do romaneio") {
                         return formatDate(cell);
                     }
 
-                    // Converter PESO e ÁREA SUPERF. para números
                     if (header === "peso" || header === "área superf.") {
                         if (cell === "" || cell === null || cell === undefined) {
-                            return ""; // Mantém o valor vazio
+                            return "";
                         }
-                        // Converte para número (substitui vírgula por ponto)
                         const numericValue = parseFloat(cell.toString().replace(",", "."));
-                        return isNaN(numericValue) ? "" : numericValue; // Retorna vazio se não for um número válido
+                        return isNaN(numericValue) ? "" : numericValue;
                     }
 
                     return cell;
                 });
             });
 
-            // Criar planilha e autoajustar colunas
             const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, currentService || "Romaneio de Spool");
 
-            // Ajuste automático da largura das colunas
             const colWidths = formattedData[0].map((_, i) => ({
                 wch: Math.max(...formattedData.map(row => (row[i] ? row[i].toString().length : 10))) + 2
             }));
             worksheet["!cols"] = colWidths;
 
-            // Criar o arquivo Excel
             const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
             const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
 
-            // Criar link para download
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
@@ -570,7 +551,6 @@
             window.URL.revokeObjectURL(url);
         }
 
-        // Funções para compressão e descompressão de dados
         function compressData(data) {
             return btoa(JSON.stringify(data));
         }
@@ -598,10 +578,8 @@
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-            // Carrega os serviços disponíveis
             loadServices();
 
-            // Carrega os dados do localStorage (se existirem)
             const storedService = localStorage.getItem("currentService");
             if (storedService) {
                 currentService = storedService;
