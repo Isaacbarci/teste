@@ -617,18 +617,19 @@ function downloadExcel() {
         return;
     }
 
-    // Filtra os dados pelo serviço selecionado
+    // 1. Filtrar os dados pelo serviço selecionado
     const filteredData = data.filter((row, index) => {
         return index === 0 || row[servicoIndex] === currentServico;
     });
 
-    // Cria uma cópia dos dados para manipulação
+    // 2. Criar cópia dos dados para manipulação
     const dataToExport = JSON.parse(JSON.stringify(filteredData));
 
-    // Formata as datas para exibição
+    // 3. Processar cada linha de dados
     dataToExport.forEach((row, rowIndex) => {
-        if (rowIndex === 0) return; // Pula o cabeçalho
+        if (rowIndex === 0) return; // Pular cabeçalho
 
+        // Formatar datas
         Object.entries(columnIndexes).forEach(([colName, colIndex]) => {
             if (colName.includes("data") && row[colIndex]) {
                 const dateValue = row[colIndex];
@@ -638,20 +639,33 @@ function downloadExcel() {
             }
         });
 
-        // Calcula saldo se necessário
+        // Calcular saldo se necessário
         if (columnIndexes["qtde"] !== undefined && columnIndexes["qtd enviada"] !== undefined) {
             const qtde = parseFloat(row[columnIndexes["qtde"]] || 0);
             const qtdeEnviada = parseFloat(row[columnIndexes["qtd enviada"]] || 0);
             row[columnIndexes["saldo"]] = qtde - qtdeEnviada;
         }
+
+        // Calcular peso total e área total se necessário
+        if (columnIndexes["peso unitário"] !== undefined && columnIndexes["qtde"] !== undefined) {
+            const pesoUnitario = parseFloat(row[columnIndexes["peso unitário"]] || 0);
+            const qtde = parseFloat(row[columnIndexes["qtde"]] || 0);
+            row[columnIndexes["peso (kg)"]] = (pesoUnitario * qtde).toFixed(2);
+        }
+
+        if (columnIndexes["area m² unitário"] !== undefined && columnIndexes["qtde"] !== undefined) {
+            const areaUnitario = parseFloat(row[columnIndexes["area m² unitário"]] || 0);
+            const qtde = parseFloat(row[columnIndexes["qtde"]] || 0);
+            row[columnIndexes["área superfície"]] = (areaUnitario * qtde).toFixed(2);
+        }
     });
 
-    // Cria a planilha Excel
+    // 4. Criar a planilha Excel
     const worksheet = XLSX.utils.aoa_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Romaneio");
 
-    // Ajusta a largura das colunas automaticamente
+    // 5. Ajustar largura das colunas automaticamente
     const colWidths = dataToExport[0].map((_, i) => ({
         wch: Math.max(...dataToExport.map(row => 
             (row[i] ? row[i].toString().length : 10)
@@ -659,8 +673,13 @@ function downloadExcel() {
     }));
     worksheet["!cols"] = colWidths;
 
-    // Formata colunas numéricas
-    const numericColumns = ["qtde", "qtd enviada", "saldo", "peso (kg)", "peso unitário", "área superfície", "area m² unitário"];
+    // 6. Formatar colunas numéricas
+    const numericColumns = [
+        "qtde", "qtd enviada", "saldo", 
+        "peso (kg)", "peso unitário", 
+        "área superfície", "area m² unitário"
+    ];
+    
     numericColumns.forEach(colName => {
         const colIndex = columnIndexes[colName];
         if (colIndex !== undefined) {
@@ -670,15 +689,17 @@ function downloadExcel() {
                     const value = worksheet[cellAddress].v;
                     if (!isNaN(value)) {
                         worksheet[cellAddress].t = 'n';
-                        worksheet[cellAddress].z = value % 1 === 0 ? "0" : "0.00";
+                        // Formatar como número com 2 casas decimais
+                        worksheet[cellAddress].z = "0.00";
                     }
                 }
             });
         }
     });
 
-    // Gera o arquivo Excel
-    XLSX.writeFile(workbook, `Romaneio_Suporte_${currentServico.replace(/[^a-z0-9]/gi, '_')}.xlsx`);
+    // 7. Gerar o arquivo Excel
+    const fileName = `Romaneio_Suporte_${currentServico.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0,10)}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
 }
 
      document.addEventListener("DOMContentLoaded", () => {
