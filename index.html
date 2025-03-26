@@ -775,24 +775,23 @@
         }
 
         // 2. FORMATAR DATAS corretamente como datas do Excel (dd/mm/yyyy)
-if (colIndexes.dataRomaneio !== undefined) {
-    for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
-        const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: colIndexes.dataRomaneio});
-        const cell = worksheet[cellAddress];
+if (colIndexes.dataRomaneioIndexes.length) {
+    colIndexes.dataRomaneioIndexes.forEach(colIndex => {
+        for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
+            const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: colIndex});
+            const cell = worksheet[cellAddress];
 
-        if (cell && typeof cell.v === 'string') {
-            const parts = cell.v.split('/');
-            if (parts.length === 3) {
-                const [day, month, year] = parts.map(Number);
-                const jsDate = new Date(year, month - 1, day);
+            if (cell && typeof cell.v === 'string') {
+                const parts = cell.v.split('/');
+                if (parts.length === 3) {
+                    const [day, month, year] = parts.map(Number);
+                    const jsDate = new Date(year, month - 1, day);
 
-                if (!isNaN(jsDate.getTime())) {
-                    // Excel serial date (base: 30/12/1899)
-                    const excelDate = (jsDate - new Date(Date.UTC(1899, 11, 30))) / (24 * 60 * 60 * 1000);
-
-                    worksheet[cellAddress].t = 'n';             // Tipo número
-                    worksheet[cellAddress].v = excelDate;       // Valor serial da data
-                    worksheet[cellAddress].z = 'dd/mm/yyyy';    // Formato brasileiro
+                    if (!isNaN(jsDate.getTime())) {
+                        const excelDate = (jsDate - new Date(Date.UTC(1899, 11, 30))) / (24 * 60 * 60 * 1000);
+                        worksheet[cellAddress].t = 'n';
+                        worksheet[cellAddress].v = excelDate;
+                        worksheet[cellAddress].z = 'dd/mm/yyyy';
                 }
             }
         }
