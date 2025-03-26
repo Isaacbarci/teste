@@ -29,13 +29,15 @@
             width: 300px;
         }
         select {
-            margin: 3px;
+           margin: 3px;
             padding: 3px;
             border-radius: 5px;
             border: 1px solid #ccc;
             font-size: 12px;
             width: 200px;
             height: 25px;
+
+
         }
         button {
             background-color: #007BFF;
@@ -148,19 +150,6 @@
         #qr-container {
             margin-left: 5px;
         }
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-            margin-left: 10px;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
     </style>
 </head>
 <body>
@@ -180,7 +169,6 @@
         <input type="text" id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação">
         <button onclick="downloadExcel()">Download Excel</button>
         <button onclick="startQrScanner()">Escanear QR Code</button>
-        <span id="loadingIndicator" class="loading" style="display: none;"></span>
     </div>
 
     <div id="qr-container" style="display: none;">
@@ -208,42 +196,26 @@
     </div>
 
     <script>
-        // Configurações globais
         let data = [];
         let filteredData = [];
-        let servicoIndex = -1;
+        let servicoIndex = 0;
         let columnIndexes = {};
         let editedRows = new Set();
         let qrScanner;
         let currentFileName = "TESTE.xlsx";
         const rowsPerPage = 500;
+        let services = new Set();
 
-        // Lista de colunas que devem ser exibidas (whitelist)
-        const visibleColumns = [
-            "posição / tag",
-            "identificação 1",
-            "identificação 2",
-            "peso (kg)",
-            "data do romaneio",
-            "qtd enviada",
-            "obs romaneio",
-            "qtde",
-            "saldo"
-        ];
+   const hiddenColumns = [
+    "desenho suporte", "informações", "isométrico", "peso (kg)", "cond. pintura",
+    "área superfície", "data corte", "data acoplamento", "data solda",
+    "data jato/pintura", "número romaneio", "data romaneio", "data recebimento",
+    "observação", "area m² unitário", "data cadastro", "rev", "prog. fab.", "executante", "linha", "spool",
+    "localização", "status", "peso unitário", "qtde enviada", "obs romaneio", "qtde", "saldo", "tipo de suporte", "tipo estrutura", "id", "serviço",
+    "identificação 2", "area m²", "peso", "peso enviado", "área enviada", "peso total", "área m² total"
+];
 
-        // Inicialização
-        document.addEventListener("DOMContentLoaded", function() {
-            console.log("Página carregada - iniciando carregamento de serviços");
-            showLoading(true);
-            loadServices();
-        });
 
-        document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
-
-        // Funções utilitárias
-        function showLoading(show) {
-            document.getElementById("loadingIndicator").style.display = show ? "inline-block" : "none";
-        }
 
         function debounce(func, wait) {
             let timeout;
@@ -253,76 +225,31 @@
             };
         }
 
-        function formatDate(dateString) {
-            if (!dateString) return "";
-            try {
-                const date = new Date(dateString);
-                if (isNaN(date.getTime())) return "";
-                const day = String(date.getDate()).padStart(2, "0");
-                const month = String(date.getMonth() + 1).padStart(2, "0");
-                const year = date.getFullYear();
-                return `${day}/${month}/${year}`;
-            } catch (e) {
-                console.error("Erro ao formatar data:", dateString, e);
-                return dateString;
-            }
-        }
+        document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
 
-        function formatDateForInput(dateString) {
-            if (!dateString) return "";
-            try {
-                const date = new Date(dateString);
-                if (isNaN(date.getTime())) return "";
-                const day = String(date.getDate()).padStart(2, "0");
-                const month = String(date.getMonth() + 1).padStart(2, "0");
-                const year = date.getFullYear();
-                return `${year}-${month}-${day}`;
-            } catch (e) {
-                console.error("Erro ao formatar data para input:", dateString, e);
-                return "";
-            }
-        }
-
-        // Funções principais
         function loadServices() {
-            console.log("Iniciando carregamento de serviços do arquivo:", currentFileName);
-
             fetch(currentFileName)
                 .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Erro HTTP: ${response.status} - ${response.statusText}`);
-                    }
+                    if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
                     return response.arrayBuffer();
                 })
                 .then(arrayBuffer => {
-                    console.log("Arquivo carregado com sucesso - processando...");
                     clearPreviousFileData();
 
                     const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-
-                    // Converter para JSON mantendo valores vazios
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet, {
-                        header: 1,
-                        defval: "",
-                        raw: false
-                    });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
                     if (jsonData.length === 0) {
                         throw new Error("O arquivo está vazio ou não contém dados.");
                     }
 
-                    window.originalData = jsonData;
-                    data = jsonData.map(row => [...row]);
+                    window.originalData = JSON.parse(JSON.stringify(jsonData));
+                    data = JSON.parse(JSON.stringify(jsonData));
                     filteredData = data.slice(1);
 
                     findColumnIndexes();
-
-                    if (servicoIndex === -1) {
-                        throw new Error("Coluna 'SERVIÇO' não encontrada. Verifique se existe uma coluna com este nome exato no arquivo.");
-                    }
-
+                    mapColumnIndexes();
                     populateServicoOptions();
 
                     const ultimoServico = localStorage.getItem("ultimoServico");
@@ -331,81 +258,15 @@
                     if (ultimoServico && Array.from(servicoSelect.options).some(o => o.value === ultimoServico)) {
                         servicoSelect.value = ultimoServico;
                         renderSelectedServico(true);
-                    } else if (servicoSelect.options.length > 1) {
-                        servicoSelect.selectedIndex = 1;
+                    } else if (servicoSelect.options.length > 0) {
+                        servicoSelect.value = servicoSelect.options[0].value;
                         renderSelectedServico(true);
                     }
-
-                    console.log("Carregamento concluído com sucesso!");
-                    showLoading(false);
                 })
                 .catch(error => {
-                    console.error("Erro ao carregar serviços:", error);
-                    alert(`Erro ao carregar o arquivo: ${error.message}`);
-                    showLoading(false);
+                    console.error("Erro ao carregar Excel:", error);
+                    alert("Não foi possível carregar o arquivo do diretório.");
                 });
-        }
-
-        function clearPreviousFileData() {
-            editedRows.clear();
-            data = [];
-            filteredData = [];
-            servicoIndex = -1;
-            columnIndexes = {};
-            document.getElementById("dataTable").innerHTML = "";
-        }
-
-        function findColumnIndexes() {
-            if (!data.length) {
-                console.error("Dados não carregados para mapear índices");
-                return;
-            }
-
-            const headers = data[0];
-            servicoIndex = headers.findIndex(header =>
-                header && header.toString().trim().toLowerCase() === "serviço"
-            );
-
-            columnIndexes = {};
-            headers.forEach((name, index) => {
-                if (name && typeof name === 'string') {
-                    columnIndexes[name.trim().toLowerCase()] = index;
-                }
-            });
-
-            console.log("Índices mapeados:", columnIndexes);
-            console.log("Índice da coluna SERVIÇO:", servicoIndex);
-        }
-
-        function populateServicoOptions() {
-            const servicoSelect = document.getElementById("servicoSelect");
-            servicoSelect.innerHTML = '<option value="">Selecione um serviço</option>';
-
-            if (!data.length || servicoIndex === -1) {
-                console.error("Dados não carregados ou coluna SERVIÇO não encontrada");
-                return;
-            }
-
-            // Extrai serviços únicos (ignorando vazios/nulos)
-            const servicos = [...new Set(
-                data.slice(1)
-                    .map(row => row[servicoIndex])
-                    .filter(servico => servico && servico.toString().trim() !== "")
-            )].sort();
-
-            if (servicos.length === 0) {
-                console.warn("Nenhum serviço encontrado na coluna SERVIÇO");
-                return;
-            }
-
-            servicos.forEach(servico => {
-                const option = document.createElement("option");
-                option.value = servico;
-                option.textContent = servico;
-                servicoSelect.appendChild(option);
-            });
-
-            console.log(`${servicos.length} serviços carregados no dropdown`);
         }
 
         function confirmLoadService() {
@@ -427,13 +288,10 @@
 
         function renderSelectedServico(manterEdicoes = false) {
             const selectedServico = document.getElementById("servicoSelect").value;
-            console.log(`Renderizando serviço: ${selectedServico}`);
 
             if (window.originalData) {
-                data = window.originalData.map(row => [...row]);
-                filteredData = data.slice(1).filter(row =>
-                    row[servicoIndex] && row[servicoIndex].toString() === selectedServico
-                );
+                data = JSON.parse(JSON.stringify(window.originalData));
+                filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
             }
 
             if (!manterEdicoes) {
@@ -477,15 +335,98 @@
             });
         }
 
+        function clearPreviousFileData() {
+            editedRows.clear();
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return "";
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return "";
+            const day = String(date.getUTCDate()).padStart(2, "0");
+            const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+            const year = date.getUTCFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        function formatDateForInput(dateString) {
+            if (!dateString) return "";
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return "";
+            const day = String(date.getUTCDate()).padStart(2, "0");
+            const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+            const year = date.getUTCFullYear();
+            return `${year}-${month}-${day}`;
+        }
+
+        function findColumnIndexes() {
+            const headers = data[0];
+            servicoIndex = headers.findIndex(header => header.trim().toLowerCase() === "serviço");
+
+            if (servicoIndex === -1) {
+                alert("Coluna 'SERVIÇO' não encontrada no arquivo. Certifique-se de que existe uma coluna com este nome.");
+                return;
+            }
+
+            columnIndexes = {};
+            headers.forEach((name, index) => {
+                columnIndexes[name.trim().toLowerCase()] = index;
+            });
+        }
+
+        function mapColumnIndexes() {
+            const headers = data[0];
+            columnIndexes = {};
+            headers.forEach((name, index) => {
+                columnIndexes[name.trim().toLowerCase()] = index;
+            });
+        }
+
+        function populateServicoOptions() {
+            const servicoSet = new Set();
+
+            // Verifica se já encontramos o índice da coluna de serviço
+            if (servicoIndex === -1 || !data.length) {
+                return;
+            }
+
+            // Coleta todos os serviços únicos
+            for (let i = 1; i < data.length; i++) {
+                const servico = data[i][servicoIndex];
+                if (servico && servico.trim() !== "") {
+                    servicoSet.add(servico.trim());
+                }
+            }
+
+            const servicoSelect = document.getElementById("servicoSelect");
+            servicoSelect.innerHTML = '<option value="">Selecione um serviço</option>';
+
+            const servicosOrdenados = Array.from(servicoSet).sort();
+
+            servicosOrdenados.forEach(servico => {
+                const option = document.createElement("option");
+                option.value = servico;
+                option.textContent = servico;
+                servicoSelect.appendChild(option);
+            });
+
+            const ultimoServico = localStorage.getItem("ultimoServico");
+            if (ultimoServico && servicosOrdenados.includes(ultimoServico)) {
+                servicoSelect.value = ultimoServico;
+            }
+        }
+
         function applyFilter() {
             const filterValue = document.getElementById("identificacaoFilter").value.trim().toLowerCase();
             const currentServico = document.getElementById("servicoSelect").value;
 
             filteredData = data.slice(1).filter(row => {
+                // Filtra pelo serviço selecionado
                 if (currentServico && row[servicoIndex] !== currentServico) {
                     return false;
                 }
 
+                // Verifica se o valor do filtro está presente em qualquer coluna
                 return Object.keys(columnIndexes).some(key => {
                     const colIndex = columnIndexes[key];
                     return String(row[colIndex] || "").toLowerCase().includes(filterValue);
@@ -499,18 +440,14 @@
             const table = document.getElementById("dataTable");
             table.innerHTML = "";
 
-            if (!data.length) {
-                console.warn("Nenhum dado para renderizar");
-                return;
-            }
+            if (!data.length) return;
 
             const fragment = document.createDocumentFragment();
             const headerRow = document.createElement("tr");
 
-            // Cria cabeçalho apenas com colunas visíveis
+            // Cria cabeçalho da tabela
             data[0].forEach((header, colIndex) => {
-                const headerName = header && header.toString().trim().toLowerCase();
-                if (headerName && visibleColumns.includes(headerName)) {
+                if (!hiddenColumns.includes(header.trim().toLowerCase())) {
                     const th = document.createElement("th");
                     th.textContent = header;
                     headerRow.appendChild(th);
@@ -519,7 +456,7 @@
 
             fragment.appendChild(headerRow);
 
-            // Adiciona linhas de dados apenas com colunas visíveis
+            // Adiciona linhas de dados
             filteredData.slice(0, rowsPerPage).forEach((row, index) => {
                 const originalIndex = data.indexOf(row);
                 if (originalIndex === -1) return;
@@ -528,11 +465,11 @@
                 tr.onclick = () => openEditModal(originalIndex);
 
                 row.forEach((cell, colIndex) => {
-                    const headerName = data[0][colIndex] && data[0][colIndex].toString().trim().toLowerCase();
-                    if (headerName && visibleColumns.includes(headerName)) {
+                    if (!hiddenColumns.includes(data[0][colIndex].trim().toLowerCase())) {
                         const td = document.createElement("td");
 
-                        if (headerName === "data do romaneio") {
+                        // Formata datas
+                        if (data[0][colIndex].toLowerCase() === "data do romaneio") {
                             td.textContent = formatDate(cell);
                         } else {
                             td.textContent = cell || "";
@@ -542,6 +479,7 @@
                     }
                 });
 
+                // Destaca linhas editadas
                 if (editedRows.has(originalIndex)) {
                     tr.classList.add("edited-row");
                 }
@@ -550,14 +488,10 @@
             });
 
             table.appendChild(fragment);
-            console.log(`Tabela renderizada com ${filteredData.length} itens`);
         }
 
         function openEditModal(index) {
-            if (index < 0 || index >= data.length) {
-                console.error("Índice inválido para edição:", index);
-                return;
-            }
+            if (index < 0 || index >= data.length) return;
 
             document.getElementById("editIndex").value = index;
             document.getElementById("POSICAOTAG").value = data[index][columnIndexes["posição / tag"]] || "";
@@ -569,10 +503,12 @@
             document.getElementById("OBSROMANEIO").value = data[index][columnIndexes["obs romaneio"]] || "";
             document.getElementById("Qtde").value = data[index][columnIndexes["qtde"]] || "";
 
+            // Calcula e formata o saldo
             const saldo = parseFloat(data[index][columnIndexes["saldo"]] || 0);
             const saldoInput = document.getElementById("Saldo");
             saldoInput.value = saldo;
 
+            // Aplica estilo com base no saldo
             if (saldo <= 0) {
                 saldoInput.classList.add("saldo-negativo");
                 saldoInput.classList.remove("saldo-positivo");
@@ -588,16 +524,19 @@
             const originalIndex = parseInt(document.getElementById("editIndex").value);
             const selectedServico = document.getElementById("servicoSelect").value;
 
+            // Verifica se o item pertence ao serviço selecionado
             if (data[originalIndex][servicoIndex] !== selectedServico) {
                 alert("ERRO: O item não pertence ao serviço selecionado!");
                 closeModal();
                 return;
             }
 
+            // Atualiza os dados
             data[originalIndex][columnIndexes["data do romaneio"]] = document.getElementById("DATADOROMANEIO").value;
             data[originalIndex][columnIndexes["qtd enviada"]] = document.getElementById("QTDENVIADA").value;
             data[originalIndex][columnIndexes["obs romaneio"]] = document.getElementById("OBSROMANEIO").value;
 
+            // Atualiza o conjunto de linhas editadas
             if (!document.getElementById("DATADOROMANEIO").value &&
                 !document.getElementById("QTDENVIADA").value &&
                 !document.getElementById("OBSROMANEIO").value) {
@@ -606,6 +545,7 @@
                 editedRows.add(originalIndex);
             }
 
+            // Atualiza o localStorage
             const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
 
             if (!stored[currentFileName]) {
@@ -681,54 +621,34 @@
             }
 
             const currentServico = document.getElementById("servicoSelect").value;
-            if (!currentServico) {
-                alert("Selecione um serviço antes de exportar.");
-                return;
-            }
-
             const filteredDataToExport = data.slice(1).filter(row => row[servicoIndex] === currentServico);
             const dataToExport = [data[0], ...filteredDataToExport];
 
-            // Processa os dados para exportação (converte números e datas)
-            const processedData = dataToExport.map(row => {
-                const newRow = [...row];
-
-                // Converte campos numéricos
-                const numericFields = ["qtde", "qtd enviada", "saldo", "peso (kg)"];
-                numericFields.forEach(field => {
-                    if (columnIndexes[field] !== undefined && newRow[columnIndexes[field]]) {
-                        if (field === "peso (kg)") {
-                            newRow[columnIndexes[field]] = parseFloat(newRow[columnIndexes[field]].toString().replace(",", ".")) || 0;
-                        } else {
-                            newRow[columnIndexes[field]] = parseInt(newRow[columnIndexes[field]]) || 0;
-                        }
-                    }
-                });
-
-                return newRow;
-            });
-
-            const worksheet = XLSX.utils.aoa_to_sheet(processedData);
+            const worksheet = XLSX.utils.aoa_to_sheet(dataToExport);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Romaneio");
 
-            // Ajusta largura das colunas automaticamente
+            // Ajusta a largura das colunas
             const colWidths = data[0].map((_, i) => ({
-                wch: Math.min(50, Math.max(10,
-                    ...processedData.map(row => (row[i] ? row[i].toString().length : 0))) + 2
+                wch: Math.max(...dataToExport.map(row => (row[i] ? row[i].toString().length : 10))) + 2
             }));
             worksheet["!cols"] = colWidths;
 
-            // Gera nome de arquivo seguro
-            const safeFileName = `Romaneio_${currentServico}`
-                .replace(/[^\w\s-]/gi, '')
-                .replace(/\s+/g, '_')
-                .substring(0, 50);
-
-            XLSX.writeFile(workbook, `${safeFileName}.xlsx`);
+            XLSX.writeFile(workbook, `Romaneio_Suporte_${currentServico || ''}.xlsx`);
         }
 
-        // Registra Service Worker
+        // Carrega os dados quando a página é aberta
+        document.addEventListener("DOMContentLoaded", () => {
+            loadServices();
+        });
+
+        // Salva as edições antes de descarregar a página
+        window.addEventListener('beforeunload', function() {
+            const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+            localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
+        });
+
+        // Registra o Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('service-worker.js')
                 .then((registration) => {
