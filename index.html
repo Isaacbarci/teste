@@ -651,46 +651,65 @@
         areaUnitario: findColumnIndex("area m² unitário"),
         pesoTotal: findColumnIndex("peso total"),
         areaTotal: findColumnIndex("área m² total"),
-        dataRomaneio: findColumnIndex("dataromaneio") ?? findColumnIndex("datadoromaneio")
+        dataRomaneio: findColumnIndex("datadoromaneio")
     };
 
-    // Função para formatar datas como DD/MM/AAAA
+    // Função robusta para formatar datas como DD/MM/AAAA
     const formatDate = (dateString) => {
-        if (!dateString) return "";
-
-        // Tentar parsear a data de diferentes formatos
-        let date;
+        if (!dateString || dateString.toString().trim() === "") return "";
 
         // Se já estiver no formato DD/MM/AAAA
         if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
-            const [day, month, year] = dateString.split('/');
-            date = new Date(year, month - 1, day);
-        }
-        // Se for um timestamp ou formato ISO
-        else {
-            date = new Date(dateString);
+            return dateString;
         }
 
-        if (isNaN(date.getTime())) return dateString; // Retorna original se não for data válida
+        // Tentar parsear como data ISO (YYYY-MM-DD)
+        let date = new Date(dateString);
 
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
+        // Se for um timestamp numérico
+        if (isNaN(date.getTime()) && !isNaN(dateString)) {
+            date = new Date(parseInt(dateString));
+        }
+
+        // Tentar formato brasileiro (D/M/YYYY ou DD/MM/YYYY)
+        if (isNaN(date.getTime())) {
+            const parts = dateString.toString().split(/[\/-]/);
+            if (parts.length === 3) {
+                // Verificar se o dia vem primeiro (formato brasileiro)
+                if (parts[0].length <= 2 && parts[1].length <= 2) {
+                    date = new Date(parts[2], parts[1] - 1, parts[0]);
+                }
+                // Tentar formato americano (MM/DD/YYYY)
+                else if (parts[0].length <= 2 && parts[2].length <= 2) {
+                    date = new Date(parts[0], parts[1] - 1, parts[2]);
+                }
+            }
+        }
+
+        // Se for uma data válida, formatar
+        if (!isNaN(date.getTime())) {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        // Se tudo falhar, retornar o original
+        return dateString;
     };
 
     // Processar cada linha
     dataToExport.forEach((row, rowIndex) => {
         if (rowIndex === 0) return; // Pular cabeçalho
 
-        // Função para formatar como número inteiro (garantindo que retorne número)
+        // Função para formatar como número inteiro
         const toInt = (value) => {
             if (value === "" || value === null || value === undefined) return "";
             const num = Number(value);
             return isNaN(num) ? value : Math.round(num);
         };
 
-        // Função para formatar como número decimal (garantindo que retorne número)
+        // Função para formatar como número decimal
         const toDecimal = (value) => {
             if (value === "" || value === null || value === undefined) return "";
             const num = Number(value);
@@ -700,18 +719,22 @@
         // ====== FORMATAR Qtde Enviada ======
         if (colIndexes.qtdeEnviada !== undefined) {
             const originalValue = row[colIndexes.qtdeEnviada];
-            // Converter para número inteiro (ou manter vazio)
             row[colIndexes.qtdeEnviada] = toInt(originalValue);
-
-            // Se era número antes, garantir que será tratado como número no Excel
-            if (originalValue !== "" && !isNaN(Number(originalValue))) {
-                row[colIndexes.qtdeEnviada] = Math.round(Number(originalValue));
-            }
         }
 
-        // ====== FORMATAR DATAS ======
+        // ====== FORMATAR ESPECIFICAMENTE DATA DO ROMANEIO ======
         if (colIndexes.dataRomaneio !== undefined) {
-            row[colIndexes.dataRomaneio] = formatDate(row[colIndexes.dataRomaneio]);
+            const originalDate = row[colIndexes.dataRomaneio];
+            const formattedDate = formatDate(originalDate);
+
+            // Atribuir o valor formatado
+            row[colIndexes.dataRomaneio] = formattedDate;
+
+            // Se formatado com sucesso, converter para objeto Date
+            if (/^\d{2}\/\d{2}\/\d{4}$/.test(formattedDate)) {
+                const [day, month, year] = formattedDate.split('/');
+                row[colIndexes.dataRomaneio] = new Date(year, month - 1, day);
+            }
         }
 
         // Formatar outras colunas numéricas
@@ -726,7 +749,7 @@
         if (colIndexes.pesoTotal !== undefined) row[colIndexes.pesoTotal] = toDecimal(row[colIndexes.pesoTotal]);
         if (colIndexes.areaTotal !== undefined) row[colIndexes.areaTotal] = toDecimal(row[colIndexes.areaTotal]);
 
-        // Cálculos automáticos - SOMENTE se QTD ENVIADA não for vazia
+        // Cálculos automáticos
         if (colIndexes.qtdeEnviada !== undefined && row[colIndexes.qtdeEnviada] !== "") {
             // Calcular PESO ENVIADO
             if (colIndexes.pesoUnitario !== undefined && colIndexes.pesoEnviado !== undefined) {
@@ -748,7 +771,7 @@
                 }
             }
         } else {
-            // Se QTD ENVIADA estiver vazia, limpar PESO ENVIADO e ÁREA ENVIADA
+            // Limpar campos calculados se não houver quantidade enviada
             if (colIndexes.pesoEnviado !== undefined) row[colIndexes.pesoEnviado] = "";
             if (colIndexes.areaEnviada !== undefined) row[colIndexes.areaEnviada] = "";
         }
@@ -763,30 +786,18 @@
     if (worksheet["!ref"]) {
         const range = XLSX.utils.decode_range(worksheet["!ref"]);
 
-        // 1. FORMATAR Qtde Enviada como número inteiro
-        if (colIndexes.qtdeEnviada !== undefined) {
-            for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
-                const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: colIndexes.qtdeEnviada});
-                if (worksheet[cellAddress]) {
-                    worksheet[cellAddress].t = 'n'; // Tipo numérico
-                    worksheet[cellAddress].z = '#,##0'; // Formato inteiro sem decimais
-                }
-            }
-        }
-
-        // 2. FORMATAR DATAS - versão mais robusta
+        // FORMATAR DATA DO ROMANEIO
         if (colIndexes.dataRomaneio !== undefined) {
             for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
                 const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: colIndexes.dataRomaneio});
-                if (worksheet[cellAddress] && worksheet[cellAddress].v) {
-                    // Forçar tipo date e formato brasileiro
+                if (worksheet[cellAddress]) {
                     worksheet[cellAddress].t = 'd'; // Tipo date
                     worksheet[cellAddress].z = 'dd/mm/yyyy'; // Formato brasileiro
 
-                    // Se o valor não for um objeto Date, converter
+                    // Converter string formatada para objeto Date se necessário
                     if (!(worksheet[cellAddress].v instanceof Date)) {
                         const dateStr = worksheet[cellAddress].v;
-                        if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+                        if (typeof dateStr === 'string' && /^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
                             const [day, month, year] = dateStr.split('/');
                             worksheet[cellAddress].v = new Date(year, month - 1, day);
                         }
@@ -795,18 +806,8 @@
             }
         }
 
-        // 3. FORMATAR OUTRAS COLUNAS NUMÉRICAS
-        const numericColumns = {
-            inteiros: [colIndexes.qtde, colIndexes.saldo],
-            decimais: [
-                colIndexes.pesoKg, colIndexes.areaSuperficie,
-                colIndexes.pesoEnviado, colIndexes.areaEnviada,
-                colIndexes.pesoUnitario, colIndexes.areaUnitario,
-                colIndexes.pesoTotal, colIndexes.areaTotal
-            ]
-        };
-
-        numericColumns.inteiros.forEach(col => {
+        // FORMATAR NÚMEROS INTEIROS
+        [colIndexes.qtde, colIndexes.qtdeEnviada, colIndexes.saldo].forEach(col => {
             if (col !== undefined) {
                 for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
                     const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: col});
@@ -818,7 +819,13 @@
             }
         });
 
-        numericColumns.decimais.forEach(col => {
+        // FORMATAR NÚMEROS DECIMAIS
+        [
+            colIndexes.pesoKg, colIndexes.areaSuperficie,
+            colIndexes.pesoEnviado, colIndexes.areaEnviada,
+            colIndexes.pesoUnitario, colIndexes.areaUnitario,
+            colIndexes.pesoTotal, colIndexes.areaTotal
+        ].forEach(col => {
             if (col !== undefined) {
                 for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
                     const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: col});
@@ -831,12 +838,20 @@
         });
     }
 
-    // Ajustar largura das colunas
+    // Ajustar largura das colunas automaticamente
     worksheet["!cols"] = data[0].map((_, i) => ({
-        wch: Math.max(...dataToExport.map(row => (row[i] ? row[i].toString().length : 10))) + 2
+        wch: Math.min(
+            Math.max(...dataToExport.map(row => (row[i] ? row[i].toString().length : 0))) + 2,
+            50 // Largura máxima de 50 caracteres
+        )
     }));
 
-    XLSX.writeFile(workbook, `Romaneio_Suporte_${currentServico || ''}.xlsx`);
+    // Gerar nome do arquivo com data atual
+    const today = new Date();
+    const formattedDate = `${String(today.getDate()).padStart(2, '0')}-${String(today.getMonth() + 1).padStart(2, '0')}-${today.getFullYear()}`;
+    const filename = `Romaneio_${currentServico || 'Geral'}_${formattedDate}.xlsx`;
+
+    XLSX.writeFile(workbook, filename);
 }
 
         // Carrega os dados quando a página é aberta
