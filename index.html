@@ -233,19 +233,43 @@
         </table>
     </div>
 
-    <div id="editModal" class="modal">
-        <input type="hidden" id="editIndex">
-        <label>ISOMÉTRICO: <input type="text" id="ISOMETRICO" readonly></label>
-        <label>SPOOL: <input type="text" id="SPOOL" readonly></label>
-        <label>ÁREA: <input type="text" id="AREA" readonly></label>
-        <label>PROG FAB: <input type="text" id="PROGFAB" readonly></label>
-        <label>PESO: <input type="text" id="PESO" readonly></label>
-        <label>Data do Romaneio: <input type="date" id="DATADOROMANEIO"></label>
-        <label>Obs Romaneio: <input type="text" id="OBSROMANEIO"></label>
+<div id="editModal" class="modal">
+    <input type="hidden" id="editIndex">
+    
+    <label>ISOMÉTRICO:
+        <input type="text" id="ISOMETRICO" readonly>
+    </label>
+
+    <label>SPOOL:
+        <input type="text" id="SPOOL" readonly>
+    </label>
+
+    <label>ÁREA:
+        <input type="text" id="AREA" readonly>
+    </label>
+
+    <label>PROG FAB:
+        <input type="text" id="PROGFAB" readonly>
+    </label>
+
+    <label>PESO:
+        <input type="text" id="PESO" readonly>
+    </label>
+
+    <label>Data do Romaneio:
+        <input type="date" id="DATADOROMANEIO">
+    </label>
+
+    <label>Obs Romaneio:
+        <input type="text" id="OBSROMANEIO">
+    </label>
+
+    <div class="modal-footer">
         <button class="save-btn" onclick="saveEdit()">Salvar</button>
         <button class="close-btn" onclick="closeModal()">Fechar</button>
     </div>
 
+    
     <script>
         let data = [];
         let filteredData = [];
