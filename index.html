@@ -1002,17 +1002,13 @@ function formatDate(dateString) {
                 });
         }
 
-        function blurInput() {
+        <script>
+function blurInput() {
     const qtdInput = document.getElementById("QTDENVIADA");
     const qtdEnviada = parseFloat(qtdInput.value || 0);
     const saldo = parseFloat(document.getElementById("Saldo").value || 0);
 
-    // Remove destaque anterior
-    qtdInput.classList.remove("qtd-invalida");
-
     if (!isNaN(qtdEnviada) && !isNaN(saldo) && qtdEnviada > saldo) {
-        qtdInput.classList.add("qtd-invalida");
-
         const continuar = confirm("Quantidade informada é maior que o saldo!\n\nDeseja continuar mesmo assim?");
         if (!continuar) {
             qtdInput.value = "";
@@ -1023,50 +1019,48 @@ function formatDate(dateString) {
     qtdInput.blur();
     document.getElementById("okBtnKeyboard").style.display = "none";
 }
-const qtdInput = document.getElementById("QTDENVIADA");
-const linhaQtd = document.getElementById("linhaQtd");
-
-qtdInput.addEventListener("input", () => {
-    const saldo = parseFloat(document.getElementById("Saldo").value || 0);
-    const valor = parseFloat(qtdInput.value || 0);
-
-    linhaQtd.classList.remove("linha-verde", "linha-vermelha");
-
-    if (!isNaN(valor) && !isNaN(saldo)) {
-        if (valor > saldo) {
-            linhaQtd.classList.add("linha-vermelha");
-        } else {
-            linhaQtd.classList.add("linha-verde");
-        }
-    }
-});
-
-// Bloqueia blur fora do botão OK
-qtdInput.addEventListener("blur", () => {
-    setTimeout(() => {
-        const active = document.activeElement;
-        const dentroDoBotao = active && active.closest("#okBtnKeyboard");
-
-        if (!dentroDoBotao) {
-            alert("Por favor, confirme a quantidade usando o botão OK.");
-            qtdInput.focus();
-        }
 
 document.addEventListener("DOMContentLoaded", () => {
     const qtdInput = document.getElementById("QTDENVIADA");
+    const linhaQtd = document.getElementById("linhaQtd");
     const okBtn = document.getElementById("okBtnKeyboard");
 
     qtdInput.addEventListener("focus", () => {
         okBtn.style.display = "block";
     });
 
+    qtdInput.addEventListener("input", () => {
+        const saldo = parseFloat(document.getElementById("Saldo").value || 0);
+        const valor = parseFloat(qtdInput.value || 0);
+
+        linhaQtd.classList.remove("linha-verde", "linha-vermelha");
+
+        if (!isNaN(valor) && !isNaN(saldo)) {
+            if (valor > saldo) {
+                linhaQtd.classList.add("linha-vermelha");
+            } else {
+                linhaQtd.classList.add("linha-verde");
+            }
+        }
+    });
+
+    // Bloqueia sair do campo sem clicar no botão OK
     qtdInput.addEventListener("blur", () => {
         setTimeout(() => {
-            okBtn.style.display = "none";
-        }, 200);
+            const active = document.activeElement;
+            const dentroDoBotao = active && active.closest("#okBtnKeyboard");
+
+            if (!dentroDoBotao) {
+                alert("Por favor, confirme a quantidade usando o botão OK.");
+                qtdInput.focus();
+            }
+        }, 150);
+    });
+
+    okBtn.addEventListener("click", () => {
+        okBtn.style.display = "none";
     });
 });
-
         
     </script>
 </body>
