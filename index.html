@@ -583,9 +583,7 @@ function openEditModal(index) {
     openModal();
 }
 
-
-
-        function saveEdit() {
+function saveEdit() {
     const originalIndex = parseInt(document.getElementById("editIndex").value);
     if (originalIndex < 0) return;
 
@@ -594,11 +592,31 @@ function openEditModal(index) {
 
     if (originalRow[columnIndexes["serviço"]] !== selectedServico) {
         alert("ERRO: O item não pertence ao serviço selecionado!");
-
-closeModal();
-        
+        closeModal();
         return;
     }
+
+    const editedRow = [
+        document.getElementById("DATADOROMANEIO").value,
+        document.getElementById("OBSROMANEIO").value
+    ];
+
+    if (
+        originalRow[columnIndexes["data do romaneio"]] !== editedRow[0] ||
+        originalRow[columnIndexes["obs romaneio"]] !== editedRow[1]
+    ) {
+        data[originalIndex][columnIndexes["data do romaneio"]] = editedRow[0];
+        data[originalIndex][columnIndexes["obs romaneio"]] = editedRow[1];
+
+        editedRows.add(originalIndex);
+        saveToLocalStorage("uploadedData", data);
+        saveToLocalStorage("editedRows", Array.from(editedRows));
+    }
+
+    closeModal(); // aqui está o ajuste principal
+    renderTable();
+}
+        
 
     const editedRow = [
         document.getElementById("DATADOROMANEIO").value,
