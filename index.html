@@ -795,22 +795,22 @@ function formatDate(dateString) {
             };
 
             const formatDateBR = (value) => {
-                if (!value) return "";
-                
-                // Se já está no formato DD/MM/YYYY
-                if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
-                    return value;
-                }
-                
-                // Converte de YYYY-MM-DD para DD/MM/YYYY
-                const date = new Date(value);
-                if (isNaN(date.getTime())) return value;
-                
-                const day = String(date.getDate()).padStart(2, '0');
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const year = date.getFullYear();
-                return `${day}/${month}/${year}`;
-            };
+    if (!value) return "";
+
+    // Se já está no formato DD/MM/YYYY
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+        return value;
+    }
+
+    // Se está no formato YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        const [ano, mes, dia] = value.split("-");
+        return `${dia}/${mes}/${ano}`;
+    }
+
+    return value;
+};
+
 
             dataToExport.forEach((row, rowIndex) => {
                 if (rowIndex === 0) return;
