@@ -241,18 +241,20 @@
 
 #okBtnKeyboard {
     display: none;
-    margin-top: 8px;
-    padding: 10px 16px;
-    background-color: #28a745;
-    color: white;
+    background: none;
     border: none;
-    border-radius: 5px;
-    font-size: 15px;
-    align-self: flex-end;
-    transition: all 0.2s ease;
-    width: 100%;
-    font-weight: bold;
+    font-size: 18px;
+    color: #28a745;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    line-height: 1;
 }
+
+#okBtnKeyboard:active {
+    transform: scale(0.9);
+}
+
 
 #okBtnKeyboard:active {
     transform: scale(0.97);
@@ -330,11 +332,13 @@
                 <input type="date" id="DATADOROMANEIO">
             </label>
 
-            <label>Qtd Enviada:
-                <input type="text" id="QTDENVIADA">
-            </label>
+            <label style="position: relative;">Qtd Enviada:
+    <input type="number" id="QTDENVIADA" style="padding-right: 40px;">
+    <button id="okBtnKeyboard" onclick="blurInput()" style="position: absolute; right: 10px; top: 36px;">✔️</button>
+</label>
 
-            <button id="okBtnKeyboard" onclick="blurInput()">✔️ OK</button>
+
+            
 
             <label>Obs Romaneio:
                 <input type="text" id="OBSROMANEIO">
@@ -744,16 +748,14 @@ function formatDate(dateString) {
 
 
 function blurInput() {
-    document.activeElement.blur(); // Remove o foco → fecha teclado
+    document.activeElement.blur(); // fecha teclado
     document.getElementById("okBtnKeyboard").style.display = "none";
 }
 
-// Exibir botão quando campo de quantidade estiver em foco
 document.getElementById("QTDENVIADA").addEventListener("focus", () => {
     document.getElementById("okBtnKeyboard").style.display = "block";
 });
 
-// Ocultar botão se sair do foco
 document.getElementById("QTDENVIADA").addEventListener("blur", () => {
     setTimeout(() => {
         document.getElementById("okBtnKeyboard").style.display = "none";
