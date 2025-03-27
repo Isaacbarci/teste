@@ -378,14 +378,23 @@
 }
 
 function openModal() {
-    document.getElementById("editModal").style.display = "block";
-    document.body.style.overflow = "hidden"; // trava rolagem da tela principal
+    const modal = document.getElementById("editModal");
+    modal.style.display = "block";
+
+    // Bloqueia rolagem da página
+    document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.height = "100%";
 }
 
 function closeModal() {
     const modal = document.getElementById("editModal");
     modal.style.display = "none";
-    document.body.style.overflow = "auto"; // garante que a rolagem seja reabilitada
+
+    // Libera rolagem com segurança
+    document.body.style.overflow = "auto";
+    document.body.style.position = "";
+    document.body.style.height = "";
 
 
 
