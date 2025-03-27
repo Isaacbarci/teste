@@ -371,6 +371,8 @@
     </div>
 
     <script>
+
+        let forcarConfirmacaoOk = true;
         let data = [];
         let filteredData = [];
         let servicoIndex = 0;
@@ -1007,6 +1009,9 @@ function blurInput() {
     const qtdEnviada = parseFloat(qtdInput.value || 0);
     const saldo = parseFloat(document.getElementById("Saldo").value || 0);
 
+    // Desabilita o alerta no blur
+    forcarConfirmacaoOk = false;
+
     if (!isNaN(qtdEnviada) && !isNaN(saldo) && qtdEnviada > saldo) {
         const continuar = confirm("Quantidade informada é maior que o saldo!\n\nDeseja continuar mesmo assim?");
         if (!continuar) {
@@ -1014,6 +1019,10 @@ function blurInput() {
             return;
         }
     }
+
+    qtdInput.blur();
+    document.getElementById("okBtnKeyboard").style.display = "none";
+}
 
     qtdInput.blur();
     document.getElementById("okBtnKeyboard").style.display = "none";
@@ -1042,20 +1051,16 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
     });
-
-    // Bloqueia sair do campo sem clicar no botão OK
-    qtdInput.addEventListener("blur", () => {
-        setTimeout(() => {
-            const active = document.activeElement;
-            const dentroDoBotao = active && active.closest("#okBtnKeyboard");
-
-            if (!dentroDoBotao) {
-                alert("Por favor, confirme a quantidade usando o botão OK.");
-                qtdInput.focus();
-            }
-        }, 150);
-    });
-
+    
+qtdInput.addEventListener("blur", () => {
+    setTimeout(() => {
+        if (forcarConfirmacaoOk) {
+            alert("Por favor, confirme a quantidade usando o botão OK.");
+            qtdInput.focus();
+        }
+        forcarConfirmacaoOk = true; // reseta depois
+    }, 150);
+});
     okBtn.addEventListener("click", () => {
         okBtn.style.display = "none";
     });
