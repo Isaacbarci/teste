@@ -331,6 +331,48 @@
             };
         }
 
+        function parseDateString(dateString) {
+            if (!dateString) return null;
+            
+            // Se já está no formato YYYY-MM-DD
+            if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+                const parts = dateString.split('-');
+                return new Date(parts[0], parts[1] - 1, parts[2]);
+            }
+            
+            // Se está no formato DD/MM/YYYY
+            if (typeof dateString === 'string' && dateString.includes('/')) {
+                const parts = dateString.split('/');
+                if (parts.length === 3) {
+                    return new Date(parts[2], parts[1] - 1, parts[0]);
+                }
+            }
+            
+            // Tenta criar uma data a partir da string
+            const date = new Date(dateString);
+            return isNaN(date.getTime()) ? null : date;
+        }
+
+        function formatDate(dateString) {
+            const date = parseDateString(dateString);
+            if (!date) return "";
+            
+            const day = String(date.getDate()).padStart(2, "0");
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        function formatDateForInput(dateString) {
+            const date = parseDateString(dateString);
+            if (!date) return "";
+            
+            const day = String(date.getDate()).padStart(2, "0");
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const year = date.getFullYear();
+            return `${year}-${month}-${day}`;
+        }
+
         const applyFilterDebounced = debounce(applyFilter, 300);
 
         document.getElementById("identificacaoFilter").addEventListener("input", applyFilterDebounced);
@@ -466,50 +508,6 @@
                 });
         }
 
-        function formatDate(dateString) {
-            if (!dateString) return "";
-            
-            // Verifica se já está no formato DD/MM/YYYY
-            if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
-                return dateString;
-            }
-            
-            // Tenta criar uma data a partir da string
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return "";
-            
-            const day = String(date.getDate()).padStart(2, "0");
-            const month = String(date.getMonth() + 1).padStart(2, "0");
-            const year = date.getFullYear();
-            return `${day}/${month}/${year}`;
-        }
-
-        function formatDateForInput(dateString) {
-            if (!dateString) return "";
-            
-            // Verifica se já está no formato YYYY-MM-DD
-            if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-                return dateString;
-            }
-            
-            // Converte de DD/MM/YYYY para YYYY-MM-DD
-            if (typeof dateString === 'string' && dateString.includes('/')) {
-                const parts = dateString.split('/');
-                if (parts.length === 3) {
-                    return `${parts[2]}-${parts[1]}-${parts[0]}`;
-                }
-            }
-            
-            // Tenta criar uma data a partir da string
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return "";
-            
-            const day = String(date.getDate()).padStart(2, "0");
-            const month = String(date.getMonth() + 1).padStart(2, "0");
-            const year = date.getFullYear();
-            return `${year}-${month}-${day}`;
-        }
-
         function findColumnIndexes() {
             columnIndexes = {};
             data[0].forEach((header, index) => {
@@ -584,23 +582,9 @@
             document.getElementById("PROGFAB").value = filteredData[index][columnIndexes["prog fab"]] || "N/A";
             document.getElementById("PESO").value = filteredData[index][columnIndexes["peso"]] || "N/A";
             
-            // Tratamento robusto da data
             const dataRomaneio = filteredData[index][columnIndexes["data do romaneio"]];
             const dateInput = document.getElementById("DATADOROMANEIO");
-            
-            // Limpa o campo
-            dateInput.value = "";
-            
-            // Formata corretamente a data para o input
-            if (dataRomaneio) {
-                const formattedDate = formatDateForInput(dataRomaneio);
-                if (formattedDate) {
-                    // Força a atualização do valor exibido
-                    setTimeout(() => {
-                        dateInput.value = formattedDate;
-                    }, 0);
-                }
-            }
+            dateInput.value = formatDateForInput(dataRomaneio);
             
             document.getElementById("OBSROMANEIO").value = filteredData[index][columnIndexes["obs romaneio"]] || "";
 
