@@ -140,6 +140,7 @@
     background-color: #1e1e1e;
     padding-top: 10px;
     padding-bottom: 10px;
+    box-sizing: border-box;
 }
 
 .modal-footer .save-btn,
@@ -172,7 +173,7 @@
     background-color: #c82333;
 }
 
-/* Responsivo */
+/* Responsividade extra para mobile */
 @media (max-width: 480px) {
     .modal {
         padding: 15px 10px;
@@ -187,7 +188,8 @@
         padding: 8px;
     }
 
-    .modal-footer button {
+    .modal-footer .save-btn,
+    .modal-footer .close-btn {
         font-size: 14px;
         padding: 10px;
     }
