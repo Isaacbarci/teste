@@ -678,6 +678,10 @@
                 return;
             }
 
+            const romaneiosIndex = data[0].findIndex(
+        header => header.trim().toLowerCase() === "romaneios"
+    );
+
             const formattedData = data.map((row, rowIndex) => {
                 if (rowIndex === 0) return row;
 
@@ -698,8 +702,14 @@
 
                     return cell;
                 });
-            });
 
+ if (romaneiosIndex !== -1) {
+            newRow.splice(romaneiosIndex, 1);
+        }
+
+        return newRow;
+    });
+                
             const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, currentService || "Romaneio de Spool");
