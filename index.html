@@ -89,7 +89,7 @@
             cursor: pointer;
         }
 
-        .modal {
+       .modal {
     display: none;
     position: fixed;
     top: 0;
@@ -140,21 +140,22 @@
     background-color: #1e1e1e;
     padding-top: 10px;
     padding-bottom: 10px;
+    display: block;
     box-sizing: border-box;
 }
 
-.modal-footer .save-btn,
-.modal-footer .close-btn {
+.modal-footer button {
     width: 100%;
     padding: 10px;
-    border-radius: 5px;
     font-size: 14px;
-    margin-top: 10px;
+    border-radius: 5px;
     border: none;
+    margin-top: 10px;
     cursor: pointer;
-    box-sizing: border-box;
+    display: block;
 }
 
+/* Botão Salvar */
 .save-btn {
     background-color: #28a745;
     color: white;
@@ -164,6 +165,7 @@
     background-color: #218838;
 }
 
+/* Botão Fechar */
 .close-btn {
     background-color: #dc3545;
     color: white;
@@ -173,7 +175,7 @@
     background-color: #c82333;
 }
 
-/* Responsividade extra para mobile */
+/* Responsivo para dispositivos móveis */
 @media (max-width: 480px) {
     .modal {
         padding: 15px 10px;
@@ -188,12 +190,11 @@
         padding: 8px;
     }
 
-    .modal-footer .save-btn,
-    .modal-footer .close-btn {
+    .modal-footer button {
         font-size: 14px;
         padding: 10px;
-    }
-
+    
+}
     
         .edited-row {
             background-color: darkgray !important;
