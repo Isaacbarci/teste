@@ -129,6 +129,26 @@
     box-sizing: border-box;
 }
 
+
+.modal input[type="date"] {
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: #2c2c2c;
+    color: #fff;
+    border: 1px solid #555;
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+/* Estilo para mostrar o ícone de calendário no campo */
+.modal input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}
+
+
 .modal input[readonly] {
     background-color: #333;
     cursor: not-allowed;
