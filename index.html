@@ -374,6 +374,20 @@
                     console.error("Erro ao carregar o arquivo:", error);
                     alert(`Erro ao carregar o arquivo: ${error.message}`);
                 });
+
+}
+
+function openModal() {
+    document.getElementById("editModal").style.display = "block";
+    document.body.style.overflow = "hidden"; // trava rolagem da tela principal
+}
+
+function closeModal() {
+    document.getElementById("editModal").style.display = "none";
+    document.body.style.overflow = ""; // libera rolagem da tela principal
+
+
+
         }
 
         function confirmLoadService() {
@@ -529,19 +543,22 @@
             });
         }
 
-        function openEditModal(index) {
-            const originalIndex = data.indexOf(filteredData[index]);
-            document.getElementById("editIndex").value = originalIndex;
-            document.getElementById("ISOMETRICO").value = filteredData[index][columnIndexes["isométrico"]] || "N/A";
-            document.getElementById("SPOOL").value = filteredData[index][columnIndexes["spool"]] || "N/A";
-            document.getElementById("AREA").value = filteredData[index][columnIndexes["área"]] || "N/A";
-            document.getElementById("PROGFAB").value = filteredData[index][columnIndexes["prog fab"]] || "N/A";
-            document.getElementById("PESO").value = filteredData[index][columnIndexes["peso"]] || "N/A";
-            document.getElementById("DATADOROMANEIO").value = formatDateForInput(filteredData[index][columnIndexes["data do romaneio"]]);
-            document.getElementById("OBSROMANEIO").value = filteredData[index][columnIndexes["obs romaneio"]] || "";
+        
+function openEditModal(index) {
+    const originalIndex = data.indexOf(filteredData[index]);
+    document.getElementById("editIndex").value = originalIndex;
+    document.getElementById("ISOMETRICO").value = filteredData[index][columnIndexes["isométrico"]] || "N/A";
+    document.getElementById("SPOOL").value = filteredData[index][columnIndexes["spool"]] || "N/A";
+    document.getElementById("AREA").value = filteredData[index][columnIndexes["área"]] || "N/A";
+    document.getElementById("PROGFAB").value = filteredData[index][columnIndexes["prog fab"]] || "N/A";
+    document.getElementById("PESO").value = filteredData[index][columnIndexes["peso"]] || "N/A";
+    document.getElementById("DATADOROMANEIO").value = formatDateForInput(filteredData[index][columnIndexes["data do romaneio"]]);
+    document.getElementById("OBSROMANEIO").value = filteredData[index][columnIndexes["obs romaneio"]] || "";
 
-            document.getElementById("editModal").style.display = "block";
-        }
+    openModal();
+}
+
+
 
         function saveEdit() {
     const originalIndex = parseInt(document.getElementById("editIndex").value);
