@@ -383,8 +383,9 @@ function openModal() {
 }
 
 function closeModal() {
-    document.getElementById("editModal").style.display = "none";
-    document.body.style.overflow = ""; // libera rolagem da tela principal
+    const modal = document.getElementById("editModal");
+    modal.style.display = "none";
+    document.body.style.overflow = "auto"; // garante que a rolagem seja reabilitada
 
 
 
