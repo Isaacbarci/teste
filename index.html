@@ -616,28 +616,6 @@ function saveEdit() {
     closeModal(); // aqui está o ajuste principal
     renderTable();
 }
-        
-
-    const editedRow = [
-        document.getElementById("DATADOROMANEIO").value,
-        document.getElementById("OBSROMANEIO").value
-    ];
-
-    if (
-        originalRow[columnIndexes["data do romaneio"]] !== editedRow[0] ||
-        originalRow[columnIndexes["obs romaneio"]] !== editedRow[1]
-    ) {
-        data[originalIndex][columnIndexes["data do romaneio"]] = editedRow[0];
-        data[originalIndex][columnIndexes["obs romaneio"]] = editedRow[1];
-
-        editedRows.add(originalIndex);
-        saveToLocalStorage("uploadedData", data);
-        saveToLocalStorage("editedRows", Array.from(editedRows));
-    }
-
-    document.getElementById("editModal").style.display = "none";
-    renderTable();
-}
 
 
         function startQrScanner() {
