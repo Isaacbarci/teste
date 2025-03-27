@@ -673,65 +673,68 @@
         }
 
         function downloadExcel() {
-            if (data.length === 0) {
-                alert("Nenhum dado disponível para exportar.");
-                return;
-            }
+    if (data.length === 0) {
+        alert("Nenhum dado disponível para exportar.");
+        return;
+    }
 
-            const romaneiosIndex = data[0].findIndex(
+    // Encontrar o índice da coluna "ROMANEIOS" (case insensitive)
+    const romaneiosIndex = data[0].findIndex(
         header => header.trim().toLowerCase() === "romaneios"
     );
 
-            const formattedData = data.map((row, rowIndex) => {
-                if (rowIndex === 0) return row;
+    const formattedData = data.map((row, rowIndex) => {
+        // Formata a linha
+        const newRow = row.map((cell, colIndex) => {
+            let header = data[0][colIndex].trim().toLowerCase();
 
-                return row.map((cell, colIndex) => {
-                    let header = data[0][colIndex].trim().toLowerCase();
+            if (header === "data do romaneio") {
+                return formatDate(cell);
+            }
 
-                    if (header === "data do romaneio") {
-                        return formatDate(cell);
-                    }
+            if (header === "peso" || header === "área superf.") {
+                if (cell === "" || cell === null || cell === undefined) {
+                    return "";
+                }
+                const numericValue = parseFloat(cell.toString().replace(",", "."));
+                return isNaN(numericValue) ? "" : numericValue;
+            }
 
-                    if (header === "peso" || header === "área superf.") {
-                        if (cell === "" || cell === null || cell === undefined) {
-                            return "";
-                        }
-                        const numericValue = parseFloat(cell.toString().replace(",", "."));
-                        return isNaN(numericValue) ? "" : numericValue;
-                    }
+            return cell;
+        });
 
-                    return cell;
-                });
-
- if (romaneiosIndex !== -1) {
+        // Remove a coluna "ROMANEIOS"
+        if (romaneiosIndex !== -1) {
             newRow.splice(romaneiosIndex, 1);
         }
 
         return newRow;
     });
-                
-            const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, currentService || "Romaneio de Spool");
 
-            const colWidths = formattedData[0].map((_, i) => ({
-                wch: Math.max(...formattedData.map(row => (row[i] ? row[i].toString().length : 10))) + 2
-            }));
-            worksheet["!cols"] = colWidths;
+    const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, currentService || "Romaneio de Spool");
 
-            const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-            const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+    // Ajuste automático da largura das colunas
+    const colWidths = formattedData[0].map((_, i) => ({
+        wch: Math.max(...formattedData.map(row => (row[i] ? row[i].toString().length : 10))) + 2
+    }));
+    worksheet["!cols"] = colWidths;
 
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `Romaneio_Spool_${currentService || ''}.xlsx`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-        }
+    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
 
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Romaneio_Spool_${currentService || ''}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+        
         function compressData(data) {
             return btoa(JSON.stringify(data));
         }
