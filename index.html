@@ -475,42 +475,39 @@
             editedRows.clear();
         }
 
-        function formatDate(dateString) {
-            if (!dateString) return "";
-            
-            // Se já está no formato DD/MM/YYYY
-            if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
-                return dateString;
-            }
-            
-            // Converte de YYYY-MM-DD para DD/MM/YYYY
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return "";
-            
-            const day = String(date.getDate()).padStart(2, "0");
-            const month = String(date.getMonth() + 1).padStart(2, "0");
-            const year = date.getFullYear();
-            return `${day}/${month}/${year}`;
-        }
+function formatDate(dateString) {
+    if (!dateString) return "";
 
+    // Se já está no formato DD/MM/YYYY
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
+        return dateString;
+    }
+
+    // Se está no formato YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        const [ano, mes, dia] = dateString.split("-");
+        return `${dia}/${mes}/${ano}`;
+    }
+
+    return "";
+}
+        
         function formatDateForInput(dateString) {
-            if (!dateString) return "";
-            
-            // Se está no formato DD/MM/YYYY, converte para YYYY-MM-DD
-            if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
-                const parts = dateString.split('/');
-                return `${parts[2]}-${parts[1]}-${parts[0]}`;
-            }
-            
-            // Se já está no formato YYYY-MM-DD, retorna direto
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return "";
-            
-            const day = String(date.getDate()).padStart(2, "0");
-            const month = String(date.getMonth() + 1).padStart(2, "0");
-            const year = date.getFullYear();
-            return `${year}-${month}-${day}`;
-        }
+    if (!dateString) return "";
+
+    // Se está no formato DD/MM/YYYY, converte para YYYY-MM-DD
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
+        const [dia, mes, ano] = dateString.split('/');
+        return `${ano}-${mes}-${dia}`;
+    }
+
+    // Se já está no formato YYYY-MM-DD, retorna direto sem criar Date
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        return dateString;
+    }
+
+    return "";
+}
 
         function findColumnIndexes() {
             const headers = data[0];
