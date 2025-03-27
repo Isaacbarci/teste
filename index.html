@@ -238,27 +238,23 @@
         .saldo-positivo {
             color: #51cf66 !important;
         }
-
+    
 #okBtnKeyboard {
     display: none;
     background: none;
     border: none;
-    font-size: 18px;
-    color: white !important;
     cursor: pointer;
     padding: 0;
     margin: 0;
     line-height: 1;
     transition: transform 0.1s ease;
+    z-index: 10;
 }
-
 
 #okBtnKeyboard:active {
     transform: scale(0.9);
 }
-
-       
-        
+    
         @media (max-width: 768px) {
             .modal {
                 width: 95%;
@@ -330,10 +326,15 @@
                 <input type="date" id="DATADOROMANEIO">
             </label>
 
-           <label style="position: relative;">Qtd Enviada:
+        <label style="position: relative;">Qtd Enviada:
     <input type="number" id="QTDENVIADA" style="padding-right: 40px;">
-    <button id="okBtnKeyboard" onclick="blurInput()" style="position: absolute; right: 10px; top: 36px;">✔️</button>
+    <button id="okBtnKeyboard" onclick="blurInput()" style="position: absolute; right: 10px; top: 36px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="white">
+            <path d="M9 16.17l-3.88-3.88-1.42 1.41L9 19 20.3 7.71l-1.42-1.41z"/>
+        </svg>
+    </button>
 </label>
+
 
             
             <label>Obs Romaneio:
@@ -742,23 +743,6 @@ function formatDate(dateString) {
             document.body.style.overflow = "";
         }
 
-
-function blurInput() {
-    document.activeElement.blur();
-    document.getElementById("okBtnKeyboard").style.display = "none";
-}
-
-document.getElementById("QTDENVIADA").addEventListener("focus", () => {
-    document.getElementById("okBtnKeyboard").style.display = "block";
-});
-
-document.getElementById("QTDENVIADA").addEventListener("blur", () => {
-    setTimeout(() => {
-        document.getElementById("okBtnKeyboard").style.display = "none";
-    }, 200);
-});
-
-
         
         function startQrScanner() {
             document.getElementById("qr-container").style.display = "block";
@@ -1002,6 +986,28 @@ document.getElementById("QTDENVIADA").addEventListener("blur", () => {
                     console.error('Erro ao registrar o Service Worker:', error);
                 });
         }
+
+document.addEventListener("DOMContentLoaded", () => {
+        const qtdInput = document.getElementById("QTDENVIADA");
+        const okBtn = document.getElementById("okBtnKeyboard");
+
+        function blurInput() {
+            qtdInput.blur();
+            okBtn.style.display = "none";
+        }
+
+        qtdInput.addEventListener("focus", () => {
+            okBtn.style.display = "block";
+        });
+
+        qtdInput.addEventListener("blur", () => {
+            setTimeout(() => {
+                okBtn.style.display = "none";
+            }, 200);
+        });
+    });
+
+        
     </script>
 </body>
 </html>
