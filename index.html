@@ -261,18 +261,12 @@
     transform: scale(0.9);
 }
 
-   .linha-qtd {
-    border: 2px solid transparent;
-    padding: 10px;
-    border-radius: 6px;
-}
-
 .linha-verde {
-    border-color: #51cf66 !important;
+    background-color: rgba(81, 207, 102, 0.2); /* verde claro translúcido */
 }
 
 .linha-vermelha {
-    border-color: #ff6b6b !important;
+    background-color: rgba(255, 107, 107, 0.2); /* vermelho claro translúcido */
 }
         
         @media (max-width: 768px) {
@@ -349,8 +343,13 @@
         <div id="linhaQtd" class="linha-qtd" style="position: relative;">
     <label>Qtd Enviada:
         <input type="number" id="QTDENVIADA" style="padding-right: 40px;">
-        <button id="okBtnKeyboard" onclick="blurInput()" style="position: absolute; right: 10px; top: 36px;">...</button>
+        <button id="okBtnKeyboard" onclick="blurInput()" style="position: absolute; right: 10px; top: 36px; display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="white">
+                <path d="M9 16.17l-3.88-3.88-1.42 1.41L9 19 20.3 7.71l-1.42-1.41z"/>
+            </svg>
+        </button>
     </label>
+
       
             <label>Obs Romaneio:
                 <input type="text" id="OBSROMANEIO">
