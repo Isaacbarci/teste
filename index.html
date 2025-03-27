@@ -13,12 +13,17 @@
             margin: 0;
             padding: 0;
             background-color: #000;
+            color: white;
         }
+        
         h2 {
             color: white;
             padding: 20px;
             margin: 0;
+            display: flex;
+            align-items: center;
         }
+        
         input[type="text"], button {
             margin: 5px;
             padding: 10px;
@@ -26,9 +31,11 @@
             border: 1px solid #ccc;
             font-size: 14px;
         }
+        
         input[type="text"] {
             width: 300px;
         }
+        
         select {
             margin: 3px;
             padding: 3px;
@@ -37,8 +44,8 @@
             font-size: 12px;
             width: 205px;
             height: 25px;
-
         }
+        
         button {
             background-color: #007BFF;
             color: white;
@@ -46,26 +53,33 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
+        
         button:hover {
             background-color: #0056b3;
         }
+        
         .close-btn {
             background-color: #dc3545;
         }
+        
         .close-btn:hover {
             background-color: #c82333;
         }
+        
         .save-btn {
             background-color: #28a745;
         }
+        
         .save-btn:hover {
             background-color: #218838;
         }
+        
         .table-container {
             width: 100%;
             overflow-x: auto;
             margin-top: 20px;
         }
+        
         table {
             border-collapse: collapse;
             width: 100%;
@@ -74,6 +88,7 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             border: 2px solid black;
         }
+        
         th, td {
             border: none;
             padding: 10px;
@@ -81,163 +96,136 @@
             text-align: left;
             white-space: nowrap;
         }
+        
         th {
             background-color: #007BFF;
             color: white;
         }
+        
         td {
             cursor: pointer;
-}
-
-
-body.modal-open {
-    overflow: hidden;
-    position: fixed;
-    height: 100%;
-
-
-
         }
-
-       .modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: #1e1e1e;
-    color: #fff;
-    padding: 20px;
-    z-index: 1000;
-    overflow-y: auto;
-    text-align: left;
-    border-top: 3px solid black;
-    border-bottom: 3px solid black;
-    scroll-behavior: smooth;
-    box-sizing: border-box;
-}
-
-.modal label {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 15px;
-    font-weight: bold;
-    color: #fff;
-    font-size: 14px;
-}
-
-.modal input {
-    width: 100%;
-    padding: 10px;
-    margin-top: 5px;
-    border-radius: 5px;
-    border: 1px solid #555;
-    font-size: 14px;
-    background-color: #2c2c2c;
-    color: #fff;
-    box-sizing: border-box;
-}
-
-
-.modal input[type="date"] {
-    appearance: none;
-    -webkit-appearance: none;
-    background-color: #2c2c2c;
-    color: #fff;
-    border: 1px solid #555;
-    border-radius: 5px;
-    padding: 10px;
-    font-size: 14px;
-    box-sizing: border-box;
-    background-image: url('https://cdn-icons-png.flaticon.com/512/747/747310.png');
-    background-size: 20px;
-    background-position: right 10px center;
-    background-repeat: no-repeat;
-    padding-right: 40px; /* espaço para o ícone não sobrepor o texto */
-    cursor: pointer;
-}
-
-.modal input[type="date"]::-webkit-calendar-picker-indicator {
-    opacity: 0; /* Esconde o ícone padrão, usamos o nosso */
-}
-
-
-.modal input[readonly] {
-    background-color: #333;
-    cursor: not-allowed;
-}
-
-.modal-footer {
-    position: sticky;
-    bottom: 0;
-    background-color: #1e1e1e;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    display: block;
-    box-sizing: border-box;
-}
-
-.modal-footer button {
-    width: 100%;
-    padding: 10px;
-    font-size: 14px;
-    border-radius: 5px;
-    border: none;
-    margin-top: 10px;
-    cursor: pointer;
-    display: block;
-}
-
-/* Botão Salvar */
-.save-btn {
-    background-color: #28a745;
-    color: white;
-}
-
-.save-btn:hover {
-    background-color: #218838;
-}
-
-/* Botão Fechar */
-.close-btn {
-    background-color: #dc3545;
-    color: white;
-}
-
-.close-btn:hover {
-    background-color: #c82333;
-}
-
-/* Responsivo para dispositivos móveis */
-@media (max-width: 480px) {
-    .modal {
-        padding: 15px 10px;
-    }
-
-    .modal label {
-        font-size: 13px;
-    }
-
-    .modal input {
-        font-size: 13px;
-        padding: 8px;
-    }
-
-    .modal-footer button {
-    font-size: 14px;
-    padding: 10px;
-}
-    
+        
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal {
+            background-color: #1e1e1e;
+            color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            border: 1px solid #444;
+        }
+        
+        .modal label {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #fff;
+            font-size: 14px;
+        }
+        
+        .modal input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            font-size: 14px;
+            background-color: #2c2c2c;
+            color: #fff;
+            box-sizing: border-box;
+        }
+        
+        .modal input[type="date"] {
+            padding: 9px;
+            background-color: #2c2c2c;
+            color: #fff;
+            -webkit-appearance: none;
+        }
+        
+        .modal input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+            padding: 0;
+            margin-left: 5px;
+        }
+        
+        .modal input[type="date"]::-webkit-inner-spin-button,
+        .modal input[type="date"]::-webkit-clear-button {
+            display: none;
+        }
+        
+        .modal input[readonly] {
+            background-color: #333;
+            cursor: not-allowed;
+        }
+        
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .modal-footer button {
+            flex: 1;
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
+        
         .edited-row {
             background-color: darkgray !important;
-
         }
-
+        
+        @supports (-moz-appearance:none) {
+            .modal input[type="date"] {
+                padding-right: 30px;
+                background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M20 3h-1V1h-2v2H7V1H5v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 18H4V8h16v13z"/></svg>');
+                background-repeat: no-repeat;
+                background-position: right 10px center;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .modal {
+                width: 95%;
+                max-width: none;
+                max-height: 90vh;
+                padding: 20px;
+            }
+            
+            .modal-footer {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            input[type="text"] {
+                width: calc(100% - 20px);
+            }
+        }
     </style>
 </head>
 <body>
-    <h2 style="display: flex; align-items: center;">
+    <h2>
         <img src="image.png" alt="Logo" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;">
         ROMANEIO DE SPOOL
     </h2>
@@ -266,44 +254,44 @@ body.modal-open {
         </table>
     </div>
 
-<div id="editModal" class="modal">
-    <input type="hidden" id="editIndex">
-    
+    <div id="modalOverlay" class="modal-overlay">
+        <div class="modal">
+            <input type="hidden" id="editIndex">
+            
+            <label>ISOMÉTRICO:
+                <input type="text" id="ISOMETRICO" readonly>
+            </label>
 
-    <label>ISOMÉTRICO:
-        <input type="text" id="ISOMETRICO" readonly>
-    </label>
+            <label>SPOOL:
+                <input type="text" id="SPOOL" readonly>
+            </label>
 
-    <label>SPOOL:
-        <input type="text" id="SPOOL" readonly>
-    </label>
+            <label>ÁREA:
+                <input type="text" id="AREA" readonly>
+            </label>
 
-    <label>ÁREA:
-        <input type="text" id="AREA" readonly>
-    </label>
+            <label>PROG FAB:
+                <input type="text" id="PROGFAB" readonly>
+            </label>
 
-    <label>PROG FAB:
-        <input type="text" id="PROGFAB" readonly>
-    </label>
+            <label>PESO:
+                <input type="text" id="PESO" readonly>
+            </label>
 
-    <label>PESO:
-        <input type="text" id="PESO" readonly>
-    </label>
+            <label>Data do Romaneio:
+                <input type="date" id="DATADOROMANEIO">
+            </label>
 
-    <label>Data do Romaneio:
-        <input type="date" id="DATADOROMANEIO">
-    </label>
+            <label>Obs Romaneio:
+                <input type="text" id="OBSROMANEIO">
+            </label>
 
-    <label>Obs Romaneio:
-        <input type="text" id="OBSROMANEIO">
-    </label>
-
-    <div class="modal-footer">
-        <button class="save-btn" onclick="saveEdit()">Salvar</button>
-        <button class="close-btn" onclick="closeModal()">Fechar</button>
+            <div class="modal-footer">
+                <button class="save-btn" onclick="saveEdit()">Salvar</button>
+                <button class="close-btn" onclick="closeModal()">Fechar</button>
+            </div>
+        </div>
     </div>
-
-</div>
     
     <script>
         let data = [];
@@ -385,34 +373,16 @@ body.modal-open {
                     console.error("Erro ao carregar o arquivo:", error);
                     alert(`Erro ao carregar o arquivo: ${error.message}`);
                 });
+        }
 
-}
+        function openModal() {
+            document.getElementById("modalOverlay").style.display = "flex";
+            document.body.style.overflow = "hidden";
+        }
 
-
-function openModal() {
-    document.getElementById("editModal").style.display = "block";
-
-    // Trava rolagem do body
-    document.body.classList.add("modal-open");
-    document.body.style.overflow = "hidden";
-    document.body.style.position = "fixed";
-    document.body.style.height = "100%";
-}
-
-function closeModal() {
-    const modal = document.getElementById("editModal");
-
-    // Oculta o modal
-    modal.style.display = "none";
-
-    // Libera scroll corretamente
-    document.body.classList.remove("modal-open");
-    document.body.style.overflow = "";
-    document.body.style.position = "";
-    document.body.style.height = "";
-
-
-
+        function closeModal() {
+            document.getElementById("modalOverlay").style.display = "none";
+            document.body.style.overflow = "";
         }
 
         function confirmLoadService() {
@@ -487,19 +457,30 @@ function closeModal() {
             if (!dateString) return "";
             const date = new Date(dateString);
             if (isNaN(date.getTime())) return "";
-            const day = String(date.getUTCDate()).padStart(2, "0");
-            const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-            const year = date.getUTCFullYear();
+            const day = String(date.getDate()).padStart(2, "0");
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const year = date.getFullYear();
             return `${day}/${month}/${year}`;
         }
 
         function formatDateForInput(dateString) {
             if (!dateString) return "";
-            const date = new Date(dateString);
+            
+            let date;
+            if (typeof dateString === 'string' && dateString.includes('/')) {
+                const parts = dateString.split('/');
+                date = new Date(parts[2], parts[1] - 1, parts[0]);
+            } else if (typeof dateString === 'string' && dateString.includes('-')) {
+                date = new Date(dateString);
+            } else {
+                date = new Date(dateString);
+            }
+            
             if (isNaN(date.getTime())) return "";
-            const day = String(date.getUTCDate()).padStart(2, "0");
-            const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-            const year = date.getUTCFullYear();
+            
+            const day = String(date.getDate()).padStart(2, "0");
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const year = date.getFullYear();
             return `${year}-${month}-${day}`;
         }
 
@@ -568,55 +549,62 @@ function closeModal() {
             });
         }
 
-        
-function openEditModal(index) {
-    const originalIndex = data.indexOf(filteredData[index]);
-    document.getElementById("editIndex").value = originalIndex;
-    document.getElementById("ISOMETRICO").value = filteredData[index][columnIndexes["isométrico"]] || "N/A";
-    document.getElementById("SPOOL").value = filteredData[index][columnIndexes["spool"]] || "N/A";
-    document.getElementById("AREA").value = filteredData[index][columnIndexes["área"]] || "N/A";
-    document.getElementById("PROGFAB").value = filteredData[index][columnIndexes["prog fab"]] || "N/A";
-    document.getElementById("PESO").value = filteredData[index][columnIndexes["peso"]] || "N/A";
-    document.getElementById("DATADOROMANEIO").value = formatDateForInput(filteredData[index][columnIndexes["data do romaneio"]]);
-    document.getElementById("OBSROMANEIO").value = filteredData[index][columnIndexes["obs romaneio"]] || "";
+        function openEditModal(index) {
+            const originalIndex = data.indexOf(filteredData[index]);
+            document.getElementById("editIndex").value = originalIndex;
+            document.getElementById("ISOMETRICO").value = filteredData[index][columnIndexes["isométrico"]] || "N/A";
+            document.getElementById("SPOOL").value = filteredData[index][columnIndexes["spool"]] || "N/A";
+            document.getElementById("AREA").value = filteredData[index][columnIndexes["área"]] || "N/A";
+            document.getElementById("PROGFAB").value = filteredData[index][columnIndexes["prog fab"]] || "N/A";
+            document.getElementById("PESO").value = filteredData[index][columnIndexes["peso"]] || "N/A";
+            
+            const dataRomaneio = filteredData[index][columnIndexes["data do romaneio"]];
+            const dateInput = document.getElementById("DATADOROMANEIO");
+            dateInput.value = "";
+            
+            if (dataRomaneio) {
+                const formattedDate = formatDateForInput(dataRomaneio);
+                if (formattedDate) {
+                    dateInput.value = formattedDate;
+                }
+            }
+            
+            document.getElementById("OBSROMANEIO").value = filteredData[index][columnIndexes["obs romaneio"]] || "";
 
-    openModal();
-}
+            openModal();
+        }
 
-function saveEdit() {
-    const originalIndex = parseInt(document.getElementById("editIndex").value);
-    if (originalIndex < 0) return;
+        function saveEdit() {
+            const originalIndex = parseInt(document.getElementById("editIndex").value);
+            if (originalIndex < 0) return;
 
-    const selectedServico = document.getElementById("serviceList").value;
-    const originalRow = data[originalIndex];
+            const selectedServico = document.getElementById("serviceList").value;
+            const originalRow = data[originalIndex];
 
-    if (originalRow[columnIndexes["serviço"]] !== selectedServico) {
-        alert("ERRO: O item não pertence ao serviço selecionado!");
-        closeModal();
-        return;
-    }
+            if (originalRow[columnIndexes["serviço"]] !== selectedServico) {
+                alert("ERRO: O item não pertence ao serviço selecionado!");
+                closeModal();
+                return;
+            }
 
-    const editedRow = [
-        document.getElementById("DATADOROMANEIO").value,
-        document.getElementById("OBSROMANEIO").value
-    ];
+            const dataRomaneio = document.getElementById("DATADOROMANEIO").value;
+            const obsRomaneio = document.getElementById("OBSROMANEIO").value;
 
-    if (
-        originalRow[columnIndexes["data do romaneio"]] !== editedRow[0] ||
-        originalRow[columnIndexes["obs romaneio"]] !== editedRow[1]
-    ) {
-        data[originalIndex][columnIndexes["data do romaneio"]] = editedRow[0];
-        data[originalIndex][columnIndexes["obs romaneio"]] = editedRow[1];
+            if (
+                originalRow[columnIndexes["data do romaneio"]] !== dataRomaneio ||
+                originalRow[columnIndexes["obs romaneio"]] !== obsRomaneio
+            ) {
+                data[originalIndex][columnIndexes["data do romaneio"]] = dataRomaneio;
+                data[originalIndex][columnIndexes["obs romaneio"]] = obsRomaneio;
 
-        editedRows.add(originalIndex);
-        saveToLocalStorage("uploadedData", data);
-        saveToLocalStorage("editedRows", Array.from(editedRows));
-    }
+                editedRows.add(originalIndex);
+                saveToLocalStorage("uploadedData", data);
+                saveToLocalStorage("editedRows", Array.from(editedRows));
+            }
 
-    closeModal(); // aqui está o ajuste principal
-    renderTable();
-}
-
+            closeModal();
+            renderTable();
+        }
 
         function startQrScanner() {
             document.getElementById("qr-container").style.display = "block";
