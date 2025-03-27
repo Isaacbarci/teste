@@ -244,21 +244,18 @@
     background: none;
     border: none;
     font-size: 18px;
-    color: #28a745;
+    color: white;
     cursor: pointer;
     padding: 0;
     margin: 0;
     line-height: 1;
+    transition: transform 0.1s ease;
 }
 
 #okBtnKeyboard:active {
     transform: scale(0.9);
 }
 
-
-#okBtnKeyboard:active {
-    transform: scale(0.97);
-}
        
         
         @media (max-width: 768px) {
@@ -332,14 +329,12 @@
                 <input type="date" id="DATADOROMANEIO">
             </label>
 
-            <label style="position: relative;">Qtd Enviada:
+           <label style="position: relative;">Qtd Enviada:
     <input type="number" id="QTDENVIADA" style="padding-right: 40px;">
     <button id="okBtnKeyboard" onclick="blurInput()" style="position: absolute; right: 10px; top: 36px;">✔️</button>
 </label>
 
-
             
-
             <label>Obs Romaneio:
                 <input type="text" id="OBSROMANEIO">
             </label>
@@ -748,7 +743,7 @@ function formatDate(dateString) {
 
 
 function blurInput() {
-    document.activeElement.blur(); // fecha teclado
+    document.activeElement.blur();
     document.getElementById("okBtnKeyboard").style.display = "none";
 }
 
