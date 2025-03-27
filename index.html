@@ -1024,10 +1024,6 @@ function blurInput() {
     document.getElementById("okBtnKeyboard").style.display = "none";
 }
 
-    qtdInput.blur();
-    document.getElementById("okBtnKeyboard").style.display = "none";
-}
-
 document.addEventListener("DOMContentLoaded", () => {
     const qtdInput = document.getElementById("QTDENVIADA");
     const linhaQtd = document.getElementById("linhaQtd");
@@ -1052,18 +1048,17 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
     
-qtdInput.addEventListener("blur", () => {
-    setTimeout(() => {
-        if (forcarConfirmacaoOk) {
-            alert("Por favor, confirme a quantidade usando o botão OK.");
-            qtdInput.focus();
-        }
-        forcarConfirmacaoOk = true; // reseta depois
-    }, 150);
-});
-    okBtn.addEventListener("click", () => {
-        okBtn.style.display = "none";
+    qtdInput.addEventListener("blur", () => {
+        setTimeout(() => {
+            if (forcarConfirmacaoOk && document.activeElement === qtdInput) {
+                alert("Por favor, confirme a quantidade usando o botão OK.");
+                qtdInput.focus();
+            }
+            forcarConfirmacaoOk = true; // reseta depois
+        }, 150);
     });
+
+    okBtn.addEventListener("click", blurInput);
 });
         
     </script>
