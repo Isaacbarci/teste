@@ -261,12 +261,20 @@
     transform: scale(0.9);
 }
 
-.qtd-invalida {
-    background-color: #ff6b6b !important;
-    color: white !important;
-    font-weight: bold;
-} 
-    
+   .linha-qtd {
+    border: 2px solid transparent;
+    padding: 10px;
+    border-radius: 6px;
+}
+
+.linha-verde {
+    border-color: #51cf66 !important;
+}
+
+.linha-vermelha {
+    border-color: #ff6b6b !important;
+}
+        
         @media (max-width: 768px) {
             .modal {
                 width: 95%;
@@ -338,17 +346,12 @@
                 <input type="date" id="DATADOROMANEIO">
             </label>
 
-        <label style="position: relative;">Qtd Enviada:
-    <input type="number" id="QTDENVIADA" style="padding-right: 40px;">
-    <button id="okBtnKeyboard" onclick="blurInput()" style="position: absolute; right: 20px; top: 30px;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="white">
-            <path d="M9 16.17l-3.88-3.88-1.42 1.41L9 19 20.3 7.71l-1.42-1.41z"/>
-        </svg>
-    </button>
-</label>
-
-
-            
+        <div id="linhaQtd" class="linha-qtd" style="position: relative;">
+    <label>Qtd Enviada:
+        <input type="number" id="QTDENVIADA" style="padding-right: 40px;">
+        <button id="okBtnKeyboard" onclick="blurInput()" style="position: absolute; right: 10px; top: 36px;">...</button>
+    </label>
+      
             <label>Obs Romaneio:
                 <input type="text" id="OBSROMANEIO">
             </label>
@@ -1020,6 +1023,34 @@ function formatDate(dateString) {
     qtdInput.blur();
     document.getElementById("okBtnKeyboard").style.display = "none";
 }
+const qtdInput = document.getElementById("QTDENVIADA");
+const linhaQtd = document.getElementById("linhaQtd");
+
+qtdInput.addEventListener("input", () => {
+    const saldo = parseFloat(document.getElementById("Saldo").value || 0);
+    const valor = parseFloat(qtdInput.value || 0);
+
+    linhaQtd.classList.remove("linha-verde", "linha-vermelha");
+
+    if (!isNaN(valor) && !isNaN(saldo)) {
+        if (valor > saldo) {
+            linhaQtd.classList.add("linha-vermelha");
+        } else {
+            linhaQtd.classList.add("linha-verde");
+        }
+    }
+});
+
+// Bloqueia blur fora do botão OK
+qtdInput.addEventListener("blur", () => {
+    setTimeout(() => {
+        const active = document.activeElement;
+        const dentroDoBotao = active && active.closest("#okBtnKeyboard");
+
+        if (!dentroDoBotao) {
+            alert("Por favor, confirme a quantidade usando o botão OK.");
+            qtdInput.focus();
+        }
 
 document.addEventListener("DOMContentLoaded", () => {
     const qtdInput = document.getElementById("QTDENVIADA");
