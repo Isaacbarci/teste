@@ -260,6 +260,12 @@
 #okBtnKeyboard:active {
     transform: scale(0.9);
 }
+
+.qtd-invalida {
+    background-color: #ff6b6b !important;
+    color: white !important;
+    font-weight: bold;
+} 
     
         @media (max-width: 768px) {
             .modal {
@@ -993,25 +999,42 @@ function formatDate(dateString) {
                 });
         }
 
-document.addEventListener("DOMContentLoaded", () => {
-        const qtdInput = document.getElementById("QTDENVIADA");
-        const okBtn = document.getElementById("okBtnKeyboard");
-
         function blurInput() {
-            qtdInput.blur();
-            okBtn.style.display = "none";
+    const qtdInput = document.getElementById("QTDENVIADA");
+    const qtdEnviada = parseFloat(qtdInput.value || 0);
+    const saldo = parseFloat(document.getElementById("Saldo").value || 0);
+
+    // Remove destaque anterior
+    qtdInput.classList.remove("qtd-invalida");
+
+    if (!isNaN(qtdEnviada) && !isNaN(saldo) && qtdEnviada > saldo) {
+        qtdInput.classList.add("qtd-invalida");
+
+        const continuar = confirm("Quantidade informada é maior que o saldo!\n\nDeseja continuar mesmo assim?");
+        if (!continuar) {
+            qtdInput.value = "";
+            return;
         }
+    }
 
-        qtdInput.addEventListener("focus", () => {
-            okBtn.style.display = "block";
-        });
+    qtdInput.blur();
+    document.getElementById("okBtnKeyboard").style.display = "none";
+}
 
-        qtdInput.addEventListener("blur", () => {
-            setTimeout(() => {
-                okBtn.style.display = "none";
-            }, 200);
-        });
+document.addEventListener("DOMContentLoaded", () => {
+    const qtdInput = document.getElementById("QTDENVIADA");
+    const okBtn = document.getElementById("okBtnKeyboard");
+
+    qtdInput.addEventListener("focus", () => {
+        okBtn.style.display = "block";
     });
+
+    qtdInput.addEventListener("blur", () => {
+        setTimeout(() => {
+            okBtn.style.display = "none";
+        }, 200);
+    });
+});
 
         
     </script>
