@@ -797,12 +797,23 @@ function formatDate(dateString) {
             const formatDateBR = (value) => {
     if (!value) return "";
 
-    // Se já está no formato DD/MM/YYYY
+    // Já está no formato BR
     if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
         return value;
     }
 
-    // Se está no formato YYYY-MM-DD
+    // Está no formato americano MM/DD/YY ou MM/DD/YYYY
+    if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(value)) {
+        const [mes, dia, ano] = value.split('/');
+
+        let anoCorrigido = ano.length === 2 ? `20${ano}` : ano;
+        const diaFormatado = String(dia).padStart(2, '0');
+        const mesFormatado = String(mes).padStart(2, '0');
+
+        return `${diaFormatado}/${mesFormatado}/${anoCorrigido}`;
+    }
+
+    // Está no formato ISO (YYYY-MM-DD)
     if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
         const [ano, mes, dia] = value.split("-");
         return `${dia}/${mes}/${ano}`;
