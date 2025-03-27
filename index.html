@@ -218,14 +218,25 @@
             background-color: darkgray !important;
         }
         
-        .saldo-negativo {
-            color: red;
+        .saldo-input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            font-size: 14px;
+            background-color: #2c2c2c;
+            color: #fff;
+            box-sizing: border-box;
             font-weight: bold;
         }
         
+        .saldo-negativo {
+            color: #ff6b6b !important;
+        }
+        
         .saldo-positivo {
-            color: green;
-            font-weight: bold;
+            color: #51cf66 !important;
         }
         
         @media (max-width: 768px) {
@@ -312,7 +323,7 @@
             </label>
 
             <label>Saldo:
-                <input type="text" id="Saldo" readonly>
+                <input type="text" id="Saldo" readonly class="saldo-input">
             </label>
 
             <div class="modal-footer">
@@ -466,21 +477,38 @@
 
         function formatDate(dateString) {
             if (!dateString) return "";
+            
+            // Se já está no formato DD/MM/YYYY
+            if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
+                return dateString;
+            }
+            
+            // Converte de YYYY-MM-DD para DD/MM/YYYY
             const date = new Date(dateString);
             if (isNaN(date.getTime())) return "";
-            const day = String(date.getUTCDate()).padStart(2, "0");
-            const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-            const year = date.getUTCFullYear();
+            
+            const day = String(date.getDate()).padStart(2, "0");
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const year = date.getFullYear();
             return `${day}/${month}/${year}`;
         }
 
         function formatDateForInput(dateString) {
             if (!dateString) return "";
+            
+            // Se está no formato DD/MM/YYYY, converte para YYYY-MM-DD
+            if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
+                const parts = dateString.split('/');
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+            
+            // Se já está no formato YYYY-MM-DD, retorna direto
             const date = new Date(dateString);
             if (isNaN(date.getTime())) return "";
-            const day = String(date.getUTCDate()).padStart(2, "0");
-            const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-            const year = date.getUTCFullYear();
+            
+            const day = String(date.getDate()).padStart(2, "0");
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const year = date.getFullYear();
             return `${year}-${month}-${day}`;
         }
 
@@ -615,21 +643,26 @@
             document.getElementById("IDENTIFICACAO1").value = data[index][columnIndexes["identificação 1"]] || "";
             document.getElementById("IDENTIFICACAO2").value = data[index][columnIndexes["identificação 2"]] || "";
             document.getElementById("PesoKg").value = data[index][columnIndexes["peso (kg)"]] || "";
-            document.getElementById("DATADOROMANEIO").value = formatDateForInput(data[index][columnIndexes["data do romaneio"]]);
+            
+            // Formata corretamente a data para o input type="date"
+            const dataRomaneio = data[index][columnIndexes["data do romaneio"]];
+            document.getElementById("DATADOROMANEIO").value = formatDateForInput(dataRomaneio);
+            
             document.getElementById("QTDENVIADA").value = data[index][columnIndexes["qtd enviada"]] || "";
             document.getElementById("OBSROMANEIO").value = data[index][columnIndexes["obs romaneio"]] || "";
             document.getElementById("Qtde").value = data[index][columnIndexes["qtde"]] || "";
 
+            // Calcula e formata o saldo
             const saldo = parseFloat(data[index][columnIndexes["saldo"]] || 0);
             const saldoInput = document.getElementById("Saldo");
             saldoInput.value = saldo;
-
+            
+            // Aplica estilo com base no saldo
+            saldoInput.className = "saldo-input"; // Reseta as classes
             if (saldo <= 0) {
                 saldoInput.classList.add("saldo-negativo");
-                saldoInput.classList.remove("saldo-positivo");
             } else {
                 saldoInput.classList.add("saldo-positivo");
-                saldoInput.classList.remove("saldo-negativo");
             }
 
             document.getElementById("modalOverlay").style.display = "flex";
@@ -686,8 +719,6 @@
         }
 
         function closeModal() {
-            const saldoInput = document.getElementById("Saldo");
-            saldoInput.classList.remove("saldo-negativo", "saldo-positivo");
             document.getElementById("modalOverlay").style.display = "none";
             document.body.style.overflow = "";
         }
@@ -767,12 +798,21 @@
             };
 
             const formatDateBR = (value) => {
+                if (!value) return "";
+                
+                // Se já está no formato DD/MM/YYYY
+                if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+                    return value;
+                }
+                
+                // Converte de YYYY-MM-DD para DD/MM/YYYY
                 const date = new Date(value);
                 if (isNaN(date.getTime())) return value;
-                const dia = String(date.getDate()).padStart(2, '0');
-                const mes = String(date.getMonth() + 1).padStart(2, '0');
-                const ano = date.getFullYear();
-                return `${dia}/${mes}/${ano}`;
+                
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
             };
 
             dataToExport.forEach((row, rowIndex) => {
