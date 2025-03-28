@@ -466,89 +466,47 @@
         return;
     }
 
-    const selectedServico = document.getElementById("serviceList").value;
-
+    const selectedServico = document.getElementById("serviceList").value; // atualizado para o ID correto
     if (!selectedServico) {
         alert("Selecione um serviço da lista para carregar.");
         return;
     }
 
-    // Verifica primeiro se há edições não salvas na sessão atual
-    if (editedRows.size > 0) {
-        const confirmChange = confirm("ATENÇÃO!\n\nAo trocar de serviço, todas as alterações não salvas serão perdidas.\n\nDeseja realmente trocar de serviço?");
-        if (!confirmChange) {
-            return;
-        }
-        editedRows.clear(); // Limpa as edições não salvas
-    }
-
-    // Verifica edições salvas no localStorage
-    const storedEdicoes = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
-    const temEdicoesSalvas = storedEdicoes[currentFileName]?.[selectedServico] &&
-                            Object.keys(storedEdicoes[currentFileName][selectedServico]).length > 0;
+    const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+    const temEdicoesSalvas = stored[currentFileName] &&
+                             stored[currentFileName][selectedServico] &&
+                             Object.keys(stored[currentFileName][selectedServico]).length > 0;
 
     if (temEdicoesSalvas) {
+        // Abre modal personalizado
         const overlay = document.getElementById("confirmModalOverlay");
         overlay.style.display = "flex";
 
-        document.getElementById("btnConfirmSim").onclick = () => {
+        const simBtn = document.getElementById("btnConfirmSim");
+        const novoBtn = document.getElementById("btnConfirmNovo");
+
+        const fecharModal = () => {
             overlay.style.display = "none";
-            loadServiceWithSavedEdits(selectedServico);
+            simBtn.onclick = null;
+            novoBtn.onclick = null;
         };
 
-        document.getElementById("btnConfirmNovo").onclick = () => {
-            // Remove as edições salvas para este serviço
-            delete storedEdicoes[currentFileName][selectedServico];
-            localStorage.setItem("edicoesServicoAtual", JSON.stringify(storedEdicoes));
-            overlay.style.display = "none";
-            loadServiceData(selectedServico); // Carrega do zero
+        simBtn.onclick = () => {
+            fecharModal();
+            renderSelectedServico(true); // mantém edições
+        };
+
+        novoBtn.onclick = () => {
+            delete stored[currentFileName][selectedServico];
+            localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
+            fecharModal();
+            renderSelectedServico(false); // limpa e carrega do zero
         };
     } else {
-        loadServiceData(selectedServico); // Carrega normalmente sem edições salvas
+        renderSelectedServico(false); // sem edições, carrega normalmente
     }
-
-    currentService = selectedServico;
-    localStorage.setItem("currentService", currentService);
 }
 
-// Função auxiliar para carregar com edições salvas
-function loadServiceWithSavedEdits(serviceName) {
-    fetch("Spools.xlsx")
-        .then(response => response.arrayBuffer())
-        .then(arrayBuffer => {
-            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
-
-            const headers = jsonData[0].map(h => h.trim().toLowerCase());
-            const servicoIndex = headers.indexOf("serviço");
-
-            // Filtra pelo serviço selecionado
-            data = jsonData.filter((row, index) =>
-                index === 0 || (row[servicoIndex] && row[servicoIndex].trim() === serviceName)
-            );
-
-            // Aplica as edições salvas
-            const storedEdicoes = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
-            const edicoes = storedEdicoes[currentFileName]?.[serviceName] || {};
-
-            Object.entries(edicoes).forEach(([rowIndex, edicao]) => {
-                const idx = parseInt(rowIndex);
-                if (data[idx]) {
-                    data[idx][columnIndexes["data do romaneio"]] = edicao.dataRomaneio;
-                    data[idx][columnIndexes["obs romaneio"]] = edicao.obsRomaneio;
-                    editedRows.add(idx);
-                }
-            });
-
-            filteredData = data.slice(1);
-            renderTable();
-        })
-        .catch(error => {
-            console.error("Erro ao carregar serviço:", error);
-            alert(`Erro: ${error.message}`);
-        });
-}
 
 
 
