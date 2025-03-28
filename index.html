@@ -708,22 +708,26 @@ function configurarEventosQuantidade() {
         }
 
         function applyFilter() {
-            const filterValue = document.getElementById("identificacaoFilter").value.trim().toLowerCase();
-            const currentServico = document.getElementById("servicoSelect").value;
+    const filterValue = document.getElementById("identificacaoFilter").value.trim().toLowerCase();
+    const currentServico = document.getElementById("servicoSelect").value;
 
-            filteredData = data.slice(1).filter(row => {
-                if (currentServico && row[servicoIndex] !== currentServico) {
-                    return false;
-                }
+    const colIdentificacao1 = columnIndexes["identificação 1"];
+    const colQR = columnIndexes["qr"];
 
-                return Object.keys(columnIndexes).some(key => {
-                    const colIndex = columnIndexes[key];
-                    return String(row[colIndex] || "").toLowerCase().includes(filterValue);
-                });
-            });
-
-            renderTable();
+    filteredData = data.slice(1).filter(row => {
+        if (currentServico && row[servicoIndex] !== currentServico) {
+            return false;
         }
+
+        const identificacao1 = String(row[colIdentificacao1] || "").toLowerCase();
+        const qr = String(row[colQR] || "").toLowerCase();
+
+        return identificacao1.includes(filterValue) || qr.includes(filterValue);
+    });
+
+    renderTable();
+}
+
 
         function renderTable() {
     const table = document.getElementById("dataTable");
