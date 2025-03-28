@@ -416,7 +416,6 @@
             const qtdInput = document.getElementById("QTDENVIADA");
             const okBtn = document.getElementById("okBtnKeyboard");
             let precisaConfirmar = false;
-            let emConfirmacao = false;
 
             function atualizarEstado() {
                 const saldo = parseFloat(document.getElementById("Saldo").value || 0);
@@ -443,17 +442,12 @@
             });
             
             qtdInput.addEventListener('blur', (e) => {
-                if (emConfirmacao) return;
-                
-                if (precisaConfirmar && e.relatedTarget !== okBtn) {
-                    alert("Confirme a quantidade com o botão ✔️");
-                    setTimeout(() => qtdInput.focus(), 10);
-                }
+                if (e.relatedTarget === okBtn) return;
+                okBtn.style.display = 'none';
             });
             
             okBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                emConfirmacao = true;
                 
                 const saldo = parseFloat(document.getElementById("Saldo").value || 0);
                 const valor = parseFloat(qtdInput.value || 0);
@@ -462,14 +456,12 @@
                     if (!confirm("ATENÇÃO: Quantidade acima do saldo! Continuar?")) {
                         qtdInput.value = "";
                         atualizarEstado();
-                        emConfirmacao = false;
                         return;
                     }
                 }
                 
                 precisaConfirmar = false;
                 okBtn.style.display = 'none';
-                emConfirmacao = false;
                 qtdInput.blur();
             });
         }
@@ -758,8 +750,8 @@
             document.getElementById("IDENTIFICACAO2").value = data[index][columnIndexes["identificação 2"]] || "";
             document.getElementById("PesoKg").value = data[index][columnIndexes["peso (kg)"]] || "";
             
-            const dataRomaneio = data[index][columnIndexes["data do romaneio"]];
-            document.getElementById("DATADOROMANEIO").value = formatDateForInput(dataRomaneio);
+            // Set date field to blank by default
+            document.getElementById("DATADOROMANEIO").value = "";
             
             document.getElementById("QTDENVIADA").value = data[index][columnIndexes["qtd enviada"]] || "";
             document.getElementById("OBSROMANEIO").value = data[index][columnIndexes["obs romaneio"]] || "";
@@ -835,11 +827,11 @@
             const qtdInput = document.getElementById("QTDENVIADA");
             const okBtn = document.getElementById("okBtnKeyboard");
             
-            // Remove classes e reseta o estado
+            // Remove classes and reset state
             qtdInput.classList.remove('valido', 'invalido');
             okBtn.style.display = 'none';
             
-            // Remove os event listeners específicos
+            // Remove specific event listeners
             qtdInput.oninput = null;
             qtdInput.onfocus = null;
             qtdInput.onblur = null;
