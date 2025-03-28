@@ -554,7 +554,7 @@ function configurarEventosQuantidade() {
         }
 
         function confirmLoadService() {
-    const senhaCorreta = "1234"; // 🔒 Altere essa senha conforme necessário
+    const senhaCorreta = "1234";
     const tentativa = prompt("Digite a senha para continuar:");
 
     if (tentativa !== senhaCorreta) {
@@ -568,15 +568,26 @@ function configurarEventosQuantidade() {
         return;
     }
 
-    if (editedRows.size > 0) {
-        const confirmChange = confirm("ATENÇÃO!\n\nAo trocar de serviço, todas as alterações não salvas serão perdidas.\n\nDeseja realmente trocar de serviço?");
-        if (!confirmChange) {
-            return;
-        }
-    }
+    // Verifica se há edições salvas
+    const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+    const temEdicoesSalvas = stored[currentFileName] && stored[currentFileName][selectedServico] && Object.keys(stored[currentFileName][selectedServico]).length > 0;
 
-    renderSelectedServico();
+    if (temEdicoesSalvas) {
+        const continuar = confirm("⚠️ Existem dados salvos para este serviço!\n\nDeseja carregar os dados salvos?\nClique em 'Cancelar' para limpar e começar do zero.");
+
+        if (continuar) {
+            renderSelectedServico(true); // carrega mantendo edições
+        } else {
+            // limpa dados salvos
+            delete stored[currentFileName][selectedServico];
+            localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
+            renderSelectedServico(false); // carrega do zero
+        }
+    } else {
+        renderSelectedServico(false); // carrega normalmente sem edições
+    }
 }
+
 
 
         function renderSelectedServico(manterEdicoes = false) {
