@@ -404,49 +404,77 @@
         ];
 
         function configurarEventosQuantidade() {
-            const qtdInput = document.getElementById("QTDENVIADA");
-            const okBtn = document.getElementById("okBtnKeyboard");
-            let precisaConfirmar = false;
-            let alertExibido = false;
+    const qtdInput = document.getElementById("QTDENVIADA");
+    const okBtn = document.getElementById("okBtnKeyboard");
+    let precisaConfirmar = false;
+    let alertaConfirmado = false;
 
-            function atualizarEstado() {
-                const saldo = parseFloat(document.getElementById("Saldo").value || 0);
-                const valor = parseFloat(qtdInput.value || 0);
-                
-                qtdInput.classList.remove('valido', 'invalido');
-                precisaConfirmar = false;
-                
-                if (qtdInput.value !== "") {
-                    if (valor > saldo) {
-                        qtdInput.classList.add('invalido');
-                        precisaConfirmar = true;
-                        
-                        if (!alertExibido) {
-    const confirmacao = confirm("ATENÇÃO: Quantidade maior que o saldo!\nDeseja continuar mesmo assim?");
-    
-    if (!confirmacao) {
-        qtdInput.value = "";
-        qtdInput.focus();
-        return;
-    } else {
-        
-                            }
-                        }
-                    } else {
-                        qtdInput.classList.add('valido');
+    function atualizarEstado() {
+        const saldo = parseFloat(document.getElementById("Saldo").value || 0);
+        const valor = parseFloat(qtdInput.value || 0);
+
+        qtdInput.classList.remove('valido', 'invalido');
+        precisaConfirmar = false;
+
+        if (qtdInput.value !== "") {
+            if (valor > saldo) {
+                qtdInput.classList.add('invalido');
+                precisaConfirmar = true;
+
+                if (!alertaConfirmado) {
+                    const confirmacao = confirm("ATENÇÃO: Quantidade maior que o saldo!\nDeseja continuar mesmo assim?");
+                    if (!confirmacao) {
+                        qtdInput.value = "";
+                        qtdInput.focus();
+                        return;
                     }
+                    alertaConfirmado = true;
                 }
+            } else {
+                qtdInput.classList.add('valido');
+                alertaConfirmado = false;
+            }
+        }
+    }
 
+    // Limpa estilos ao abrir
+    qtdInput.classList.remove('valido', 'invalido');
+    alertaConfirmado = false;
 
-            qtdInput.classList.remove('valido', 'invalido');
-            alertExibido = false;
+    qtdInput.addEventListener('input', atualizarEstado);
 
-            qtdInput.addEventListener('input', function() {
-                if (alertExibido) {
-                    alertExibido = false;
-                }
-                atualizarEstado();
-            });
+    qtdInput.addEventListener('focus', function () {
+        okBtn.style.display = 'block';
+    });
+
+    qtdInput.addEventListener('blur', function (e) {
+        if (e.relatedTarget === okBtn) return;
+        if (precisaConfirmar && !alertaConfirmado) {
+            e.preventDefault();
+            qtdInput.focus();
+        } else {
+            okBtn.style.display = 'none';
+        }
+    });
+
+    okBtn.addEventListener('click', function () {
+        const saldo = parseFloat(document.getElementById("Saldo").value || 0);
+        const valor = parseFloat(qtdInput.value || 0);
+
+        if (valor > saldo && !alertaConfirmado) {
+            const confirmacao = confirm("ATENÇÃO: Quantidade maior que o saldo!\nDeseja continuar mesmo assim?");
+            if (!confirmacao) {
+                qtdInput.value = "";
+                qtdInput.focus();
+                return;
+            }
+            alertaConfirmado = true;
+        }
+
+        okBtn.style.display = 'none';
+        qtdInput.blur();
+    });
+}
             
 function configurarEventosQuantidade() {
     const qtdInput = document.getElementById("QTDENVIADA");
