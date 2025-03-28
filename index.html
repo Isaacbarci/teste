@@ -334,6 +334,16 @@ input[type=number] {
         <button onclick="startQrScanner()">Escanear QR Code</button>
     </div>
 
+
+<div id="confirmModalOverlay" class="modal-overlay" style="z-index: 2000;">
+  <div class="modal" style="text-align: center;">
+    <p id="confirmModalMessage" style="font-size: 16px;">Existem dados salvos para este serviço.<br>Deseja carregar os dados salvos?</p>
+    <div class="modal-footer">
+      <button id="btnConfirmSim" class="save-btn">SIM</button>
+      <button id="btnConfirmNovo" class="close-btn">NOVO</button>
+    </div>
+
+    
     <div id="qr-container" style="display: none;">
         <div id="qr-reader" style="width:300px; margin-top:10px;"></div>
         <button class="close-btn" id="closeScannerBtn" style="display: none;" onclick="stopQrScanner()">Fechar Scanner</button>
@@ -568,26 +578,39 @@ function configurarEventosQuantidade() {
         return;
     }
 
-    // Verifica se há edições salvas
     const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
     const temEdicoesSalvas = stored[currentFileName] && stored[currentFileName][selectedServico] && Object.keys(stored[currentFileName][selectedServico]).length > 0;
 
     if (temEdicoesSalvas) {
-        const continuar = confirm("⚠️ Existem dados salvos para este serviço!\n\nDeseja carregar os dados salvos?\nClique em 'Cancelar' para limpar e começar do zero.");
+        // Abre modal personalizado
+        const overlay = document.getElementById("confirmModalOverlay");
+        overlay.style.display = "flex";
 
-        if (continuar) {
-            renderSelectedServico(true); // carrega mantendo edições
-        } else {
-            // limpa dados salvos
+        const simBtn = document.getElementById("btnConfirmSim");
+        const novoBtn = document.getElementById("btnConfirmNovo");
+
+        const fecharModal = () => {
+            overlay.style.display = "none";
+            simBtn.onclick = null;
+            novoBtn.onclick = null;
+        };
+
+        simBtn.onclick = () => {
+            fecharModal();
+            renderSelectedServico(true); // mantém edições
+        };
+
+        novoBtn.onclick = () => {
             delete stored[currentFileName][selectedServico];
             localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
-            renderSelectedServico(false); // carrega do zero
-        }
+            fecharModal();
+            renderSelectedServico(false); // limpa e carrega do zero
+        };
+
     } else {
-        renderSelectedServico(false); // carrega normalmente sem edições
+        renderSelectedServico(false); // sem edições, carrega normalmente
     }
 }
-
 
 
         function renderSelectedServico(manterEdicoes = false) {
