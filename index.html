@@ -396,46 +396,55 @@
         document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
 
         function loadServices() {
-            fetch(currentFileName)
-                .then(response => {
-                    if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
-                    return response.arrayBuffer();
-                })
-                .then(arrayBuffer => {
-                    clearPreviousFileData();
+    fetch(currentFileName)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Erro ao carregar o arquivo: ${response.statusText}`);
+            }
+            return response.arrayBuffer();
+        })
+        .then(arrayBuffer => {
+            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+            const firstSheet = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheet];
 
-                    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
+            // Converter para JSON mantendo cabeçalhos e valores vazios
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+                header: 1,
+                defval: "",
+                raw: false
+            });
 
-                    if (jsonData.length === 0) {
-                        throw new Error("O arquivo está vazio ou não contém dados.");
-                    }
+            if (jsonData.length === 0) {
+                throw new Error("O arquivo está vazio ou não contém dados.");
+            }
 
-                    window.originalData = JSON.parse(JSON.stringify(jsonData));
-                    data = JSON.parse(JSON.stringify(jsonData));
-                    filteredData = data.slice(1);
+            // Armazenar dados originais
+            window.originalData = jsonData;
+            data = jsonData;
+            filteredData = data.slice(1); // Remover cabeçalho
 
-                    findColumnIndexes();
-                    mapColumnIndexes();
-                    populateServicoOptions();
+            // Encontrar índices das colunas
+            findColumnIndexes();
 
-                    const ultimoServico = localStorage.getItem("ultimoServico");
-                    const servicoSelect = document.getElementById("serviceList");
+            // Popular dropdown de serviços
+            populateServicoOptions();
 
-                    if (ultimoServico && Array.from(servicoSelect.options).some(o => o.value === ultimoServico)) {
-                        servicoSelect.value = ultimoServico;
-                        renderSelectedServico(true);
-                    } else if (servicoSelect.options.length > 0) {
-                        servicoSelect.value = servicoSelect.options[0].value;
-                        renderSelectedServico(true);
-                    }
-                })
-                .catch(error => {
-                    console.error("Erro ao carregar Excel:", error);
-                    alert("Não foi possível carregar o arquivo do diretório.");
-                });
-        }
+            // Carregar último serviço usado, se existir
+            const ultimoServico = localStorage.getItem("ultimoServico");
+            if (ultimoServico) {
+                const servicoSelect = document.getElementById("serviceList");
+                if (Array.from(servicoSelect.options).some(o => o.value === ultimoServico)) {
+                    servicoSelect.value = ultimoServico;
+                    renderSelectedServico(true);
+                }
+            }
+        })
+        .catch(error => {
+            console.error("Erro ao carregar serviços:", error);
+            alert(`Erro ao carregar o arquivo: ${error.message}`);
+        });
+}
 
         function confirmLoadService() {
             const senhaCorreta = "1234";
