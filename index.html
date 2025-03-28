@@ -768,26 +768,29 @@
         return;
     }
 
-    // Obter o nome do serviço selecionado (igual no Romaneio de Suporte)
+    // Obter o serviço selecionado (igual ao de Suporte)
     const selectedService = document.getElementById("serviceList").value;
     const serviceName = selectedService ? selectedService.replace(/[\/\\?%*:|"<>]/g, '_') : '';
 
-    const formattedData = data.map((row, rowIndex) => {
-        if (rowIndex === 0) return row;
+    // Filtrar apenas os dados do serviço selecionado
+    const serviceData = [data[0], ...data.slice(1).filter(row => row[servicoIndex] === selectedService)];
+
+    const formattedData = serviceData.map((row, rowIndex) => {
+        if (rowIndex === 0) return row; // Mantém o cabeçalho
 
         return row.map((cell, colIndex) => {
-            let header = data[0][colIndex].trim().toLowerCase();
+            const header = data[0][colIndex].trim().toLowerCase();
 
+            // Formatação de datas (igual ao original)
             if (header === "data do romaneio") {
                 return formatDate(cell);
             }
 
+            // Formatação numérica (igual ao original)
             if (header === "peso" || header === "área superf.") {
-                if (cell === "" || cell === null || cell === undefined) {
-                    return "";
-                }
-                const numericValue = parseFloat(cell.toString().replace(",", "."));
-                return isNaN(numericValue) ? "" : numericValue;
+                if (!cell && cell !== 0) return "";
+                const num = parseFloat(cell.toString().replace(",", "."));
+                return isNaN(num) ? cell : num;
             }
 
             return cell;
@@ -796,25 +799,19 @@
 
     const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, currentService || "Romaneio de Spool");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Romaneio");
 
-    // Ocultar a coluna "ROMANEIOS" no Excel
-    const romaneiosIndex = data[0].findIndex(
-        header => header.trim().toLowerCase() === "romaneios"
-    );
+    // Ocultar coluna ROMANEIOS (mantido do original)
+    const romaneiosCol = data[0].findIndex(h => h.trim().toLowerCase() === "romaneios");
+    if (romaneiosCol >= 0) {
+        worksheet["!cols"] = formattedData[0].map((_, i) => ({
+            wch: Math.max(...formattedData.map(r => (r[i] ? r[i].toString().length : 0)) + 2,
+            hidden: i === romaneiosCol
+        }));
+    }
 
-    const colWidths = formattedData[0].map((_, i) => {
-        const width = Math.max(...formattedData.map(row => (row[i] ? row[i].toString().length : 10))) + 2;
-        return {
-            wch: width,
-            hidden: i === romaneiosIndex // Oculta a coluna ROMANEIOS
-        };
-    });
-
-    worksheet["!cols"] = colWidths;
-
-    // Usando XLSX.writeFile com o nome do serviço (igual no Romaneio de Suporte)
-    XLSX.writeFile(workbook, `Romaneio_Spool_${serviceName || ''}.xlsx`);
+    // Nome do arquivo igual ao de Suporte
+    XLSX.writeFile(workbook, `Romaneio_Spool_${serviceName || 'Geral'}.xlsx`);
 }
 
         document.addEventListener("DOMContentLoaded", () => {
