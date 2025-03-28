@@ -804,10 +804,16 @@ function configurarEventosQuantidade() {
 
 }
 
+           const observacaoInput = document.getElementById("OBSERVACAO");
+    const valorObs = data[index][columnIndexes["observação"]] || "";
+    observacaoInput.value = valorObs;
 
-const corFundo = (valorObs && valorObs.trim().toUpperCase() !== "N/A" && valorObs.trim().toUpperCase() !== "NA")
+    const corFundo = (valorObs && valorObs.trim().toUpperCase() !== "N/A" && valorObs.trim().toUpperCase() !== "NA")
         ? "rgba(255, 193, 7, 0.2)" 
         : "#2c2c2c";
+
+    observacaoInput.style.backgroundColor = corFundo;  
+
 
                         configurarEventosQuantidade();
 
