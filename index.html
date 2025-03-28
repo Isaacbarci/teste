@@ -274,6 +274,19 @@
         .quantidade-container {
             position: relative;
         }
+
+        .datepicker-container {
+            position: relative;
+        }
+        
+        .datepicker-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            font-size: 18px;
+        }
         
         @media (max-width: 768px) {
             .modal {
@@ -342,9 +355,12 @@
                 <input type="text" id="PesoKg" readonly>
             </label>
 
-            <label>Data do Romaneio:
-                <input type="date" id="DATADOROMANEIO">
-            </label>
+            <div class="datepicker-container">
+                <label>Data do Romaneio:
+                    <input type="date" id="DATADOROMANEIO">
+                    <span class="datepicker-icon">📅</span>
+                </label>
+            </div>
 
             <div class="quantidade-container">
                 <label>Qtd Enviada:
@@ -400,9 +416,7 @@
             const qtdInput = document.getElementById("QTDENVIADA");
             const okBtn = document.getElementById("okBtnKeyboard");
             let precisaConfirmar = false;
-
-            // Remove qualquer classe de validação inicial
-            qtdInput.classList.remove('valido', 'invalido');
+            let emConfirmacao = false;
 
             function atualizarEstado() {
                 const saldo = parseFloat(document.getElementById("Saldo").value || 0);
@@ -411,7 +425,6 @@
                 qtdInput.classList.remove('valido', 'invalido');
                 precisaConfirmar = false;
                 
-                // Só aplica classes se houver valor digitado
                 if (qtdInput.value !== "") {
                     if (valor > saldo) {
                         qtdInput.classList.add('invalido');
@@ -430,37 +443,33 @@
             });
             
             qtdInput.addEventListener('blur', (e) => {
-                // Não faz nada se o foco foi para o botão OK
-                if (e.relatedTarget === okBtn) return;
+                if (emConfirmacao) return;
                 
-                if (precisaConfirmar) {
-                    alert("Por favor, confirme a quantidade com o botão ✔️");
-                    setTimeout(() => {
-                        qtdInput.focus();
-                        okBtn.style.display = 'block';
-                    }, 10);
-                } else {
-                    okBtn.style.display = 'none';
+                if (precisaConfirmar && e.relatedTarget !== okBtn) {
+                    alert("Confirme a quantidade com o botão ✔️");
+                    setTimeout(() => qtdInput.focus(), 10);
                 }
             });
             
             okBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                e.stopPropagation();
+                emConfirmacao = true;
                 
                 const saldo = parseFloat(document.getElementById("Saldo").value || 0);
                 const valor = parseFloat(qtdInput.value || 0);
                 
                 if (valor > saldo) {
-                    if (!confirm("ATENÇÃO: Quantidade maior que o saldo!\nDeseja continuar mesmo assim?")) {
+                    if (!confirm("ATENÇÃO: Quantidade acima do saldo! Continuar?")) {
                         qtdInput.value = "";
                         atualizarEstado();
+                        emConfirmacao = false;
                         return;
                     }
                 }
                 
                 precisaConfirmar = false;
                 okBtn.style.display = 'none';
+                emConfirmacao = false;
                 qtdInput.blur();
             });
         }
