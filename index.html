@@ -499,7 +499,34 @@ function configurarEventosQuantidade() {
 
     eventosConfigurados = true;
 }
-            
+
+function confirmLoadService() {
+    const senhaCorreta = "1234"; // Defina aqui a senha desejada
+    const tentativa = prompt("Digite a senha para continuar:");
+
+    if (tentativa !== senhaCorreta) {
+        alert("Senha incorreta. Ação cancelada.");
+        return;
+    }
+
+    const selectedServico = document.getElementById("servicoSelect").value;
+    if (!selectedServico) {
+        alert("Selecione um serviço da lista para carregar.");
+        return;
+    }
+
+    if (editedRows.size > 0) {
+        const confirmChange = confirm("ATENÇÃO!\n\nAo trocar de serviço, todas as alterações não salvas serão perdidas.\n\nDeseja realmente trocar de serviço?");
+        if (!confirmChange) {
+            return;
+        }
+    }
+
+    renderSelectedServico();
+}
+
+
+        
         function debounce(func, wait) {
             let timeout;
             return function (...args) {
