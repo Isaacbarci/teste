@@ -175,7 +175,7 @@
             transform: translateY(-50%);
             width: 20px;
             height: 20px;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm-8 4H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg>');
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M9 16.17l-3.88-3.88-1.42 1.41L9 19 20.3 7.71l-1.42-1.41z"/></svg>');
             background-repeat: no-repeat;
             pointer-events: none;
         }
@@ -401,6 +401,9 @@
             const okBtn = document.getElementById("okBtnKeyboard");
             let precisaConfirmar = false;
 
+            // Remove qualquer classe de validação inicial
+            qtdInput.classList.remove('valido', 'invalido');
+
             function atualizarEstado() {
                 const saldo = parseFloat(document.getElementById("Saldo").value || 0);
                 const valor = parseFloat(qtdInput.value || 0);
@@ -408,7 +411,8 @@
                 qtdInput.classList.remove('valido', 'invalido');
                 precisaConfirmar = false;
                 
-                if (!isNaN(valor)) {
+                // Só aplica classes se houver valor digitado
+                if (qtdInput.value !== "") {
                     if (valor > saldo) {
                         qtdInput.classList.add('invalido');
                         precisaConfirmar = true;
@@ -435,10 +439,15 @@
                         qtdInput.focus();
                         okBtn.style.display = 'block';
                     }, 10);
+                } else {
+                    okBtn.style.display = 'none';
                 }
             });
             
-            okBtn.addEventListener('click', () => {
+            okBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
                 const saldo = parseFloat(document.getElementById("Saldo").value || 0);
                 const valor = parseFloat(qtdInput.value || 0);
                 
@@ -450,6 +459,7 @@
                     }
                 }
                 
+                precisaConfirmar = false;
                 okBtn.style.display = 'none';
                 qtdInput.blur();
             });
