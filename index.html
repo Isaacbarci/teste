@@ -281,6 +281,20 @@
         .quantidade-container {
             position: relative;
         }
+
+/* Remove setas do input type="number" no Chrome, Safari, Edge, Opera */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Remove setas no Firefox */
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+        
         
         @media (max-width: 768px) {
             .modal {
