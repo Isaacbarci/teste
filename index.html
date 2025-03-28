@@ -825,6 +825,7 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             loadServices();
+            document.getElementById("serviceList").addEventListener("change", confirmLoadService);
         });
 
         window.addEventListener('beforeunload', function() {
