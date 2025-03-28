@@ -466,7 +466,8 @@
         return;
     }
 
-    const selectedServico = document.getElementById("serviceList").value;
+    const selectedServico = document.getElementById("serviceList").value; // ✅ Correto aqui
+
     if (!selectedServico) {
         alert("Selecione um serviço da lista para carregar.");
         return;
@@ -501,7 +502,6 @@
             fecharModal();
             renderSelectedServico(false); // limpa e carrega do zero
         };
-
     } else {
         renderSelectedServico(false); // sem edições, carrega normalmente
     }
@@ -516,6 +516,7 @@
     currentService = selectedServico;
     loadServiceData(selectedServico);
 }
+
 
 
         function loadServiceData(serviceName) {
