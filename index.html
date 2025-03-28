@@ -726,54 +726,63 @@ function configurarEventosQuantidade() {
         }
 
         function renderTable() {
-            const table = document.getElementById("dataTable");
-            table.innerHTML = "";
+    const table = document.getElementById("dataTable");
+    table.innerHTML = "";
 
-            if (!data.length) return;
+    if (!data.length) return;
 
-            const fragment = document.createDocumentFragment();
-            const headerRow = document.createElement("tr");
+    const fragment = document.createDocumentFragment();
 
-            data[0].forEach((header, colIndex) => {
-                if (!hiddenColumns.includes(header.trim().toLowerCase())) {
-                    const th = document.createElement("th");
-                    th.textContent = header;
-                    headerRow.appendChild(th);
-                }
-            });
+    // Defina a ordem desejada
+    const colunasExibidas = [
+        "posição / tag",
+        "identificação 1",
+        "prog. fab.",
+        "data do romaneio",
+        "qtd enviada",
+        "qr"
+    ];
 
-            fragment.appendChild(headerRow);
+    // Cabeçalho
+    const headerRow = document.createElement("tr");
+    colunasExibidas.forEach(col => {
+        const th = document.createElement("th");
+        th.textContent = col.toUpperCase();
+        headerRow.appendChild(th);
+    });
+    fragment.appendChild(headerRow);
 
-            filteredData.slice(0, rowsPerPage).forEach((row, index) => {
-                const originalIndex = data.indexOf(row);
-                if (originalIndex === -1) return;
+    // Linhas de dados
+    filteredData.slice(0, rowsPerPage).forEach((row, index) => {
+        const originalIndex = data.indexOf(row);
+        if (originalIndex === -1) return;
 
-                const tr = document.createElement("tr");
-                tr.onclick = () => openEditModal(originalIndex);
+        const tr = document.createElement("tr");
+        tr.onclick = () => openEditModal(originalIndex);
 
-                row.forEach((cell, colIndex) => {
-                    if (!hiddenColumns.includes(data[0][colIndex].trim().toLowerCase())) {
-                        const td = document.createElement("td");
+        colunasExibidas.forEach(col => {
+            const colIndex = columnIndexes[col];
+            const td = document.createElement("td");
+            let cellValue = row[colIndex] || "";
 
-                        if (data[0][colIndex].toLowerCase() === "data do romaneio") {
-                            td.textContent = formatDate(cell);
-                        } else {
-                            td.textContent = cell || "";
-                        }
+            if (col === "data do romaneio") {
+                cellValue = formatDate(cellValue);
+            }
 
-                        tr.appendChild(td);
-                    }
-                });
+            td.textContent = cellValue;
+            tr.appendChild(td);
+        });
 
-                if (editedRows.has(originalIndex)) {
-                    tr.classList.add("edited-row");
-                }
-
-                fragment.appendChild(tr);
-            });
-
-            table.appendChild(fragment);
+        if (editedRows.has(originalIndex)) {
+            tr.classList.add("edited-row");
         }
+
+        fragment.appendChild(tr);
+    });
+
+    table.appendChild(fragment);
+}
+
 
         function openEditModal(index) {
             if (index < 0 || index >= data.length) return;
