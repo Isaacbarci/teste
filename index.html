@@ -359,6 +359,11 @@ input[type=number] {
                 <input type="text" id="IDENTIFICACAO2" readonly>
             </label>
 
+            <label>Observação:
+    <input type="text" id="OBSERVACAO" readonly>
+</label>
+
+
             <label>Peso (kg):
                 <input type="text" id="PesoKg" readonly>
             </label>
@@ -777,6 +782,7 @@ function configurarEventosQuantidade() {
             document.getElementById("POSICAOTAG").value = data[index][columnIndexes["posição / tag"]] || "";
             document.getElementById("IDENTIFICACAO1").value = data[index][columnIndexes["identificação 1"]] || "";
             document.getElementById("IDENTIFICACAO2").value = data[index][columnIndexes["identificação 2"]] || "";
+            document.getElementById("OBSERVACAO").value = data[index][columnIndexes["observação"]] || "";
             document.getElementById("PesoKg").value = data[index][columnIndexes["peso (kg)"]] || "";
             
             const dataRomaneio = data[index][columnIndexes["data do romaneio"]];
