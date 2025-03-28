@@ -396,55 +396,46 @@
         document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
 
         function loadServices() {
-    fetch(currentFileName)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Erro ao carregar o arquivo: ${response.statusText}`);
-            }
-            return response.arrayBuffer();
-        })
-        .then(arrayBuffer => {
-            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-            const firstSheet = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheet];
+            fetch(currentFileName)
+                .then(response => {
+                    if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
+                    return response.arrayBuffer();
+                })
+                .then(arrayBuffer => {
+                    clearPreviousFileData();
 
-            // Converter para JSON mantendo cabeçalhos e valores vazios
-            const jsonData = XLSX.utils.sheet_to_json(worksheet, {
-                header: 1,
-                defval: "",
-                raw: false
-            });
+                    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
-            if (jsonData.length === 0) {
-                throw new Error("O arquivo está vazio ou não contém dados.");
-            }
+                    if (jsonData.length === 0) {
+                        throw new Error("O arquivo está vazio ou não contém dados.");
+                    }
 
-            // Armazenar dados originais
-            window.originalData = jsonData;
-            data = jsonData;
-            filteredData = data.slice(1); // Remover cabeçalho
+                    window.originalData = JSON.parse(JSON.stringify(jsonData));
+                    data = JSON.parse(JSON.stringify(jsonData));
+                    filteredData = data.slice(1);
 
-            // Encontrar índices das colunas
-            findColumnIndexes();
+                    findColumnIndexes();
+                    mapColumnIndexes();
+                    populateServicoOptions();
 
-            // Popular dropdown de serviços
-            populateServicoOptions();
+                    const ultimoServico = localStorage.getItem("ultimoServico");
+                    const servicoSelect = document.getElementById("serviceList");
 
-            // Carregar último serviço usado, se existir
-            const ultimoServico = localStorage.getItem("ultimoServico");
-            if (ultimoServico) {
-                const servicoSelect = document.getElementById("serviceList");
-                if (Array.from(servicoSelect.options).some(o => o.value === ultimoServico)) {
-                    servicoSelect.value = ultimoServico;
-                    renderSelectedServico(true);
-                }
-            }
-        })
-        .catch(error => {
-            console.error("Erro ao carregar serviços:", error);
-            alert(`Erro ao carregar o arquivo: ${error.message}`);
-        });
-}
+                    if (ultimoServico && Array.from(servicoSelect.options).some(o => o.value === ultimoServico)) {
+                        servicoSelect.value = ultimoServico;
+                        renderSelectedServico(true);
+                    } else if (servicoSelect.options.length > 0) {
+                        servicoSelect.value = servicoSelect.options[0].value;
+                        renderSelectedServico(true);
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro ao carregar Excel:", error);
+                    alert("Não foi possível carregar o arquivo do diretório.");
+                });
+        }
 
         function confirmLoadService() {
             const senhaCorreta = "1234";
@@ -777,63 +768,53 @@
         return;
     }
 
+    // Obter o nome do serviço selecionado (igual no Romaneio de Suporte)
     const selectedService = document.getElementById("serviceList").value;
-    const serviceName = selectedService ? selectedService.replace(/[\/\\?%*:|"<>]/g, '_') : 'Geral';
+    const serviceName = selectedService ? selectedService.replace(/[\/\\?%*:|"<>]/g, '_') : '';
 
-    // 1. Filtrar apenas os dados do serviço selecionado (incluindo cabeçalho)
-    const serviceData = [data[0]].concat(data.slice(1).filter(row => {
-        return selectedService ? row[servicoIndex] === selectedService : true;
-    });
-
-    // 2. Formatar os dados para exportação
-    const formattedData = serviceData.map((row, rowIndex) => {
-        if (rowIndex === 0) return row; // Mantém o cabeçalho original
+    const formattedData = data.map((row, rowIndex) => {
+        if (rowIndex === 0) return row;
 
         return row.map((cell, colIndex) => {
-            const header = data[0][colIndex].trim().toLowerCase();
+            let header = data[0][colIndex].trim().toLowerCase();
 
-            // Formatar datas
             if (header === "data do romaneio") {
                 return formatDate(cell);
             }
 
-            // Formatar números (peso e área)
             if (header === "peso" || header === "área superf.") {
-                if (!cell && cell !== 0) return "";
-                const num = parseFloat(cell.toString().replace(",", "."));
-                return isNaN(num) ? cell : num;
+                if (cell === "" || cell === null || cell === undefined) {
+                    return "";
+                }
+                const numericValue = parseFloat(cell.toString().replace(",", "."));
+                return isNaN(numericValue) ? "" : numericValue;
             }
 
             return cell;
         });
     });
 
-    // 3. Criar a planilha Excel
     const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Romaneio");
+    XLSX.utils.book_append_sheet(workbook, worksheet, currentService || "Romaneio de Spool");
 
-    // 4. Configurar formatação das colunas
-    if (worksheet["!ref"]) {
-        const range = XLSX.utils.decode_range(worksheet["!ref"]);
+    // Ocultar a coluna "ROMANEIOS" no Excel
+    const romaneiosIndex = data[0].findIndex(
+        header => header.trim().toLowerCase() === "romaneios"
+    );
 
-        // Configurar coluna ROMANEIOS como oculta
-        const romaneiosCol = data[0].findIndex(h => h.trim().toLowerCase() === "romaneios");
-        if (romaneiosCol >= 0) {
-            if (!worksheet["!cols"]) {
-                worksheet["!cols"] = [];
-            }
-            worksheet["!cols"][romaneiosCol] = { hidden: true };
-        }
+    const colWidths = formattedData[0].map((_, i) => {
+        const width = Math.max(...formattedData.map(row => (row[i] ? row[i].toString().length : 10))) + 2;
+        return {
+            wch: width,
+            hidden: i === romaneiosIndex // Oculta a coluna ROMANEIOS
+        };
+    });
 
-        // Configurar largura automática para todas as colunas
-        worksheet["!cols"] = formattedData[0].map((_, i) => ({
-            wch: Math.max(...formattedData.map(row => (row[i] ? row[i].toString().length : 10)) + 2
-        }));
-    }
+    worksheet["!cols"] = colWidths;
 
-    // 5. Gerar o arquivo com o nome padronizado
-    XLSX.writeFile(workbook, `Romaneio_Spool_${serviceName}.xlsx`);
+    // Usando XLSX.writeFile com o nome do serviço (igual no Romaneio de Suporte)
+    XLSX.writeFile(workbook, `Romaneio_Spool_${serviceName || ''}.xlsx`);
 }
 
         document.addEventListener("DOMContentLoaded", () => {
