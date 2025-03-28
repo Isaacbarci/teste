@@ -507,6 +507,16 @@
     }
 }
 
+function renderSelectedServico(manterEdicoes) {
+    if (!manterEdicoes) {
+        editedRows.clear();
+        saveToLocalStorage("editedRows", []);
+    }
+
+    currentService = document.getElementById("serviceList").value;
+    loadServiceData(currentService);
+}
+
 
 
 
