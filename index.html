@@ -466,7 +466,7 @@
         return;
     }
 
-    const selectedServico = document.getElementById("serviceList").value; // atualizado para o ID correto
+    const selectedServico = document.getElementById("serviceList").value;
     if (!selectedServico) {
         alert("Selecione um serviço da lista para carregar.");
         return;
@@ -478,7 +478,6 @@
                              Object.keys(stored[currentFileName][selectedServico]).length > 0;
 
     if (temEdicoesSalvas) {
-        // Abre modal personalizado
         const overlay = document.getElementById("confirmModalOverlay");
         overlay.style.display = "flex";
 
@@ -507,6 +506,7 @@
     }
 }
 
+
 function renderSelectedServico(manterEdicoes) {
     if (!manterEdicoes) {
         editedRows.clear();
@@ -516,8 +516,6 @@ function renderSelectedServico(manterEdicoes) {
     currentService = document.getElementById("serviceList").value;
     loadServiceData(currentService);
 }
-
-
 
 
         function loadServiceData(serviceName) {
