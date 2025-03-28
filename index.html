@@ -244,18 +244,24 @@
         }
 
         #okBtnKeyboard {
-            position: absolute;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            width: 24px;
-            height: 24px;
-            display: none;
-        }
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    width: 36px;
+    height: 36px;
+    display: none;
+}
+
+#okBtnKeyboard svg {
+    width: 36px;
+    height: 36px;
+    fill: white;
+}
 
         .input-quantidade {
             transition: background-color 0.3s;
@@ -416,21 +422,21 @@
                         precisaConfirmar = true;
                         
                         if (!alertExibido) {
-                            alertExibido = true;
-                            const confirmacao = confirm("ATENÇÃO: Quantidade maior que o saldo!\nDeseja continuar mesmo assim?");
-                            
-                            if (!confirmacao) {
-                                qtdInput.value = "";
-                                qtdInput.focus();
-                                alertExibido = false;
-                                return;
+    const confirmacao = confirm("ATENÇÃO: Quantidade maior que o saldo!\nDeseja continuar mesmo assim?");
+    
+    if (!confirmacao) {
+        qtdInput.value = "";
+        qtdInput.focus();
+        return;
+    } else {
+        
                             }
                         }
                     } else {
                         qtdInput.classList.add('valido');
                     }
                 }
-            }
+
 
             qtdInput.classList.remove('valido', 'invalido');
             alertExibido = false;
@@ -454,27 +460,16 @@
                     qtdInput.focus();
                     return;
                 }
-            });
-            
-            okBtn.addEventListener('click', function() {
-                const saldo = parseFloat(document.getElementById("Saldo").value || 0);
-                const valor = parseFloat(qtdInput.value || 0);
-                
-                if (valor > saldo && !alertExibido) {
-                    const confirmacao = confirm("ATENÇÃO: Quantidade maior que o saldo!\nDeseja continuar mesmo assim?");
-                    
-                    if (!confirmacao) {
-                        qtdInput.value = "";
-                        qtdInput.focus();
-                        return;
-                    }
-                    alertExibido = true;
-                }
-                
-                okBtn.style.display = 'none';
-                qtdInput.blur();
-            });
-        }
+if (!alertExibido) {
+    const confirmacao = confirm("ATENÇÃO: Quantidade maior que o saldo!\nDeseja continuar mesmo assim?");
+    
+    if (!confirmacao) {
+        qtdInput.value = "";
+        qtdInput.focus();
+        return;
+    } else {
+    }
+}
 
         function debounce(func, wait) {
             let timeout;
