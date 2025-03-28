@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Romaneio de Suporte</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
+function abrirModalDownload() {
+    document.getElementById("downloadModalOverlay").style.display = "flex";
+}
+
+function fecharModal() {
+    document.getElementById("downloadModalOverlay").style.display = "none";
+}
+
+function gerarExcelBlob(servicoSelecionado) {
+    const headerRow = data[0];
+    const filteredRows = data.slice(1).filter(row => row[servicoIndex] === servicoSelecionado);
+    const dataToExport = [headerRow, ...filteredRows];
+
+    const worksheet = XLSX.utils.aoa_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, servicoSelecionado);
+
+    const blob = XLSX.write(workbook, { bookType: 'xlsx', type: 'blob' });
+    return { blob, fileName: `Romaneio_Suporte_${servicoSelecionado.replace(/[\\/\\?%*:|"<>]/g, '_')}.xlsx` };
+}
+
+function executarDownload() {
+    const servicoSelecionado = document.getElementById("servicoSelect").value;
+    if (!servicoSelecionado) return alert("Selecione um serviço.");
+    const { blob, fileName } = gerarExcelBlob(servicoSelecionado);
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    link.click();
+    fecharModal();
+}
+
+async function compartilharExcel() {
+    const servicoSelecionado = document.getElementById("servicoSelect").value;
+    if (!servicoSelecionado) return alert("Selecione um serviço.");
+    const { blob, fileName } = gerarExcelBlob(servicoSelecionado);
+    const file = new File([blob], fileName, {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+            await navigator.share({
+                title: "Romaneio de Suporte",
+                text: `Segue o romaneio do serviço ${servicoSelecionado}.`,
+                files: [file]
+            });
+        } catch (err) {
+            console.error("Erro ao compartilhar:", err);
+            alert("Erro ao compartilhar o arquivo.");
+        }
+    } else {
+        alert("Este navegador/dispositivo não suporta compartilhamento de arquivos.");
+    }
+
+    fecharModal();
+}
+</script>
+    <script src="https://unpkg.com/html5-qrcode">
+function abrirModalDownload() {
+    document.getElementById("downloadModalOverlay").style.display = "flex";
+}
+
+function fecharModal() {
+    document.getElementById("downloadModalOverlay").style.display = "none";
+}
+
+function gerarExcelBlob(servicoSelecionado) {
+    const headerRow = data[0];
+    const filteredRows = data.slice(1).filter(row => row[servicoIndex] === servicoSelecionado);
+    const dataToExport = [headerRow, ...filteredRows];
+
+    const worksheet = XLSX.utils.aoa_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, servicoSelecionado);
+
+    const blob = XLSX.write(workbook, { bookType: 'xlsx', type: 'blob' });
+    return { blob, fileName: `Romaneio_Suporte_${servicoSelecionado.replace(/[\\/\\?%*:|"<>]/g, '_')}.xlsx` };
+}
+
+function executarDownload() {
+    const servicoSelecionado = document.getElementById("servicoSelect").value;
+    if (!servicoSelecionado) return alert("Selecione um serviço.");
+    const { blob, fileName } = gerarExcelBlob(servicoSelecionado);
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    link.click();
+    fecharModal();
+}
+
+async function compartilharExcel() {
+    const servicoSelecionado = document.getElementById("servicoSelect").value;
+    if (!servicoSelecionado) return alert("Selecione um serviço.");
+    const { blob, fileName } = gerarExcelBlob(servicoSelecionado);
+    const file = new File([blob], fileName, {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+            await navigator.share({
+                title: "Romaneio de Suporte",
+                text: `Segue o romaneio do serviço ${servicoSelecionado}.`,
+                files: [file]
+            });
+        } catch (err) {
+            console.error("Erro ao compartilhar:", err);
+            alert("Erro ao compartilhar o arquivo.");
+        }
+    } else {
+        alert("Este navegador/dispositivo não suporta compartilhamento de arquivos.");
+    }
+
+    fecharModal();
+}
+</script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: white;
+        }
+        
+        h2 {
+            color: white;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        input[type="text"], button, select {
+            margin: 5px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+        
+        input[type="text"] {
+            width: 300px;
+        }
+
+        #identificacaoFilter {
+            width: 300px !important;
+        }
+        
+        select {
+            margin: 3px;
+            padding: 3px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 12px;
+            width: 205px;
+            height: 25px;
+        }
+        
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        .close-btn {
+            background-color: #dc3545;
+        }
+        
+        .close-btn:hover {
+            background-color: #c82333;
+        }
+        
+        .save-btn {
+            background-color: #28a745;
+        }
+        
+        .save-btn:hover {
+            background-color: #218838;
+        }
+        
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            background-color: #000;
+            color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border: 2px solid black;
+        }
+        
+        th, td {
+            border: none;
+            padding: 10px;
+            font-size: 14px;
+            text-align: left;
+            white-space: nowrap;
+        }
+        
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+        
+        td {
+            cursor: pointer;
+        }
+        
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal {
+            background-color: #1e1e1e;
+            color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            border: 1px solid #444;
+        }
+        
+        .modal label {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #fff;
+            font-size: 14px;
+        }
+        
+        .modal input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            font-size: 14px;
+            background-color: #2c2c2c;
+            color: #fff;
+            box-sizing: border-box;
+        }
+        
+        .modal input[type="date"] {
+            padding: 9px;
+            background-color: #2c2c2c;
+            color: #fff;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            position: relative;
+            padding-right: 30px;
+        }
+        
+        .modal input[type="date"]::after {
+            content: "";
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm-8 4H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg>');
+            background-repeat: no-repeat;
+            pointer-events: none;
+        }
+        
+        .modal input[type="date"]::-webkit-calendar-picker-indicator {
+            opacity: 0;
+            position: absolute;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .modal input[type="date"]::-moz-calendar-picker-indicator {
+            opacity: 0;
+            position: absolute;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .modal input[readonly] {
+            background-color: #333;
+            cursor: not-allowed;
+        }
+        
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .modal-footer button {
+            flex: 1;
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .edited-row {
+            background-color: darkgray !important;
+        }
+        
+        .saldo-input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            font-size: 14px;
+            background-color: #2c2c2c;
+            color: #fff;
+            box-sizing: border-box;
+            font-weight: bold;
+        }
+        
+        .saldo-negativo {
+            color: #ff6b6b !important;
+        }
+        
+        .saldo-positivo {
+            color: #51cf66 !important;
+        }
+
+        #okBtnKeyboard {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    width: 36px;
+    height: 36px;
+    display: none;
+}
+
+#okBtnKeyboard svg {
+    width: 36px;
+    height: 40px;
+    fill: white;
+}
+
+        .input-quantidade {
+            transition: background-color 0.3s;
+            padding-right: 35px !important;
+            width: calc(100% - 12px);
+            background-color: #2c2c2c !important;
+        }
+        
+        .input-quantidade.valido {
+            background-color: rgba(81, 207, 102, 0.2) !important;
+        }
+        
+        .input-quantidade.invalido {
+            background-color: rgba(255, 107, 107, 0.2) !important;
+        }
+
+        .quantidade-container {
+            position: relative;
+        }
+
+/* Remove setas do input type="number" no Chrome, Safari, Edge, Opera */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Remove setas no Firefox */
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+        
+        
+        @media (max-width: 768px) {
+            .modal {
+                width: 95%;
+                max-width: none;
+                max-height: 90vh;
+                padding: 20px;
+            }
+            
+            .modal-footer {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            input[type="text"] {
+                width: calc(100% - 20px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <h2 style="display: flex; align-items: center;">
+        <img src="image.png" alt="Logo" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;">
+        <span style="font-size: 23px;">ROMANEIO DE SUPORTE</span>
+    </h2>
+    <p style="font-size: 6px; color: white; margin-left: 17px; margin-top: -14px;">
+        Developed by Isaac Dutra
+    </p>
+
+    <div style="margin-left: 5px;">
+        <select id="servicoSelect">
+            <option value="">Selecione um serviço</option>
+        </select>
+        <button onclick="confirmLoadService()">Carregar Serviço</button>
+        <input type="text" id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação">
+        <button onclick="abrirModalDownload()">Download Excel</button>
+        <button onclick="startQrScanner()">Escanear QR Code</button> <button onclick="parent.voltar()" style="background-color: #6c757d; color: white;">Voltar</button>
+    </div>
+
+
+<div id="confirmModalOverlay" class="modal-overlay" style="z-index: 2000;">
+  <div class="modal" style="text-align: center;">
+    <p id="confirmModalMessage" style="font-size: 16px;">Existem dados salvos para este serviço.<br>Deseja continuar o Romaneio existente? </p>
+    <div class="modal-footer">
+      <button id="btnConfirmSim" class="save-btn">SIM</button>
+      <button id="btnConfirmNovo" style="background-color: #007BFF; color: white;" class="close-btn">NOVO ROMANEIO</button>
+
+    </div>
+  </div>
+</div>
+
+
+    
+    <div id="qr-container" style="display: none;">
+        <div id="qr-reader" style="width:300px; margin-top:10px;"></div>
+        <button class="close-btn" id="closeScannerBtn" style="display: none;" onclick="stopQrScanner()">Fechar Scanner</button>
+    </div>
+
+    <div class="table-container">
+        <table id="dataTable"></table>
+    </div>
+
+    <div id="modalOverlay" class="modal-overlay">
+        <div class="modal">
+            <input type="hidden" id="editIndex">
+            
+            <label>Posição / TAG:
+                <input type="text" id="POSICAOTAG" readonly>
+            </label>
+
+            <label>Identificação 1:
+                <input type="text" id="IDENTIFICACAO1" readonly>
+            </label>
+
+            <label>Identificação 2:
+                <input type="text" id="IDENTIFICACAO2" readonly>
+            </label>
+
+            <label>Observação:
+    <input type="text" id="OBSERVACAO" readonly>
+</label>
+
+
+            <label>Peso (kg):
+                <input type="text" id="PesoKg" readonly>
+            </label>
+
+            <label>Data do Romaneio:
+                <input type="date" id="DATADOROMANEIO">
+            </label>
+
+            <div class="quantidade-container">
+                <label>Qtd Enviada:
+                    <input type="number" id="QTDENVIADA" class="input-quantidade">
+                    <button id="okBtnKeyboard">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#28a745">
+                            <path d="M9 16.17l-3.88-3.88-1.42 1.41L9 19 20.3 7.71l-1.42-1.41z"/>
+                        </svg>
+                    </button>
+                </label>
+            </div>
+      
+            <label>Obs Romaneio:
+                <input type="text" id="OBSROMANEIO">
+            </label>
+
+            <label>Qtde:
+                <input type="text" id="Qtde" readonly>
+            </label>
+
+            <label>Saldo:
+                <input type="text" id="Saldo" readonly class="saldo-input">
+            </label>
+
+            <div class="modal-footer">
+                <button class="save-btn" onclick="saveEdit()">Salvar</button>
+                <button class="close-btn" onclick="closeModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let data = [];
+        let filteredData = [];
+        let servicoIndex = 0;
+        let columnIndexes = {};
+        let editedRows = new Set();
+        let qrScanner;
+        let currentFileName = "Suportes.xlsx";
+        const rowsPerPage = 500;
+        let services = new Set();
+        let alertaConfirmado = false;
+let eventosConfigurados = false;
+
+        const hiddenColumns = [
+            "desenho suporte", "informações", "isométrico", "peso (kg)", "cond. pintura",
+            "área superfície", "data corte", "data acoplamento", "data solda",
+            "data jato/pintura", "número romaneio", "data romaneio", "data recebimento",
+            "observação", "area m² unitário", "data cadastro", "rev", "executante", "linha", "spool",
+            "localização", "status", "peso unitário", "qtde enviada", "obs romaneio", "qtde", "saldo", "tipo de suporte", "tipo estrutura", "id", "serviço",
+            "identificação 2", "area m²", "peso", "peso enviado", "área enviada", "peso total", "área m² total"
+        ];
+
+        
+        
+function configurarEventosQuantidade() {
+    const qtdInput = document.getElementById("QTDENVIADA");
+    const okBtn = document.getElementById("okBtnKeyboard");
+
+    alertaConfirmado = false;
+    qtdInput.classList.remove('valido', 'invalido');
+
+    if (eventosConfigurados) return;
+
+    function atualizarEstado() {
+        const saldo = parseFloat(document.getElementById("Saldo").value || 0);
+        const valor = parseFloat(qtdInput.value || 0);
+
+        qtdInput.classList.remove('valido', 'invalido');
+
+        if (qtdInput.value !== "") {
+            if (valor > saldo) {
+                qtdInput.classList.add('invalido');
+                if (!alertaConfirmado) {
+                    const confirmacao = confirm("ATENÇÃO: Quantidade maior que o saldo!\nDeseja continuar mesmo assim?");
+                    if (!confirmacao) {
+                        qtdInput.value = "";
+                        qtdInput.focus();
+                        return;
+                    }
+                    alertaConfirmado = true;
+                }
+            } else {
+                qtdInput.classList.add('valido');
+                alertaConfirmado = false;
+            }
+        }
+    }
+
+    qtdInput.addEventListener('input', atualizarEstado);
+
+    qtdInput.addEventListener('focus', function () {
+        okBtn.style.display = 'block';
+    });
+
+    qtdInput.addEventListener('blur', function (e) {
+        if (e.relatedTarget === okBtn) return;
+        const saldo = parseFloat(document.getElementById("Saldo").value || 0);
+        const valor = parseFloat(qtdInput.value || 0);
+
+        if (valor > saldo && !alertaConfirmado) {
+            e.preventDefault();
+            qtdInput.focus();
+        } else {
+            okBtn.style.display = 'none';
+        }
+    });
+
+    okBtn.addEventListener('click', function () {
+        const saldo = parseFloat(document.getElementById("Saldo").value || 0);
+        const valor = parseFloat(qtdInput.value || 0);
+
+        if (valor > saldo && !alertaConfirmado) {
+            const confirmacao = confirm("ATENÇÃO: Quantidade maior que o saldo!\nDeseja continuar mesmo assim?");
+            if (!confirmacao) {
+                qtdInput.value = "";
+                qtdInput.focus();
+                return;
+            }
+            alertaConfirmado = true;
+        }
+
+        okBtn.style.display = 'none';
+        qtdInput.blur();
+    });
+
+    eventosConfigurados = true;
+
+}
+       
+        function debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
+
+        function loadServices() {
+            fetch(currentFileName)
+                .then(response => {
+                    if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
+                    return response.arrayBuffer();
+                })
+                .then(arrayBuffer => {
+                    clearPreviousFileData();
+
+                    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
+
+                    if (jsonData.length === 0) {
+                        throw new Error("O arquivo está vazio ou não contém dados.");
+                    }
+
+                    window.originalData = JSON.parse(JSON.stringify(jsonData));
+                    data = JSON.parse(JSON.stringify(jsonData));
+                    filteredData = data.slice(1);
+
+                    findColumnIndexes();
+                    mapColumnIndexes();
+                    populateServicoOptions();
+
+                    const ultimoServico = localStorage.getItem("ultimoServico");
+                    const servicoSelect = document.getElementById("servicoSelect");
+
+                    if (ultimoServico && Array.from(servicoSelect.options).some(o => o.value === ultimoServico)) {
+                        servicoSelect.value = ultimoServico;
+                        renderSelectedServico(true);
+                    } else if (servicoSelect.options.length > 0) {
+                        servicoSelect.value = servicoSelect.options[0].value;
+                        renderSelectedServico(true);
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro ao carregar Excel:", error);
+                    alert("Não foi possível carregar o arquivo do diretório.");
+                });
+        }
+
+        function confirmLoadService() {
+    const senhaCorreta = "1234";
+    const tentativa = prompt("Digite a senha para continuar:");
+
+    if (tentativa !== senhaCorreta) {
+        alert("Senha incorreta. Ação cancelada.");
+        return;
+    }
+
+    const selectedServico = document.getElementById("servicoSelect").value;
+    if (!selectedServico) {
+        alert("Selecione um serviço da lista para carregar.");
+        return;
+    }
+
+    const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+    const temEdicoesSalvas = stored[currentFileName] && stored[currentFileName][selectedServico] && Object.keys(stored[currentFileName][selectedServico]).length > 0;
+
+    if (temEdicoesSalvas) {
+        // Abre modal personalizado
+        const overlay = document.getElementById("confirmModalOverlay");
+        overlay.style.display = "flex";
+
+        const simBtn = document.getElementById("btnConfirmSim");
+        const novoBtn = document.getElementById("btnConfirmNovo");
+
+        const fecharModal = () => {
+            overlay.style.display = "none";
+            simBtn.onclick = null;
+            novoBtn.onclick = null;
+        };
+
+        simBtn.onclick = () => {
+            fecharModal();
+            renderSelectedServico(true); // mantém edições
+        };
+
+        novoBtn.onclick = () => {
+            delete stored[currentFileName][selectedServico];
+            localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
+            fecharModal();
+            renderSelectedServico(false); // limpa e carrega do zero
+        };
+
+    } else {
+        renderSelectedServico(false); // sem edições, carrega normalmente
+    }
+}
+
+
+        function renderSelectedServico(manterEdicoes = false) {
+            const selectedServico = document.getElementById("servicoSelect").value;
+
+            if (window.originalData) {
+                data = JSON.parse(JSON.stringify(window.originalData));
+                filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
+            }
+
+            if (!manterEdicoes) {
+                editedRows.clear();
+                const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+                if (stored[currentFileName] && stored[currentFileName][selectedServico]) {
+                    delete stored[currentFileName][selectedServico];
+                    localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
+                }
+            } else {
+                loadSavedEdits();
+            }
+
+            localStorage.setItem("ultimoServico", selectedServico);
+            document.getElementById("dataTable").innerHTML = "";
+            renderTable();
+        }
+
+        function loadSavedEdits() {
+            const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+            const currentServico = document.getElementById("servicoSelect").value;
+
+            if (!stored[currentFileName] || !stored[currentFileName][currentServico]) {
+                return;
+            }
+
+            const servicoEdits = stored[currentFileName][currentServico];
+
+            Object.keys(servicoEdits).forEach(index => {
+                const rowIndex = parseInt(index);
+                if (rowIndex >= 0 && rowIndex < data.length &&
+                    data[rowIndex][servicoIndex] === currentServico) {
+
+                    const edit = servicoEdits[rowIndex];
+                    data[rowIndex][columnIndexes["data do romaneio"]] = edit.dataRomaneio || "";
+                    data[rowIndex][columnIndexes["qtd enviada"]] = edit.qtdEnviada || "";
+                    data[rowIndex][columnIndexes["obs romaneio"]] = edit.obsRomaneio || "";
+
+                    editedRows.add(rowIndex);
+                }
+            });
+        }
+
+        function clearPreviousFileData() {
+            editedRows.clear();
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return "";
+
+            if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
+                return dateString;
+            }
+
+            if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+                const [ano, mes, dia] = dateString.split("-");
+                return `${dia}/${mes}/${ano}`;
+            }
+
+            return "";
+        }
+        
+        function formatDateForInput(dateString) {
+            if (!dateString) return "";
+
+            if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
+                const [dia, mes, ano] = dateString.split('/');
+                return `${ano}-${mes}-${dia}`;
+            }
+
+            if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+                return dateString;
+            }
+
+            return "";
+        }
+
+        function findColumnIndexes() {
+            const headers = data[0];
+            servicoIndex = headers.findIndex(header => header.trim().toLowerCase() === "serviço");
+
+            if (servicoIndex === -1) {
+                alert("Coluna 'SERVIÇO' não encontrada no arquivo. Certifique-se de que existe uma coluna com este nome.");
+                return;
+            }
+
+            columnIndexes = {};
+            headers.forEach((name, index) => {
+                columnIndexes[name.trim().toLowerCase()] = index;
+            });
+        }
+
+        function mapColumnIndexes() {
+            const headers = data[0];
+            columnIndexes = {};
+            headers.forEach((name, index) => {
+                columnIndexes[name.trim().toLowerCase()] = index;
+            });
+        }
+
+        function populateServicoOptions() {
+            const servicoSet = new Set();
+
+            if (servicoIndex === -1 || !data.length) {
+                return;
+            }
+
+            for (let i = 1; i < data.length; i++) {
+                const servico = data[i][servicoIndex];
+                if (servico && servico.trim() !== "") {
+                    servicoSet.add(servico.trim());
+                }
+            }
+
+            const servicoSelect = document.getElementById("servicoSelect");
+            servicoSelect.innerHTML = '<option value="">Selecione um serviço</option>';
+
+            const servicosOrdenados = Array.from(servicoSet).sort();
+
+            servicosOrdenados.forEach(servico => {
+                const option = document.createElement("option");
+                option.value = servico;
+                option.textContent = servico;
+                servicoSelect.appendChild(option);
+            });
+
+            const ultimoServico = localStorage.getItem("ultimoServico");
+            if (ultimoServico && servicosOrdenados.includes(ultimoServico)) {
+                servicoSelect.value = ultimoServico;
+            }
+        }
+
+        function applyFilter() {
+    const filterValue = document.getElementById("identificacaoFilter").value.trim().toLowerCase();
+    const currentServico = document.getElementById("servicoSelect").value;
+
+    const colIdentificacao1 = columnIndexes["identificação 1"];
+    const colQR = columnIndexes["qr"];
+
+    filteredData = data.slice(1).filter(row => {
+        if (currentServico && row[servicoIndex] !== currentServico) {
+            return false;
+        }
+
+        const identificacao1 = String(row[colIdentificacao1] || "").toLowerCase();
+        const qr = String(row[colQR] || "").toLowerCase();
+
+        return identificacao1.includes(filterValue) || qr.includes(filterValue);
+    });
+
+    renderTable();
+}
+
+
+        function renderTable() {
+    const table = document.getElementById("dataTable");
+    table.innerHTML = "";
+
+    if (!data.length) return;
+
+    const fragment = document.createDocumentFragment();
+
+    // Defina a ordem desejada
+    const colunasExibidas = [
+        "posição / tag",
+        "identificação 1",
+        
+        "data do romaneio",
+        "qtd enviada",
+        "prog. fab.",
+        "qr"
+    ];
+
+    // Cabeçalho
+    const headerRow = document.createElement("tr");
+    colunasExibidas.forEach(col => {
+        const th = document.createElement("th");
+        th.textContent = col.toUpperCase();
+        headerRow.appendChild(th);
+    });
+    fragment.appendChild(headerRow);
+
+    // Linhas de dados
+    filteredData.slice(0, rowsPerPage).forEach((row, index) => {
+        const originalIndex = data.indexOf(row);
+        if (originalIndex === -1) return;
+
+        const tr = document.createElement("tr");
+        tr.onclick = () => openEditModal(originalIndex);
+
+        colunasExibidas.forEach(col => {
+            const colIndex = columnIndexes[col];
+            const td = document.createElement("td");
+            let cellValue = row[colIndex] || "";
+
+            if (col === "data do romaneio") {
+                cellValue = formatDate(cellValue);
+            }
+
+            td.textContent = cellValue;
+            tr.appendChild(td);
+        });
+
+        if (editedRows.has(originalIndex)) {
+            tr.classList.add("edited-row");
+        }
+
+        fragment.appendChild(tr);
+    });
+
+    table.appendChild(fragment);
+}
+
+
+        function openEditModal(index) {
+            if (index < 0 || index >= data.length) return;
+
+            document.getElementById("editIndex").value = index;
+            document.getElementById("POSICAOTAG").value = data[index][columnIndexes["posição / tag"]] || "";
+            document.getElementById("IDENTIFICACAO1").value = data[index][columnIndexes["identificação 1"]] || "";
+            document.getElementById("IDENTIFICACAO2").value = data[index][columnIndexes["identificação 2"]] || "";
+            document.getElementById("OBSERVACAO").value = data[index][columnIndexes["observação"]] || "";
+            document.getElementById("PesoKg").value = data[index][columnIndexes["peso (kg)"]] || "";
+            
+            const dataRomaneio = data[index][columnIndexes["data do romaneio"]];
+            document.getElementById("DATADOROMANEIO").value = formatDateForInput(dataRomaneio);
+            
+            document.getElementById("QTDENVIADA").value = data[index][columnIndexes["qtd enviada"]] || "";
+            document.getElementById("OBSROMANEIO").value = data[index][columnIndexes["obs romaneio"]] || "";
+            document.getElementById("Qtde").value = data[index][columnIndexes["qtde"]] || "";
+
+            const saldo = parseFloat(data[index][columnIndexes["saldo"]] || 0);
+            const saldoInput = document.getElementById("Saldo");
+            saldoInput.value = saldo;
+            
+            saldoInput.className = "saldo-input";
+            if (saldo <= 0) {
+                saldoInput.classList.add("saldo-negativo");
+            } else {
+                saldoInput.classList.add("saldo-positivo");
+
+}
+
+           const observacaoInput = document.getElementById("OBSERVACAO");
+    const valorObs = data[index][columnIndexes["observação"]] || "";
+    observacaoInput.value = valorObs;
+
+    const corFundo = (valorObs && valorObs.trim().toUpperCase() !== "N/A" && valorObs.trim().toUpperCase() !== "NA")
+        ? "rgba(255, 193, 7, 0.2)" 
+        : "#2c2c2c";
+
+    observacaoInput.style.backgroundColor = corFundo;  
+
+
+                        configurarEventosQuantidade();
+
+            document.getElementById("modalOverlay").style.display = "flex";
+            document.body.style.overflow = "hidden";
+        }
+
+        function saveEdit() {
+            const originalIndex = parseInt(document.getElementById("editIndex").value);
+            const selectedServico = document.getElementById("servicoSelect").value;
+
+            const dataRomaneio = document.getElementById("DATADOROMANEIO").value.trim();
+            const qtdEnviada = document.getElementById("QTDENVIADA").value.trim();
+            const obsRomaneio = document.getElementById("OBSROMANEIO").value.trim();
+
+            // Validações
+            if (dataRomaneio && !qtdEnviada) {
+                alert("Informe a Quantidade Enviada antes de salvar.");
+                document.getElementById("QTDENVIADA").focus();
+                return;
+            }
+
+            if (qtdEnviada && !dataRomaneio) {
+                alert("Informe a Data do Romaneio antes de salvar.");
+                document.getElementById("DATADOROMANEIO").focus();
+                return;
+            }
+
+            if (data[originalIndex][servicoIndex] !== selectedServico) {
+                alert("ERRO: O item não pertence ao serviço selecionado!");
+                closeModal();
+                return;
+            }
+
+            data[originalIndex][columnIndexes["data do romaneio"]] = dataRomaneio;
+            data[originalIndex][columnIndexes["qtd enviada"]] = qtdEnviada;
+            data[originalIndex][columnIndexes["obs romaneio"]] = obsRomaneio;
+
+            if (!dataRomaneio && !qtdEnviada && !obsRomaneio) {
+                editedRows.delete(originalIndex);
+            } else {
+                editedRows.add(originalIndex);
+            }
+
+            const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+
+            if (!stored[currentFileName]) stored[currentFileName] = {};
+            if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
+
+            if (editedRows.has(originalIndex)) {
+                stored[currentFileName][selectedServico][originalIndex] = {
+                    dataRomaneio,
+                    qtdEnviada,
+                    obsRomaneio
+                };
+            } else {
+                delete stored[currentFileName][selectedServico][originalIndex];
+            }
+
+            localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
+            localStorage.setItem("ultimoServico", selectedServico);
+
+            closeModal();
+            renderTable();
+        }
+
+        function closeModal() {
+            const qtdInput = document.getElementById("QTDENVIADA");
+            const okBtn = document.getElementById("okBtnKeyboard");
+            
+            qtdInput.classList.remove('valido', 'invalido');
+            okBtn.style.display = 'none';
+            
+            qtdInput.oninput = null;
+            qtdInput.onfocus = null;
+            qtdInput.onblur = null;
+            okBtn.onclick = null;
+
+            document.getElementById("modalOverlay").style.display = "none";
+            document.body.style.overflow = "";
+        }
+
+        function startQrScanner() {
+            document.getElementById("qr-container").style.display = "block";
+            document.getElementById("closeScannerBtn").style.display = "block";
+
+            qrScanner = new Html5Qrcode("qr-reader");
+            qrScanner.start(
+                { facingMode: "environment" },
+                {
+                    fps: 10,
+                    qrbox: 250
+                },
+                (decodedText, decodedResult) => {
+                    document.getElementById("identificacaoFilter").value = decodedText;
+                    applyFilter();
+                    stopQrScanner();
+                },
+                (errorMessage) => {
+                    console.error(errorMessage);
+                }
+            ).catch((err) => {
+                console.error(err);
+            });
+        }
+
+        function stopQrScanner() {
+            if (qrScanner) {
+                qrScanner.stop().then(() => {
+                    document.getElementById("qr-container").style.display = "none";
+                    document.getElementById("closeScannerBtn").style.display = "none";
+                }).catch((err) => {
+                    console.error(err);
+                });
+            }
+        }
+
+        function downloadExcel() {
+            if (!data.length) {
+                alert("Nenhum dado carregado para exportar.");
+                return;
+            }
+
+            const currentServico = document.getElementById("servicoSelect").value;
+            let filteredDataToExport = data.slice(1).filter(row => row[servicoIndex] === currentServico);
+
+            let dataToExport = [data[0], ...filteredDataToExport.map(row => [...row])];
+
+            const findColumnIndex = (colName) => {
+                const lowerColName = colName.toLowerCase().replace(/\s+/g, '');
+                for (let i = 0; i < data[0].length; i++) {
+                    const header = String(data[0][i]).toLowerCase().replace(/\s+/g, '');
+                    if (header === lowerColName) {
+                        return i;
+                    }
+                }
+                return undefined;
+            };
+
+            const colIndexes = {
+                qtde: findColumnIndex("qtde"),
+                qtdEnviada: findColumnIndex("QTD ENVIADA"),
+                qtdeEnviada: findColumnIndex("Qtde Enviada"),
+                saldo: findColumnIndex("saldo"),
+                pesoKg: findColumnIndex("peso (kg)"),
+                areaSuperficie: findColumnIndex("área superfície"),
+                pesoEnviado: findColumnIndex("peso enviado"),
+                areaEnviada: findColumnIndex("área enviada"),
+                pesoUnitario: findColumnIndex("peso unitário"),
+                areaUnitario: findColumnIndex("area m² unitário"),
+                pesoTotal: findColumnIndex("peso total"),
+                areaTotal: findColumnIndex("área m² total"),
+                dataRomaneio1: findColumnIndex("DATA DO ROMANEIO"),
+                dataRomaneio2: findColumnIndex("Data Romaneio")
+            };
+
+            const formatDateBR = (value) => {
+                if (!value) return "";
+
+                if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+                    return value;
+                }
+
+                if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(value)) {
+                    const [mes, dia, ano] = value.split('/');
+
+                    let anoCorrigido = ano.length === 2 ? `20${ano}` : ano;
+                    const diaFormatado = String(dia).padStart(2, '0');
+                    const mesFormatado = String(mes).padStart(2, '0');
+
+                    return `${diaFormatado}/${mesFormatado}/${anoCorrigido}`;
+                }
+
+                if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+                    const [ano, mes, dia] = value.split("-");
+                    return `${dia}/${mes}/${ano}`;
+                }
+
+                return value;
+            };
+
+            dataToExport.forEach((row, rowIndex) => {
+                if (rowIndex === 0) return;
+
+                const toInt = (value) => {
+                    if (value === "" || value === null || value === undefined) return "";
+                    const num = Number(value);
+                    return isNaN(num) ? value : Math.round(num);
+                };
+
+                const toDecimal = (value) => {
+                    if (value === "" || value === null || value === undefined) return "";
+                    const num = Number(value);
+                    return isNaN(num) ? value : num;
+                };
+
+                if (colIndexes.qtdeEnviada !== undefined) {
+                    const originalValue = row[colIndexes.qtdeEnviada];
+                    row[colIndexes.qtdeEnviada] = toInt(originalValue);
+                    if (originalValue !== "" && !isNaN(Number(originalValue))) {
+                        row[colIndexes.qtdeEnviada] = Math.round(Number(originalValue));
+                    }
+                }
+
+                if (colIndexes.qtde !== undefined) row[colIndexes.qtde] = toInt(row[colIndexes.qtde]);
+                if (colIndexes.saldo !== undefined) row[colIndexes.saldo] = toInt(row[colIndexes.saldo]);
+
+                if (colIndexes.pesoKg !== undefined) row[colIndexes.pesoKg] = toDecimal(row[colIndexes.pesoKg]);
+                if (colIndexes.areaSuperficie !== undefined) row[colIndexes.areaSuperficie] = toDecimal(row[colIndexes.areaSuperficie]);
+                if (colIndexes.pesoUnitario !== undefined) row[colIndexes.pesoUnitario] = toDecimal(row[colIndexes.pesoUnitario]);
+                if (colIndexes.areaUnitario !== undefined) row[colIndexes.areaUnitario] = toDecimal(row[colIndexes.areaUnitario]);
+                if (colIndexes.pesoTotal !== undefined) row[colIndexes.pesoTotal] = toDecimal(row[colIndexes.pesoTotal]);
+                if (colIndexes.areaTotal !== undefined) row[colIndexes.areaTotal] = toDecimal(row[colIndexes.areaTotal]);
+
+                if (colIndexes.qtdEnviada !== undefined && row[colIndexes.qtdEnviada] !== "") {
+                    if (colIndexes.pesoUnitario !== undefined && colIndexes.pesoEnviado !== undefined) {
+                        const pesoUnitario = toDecimal(row[colIndexes.pesoUnitario]);
+                        const qtdEnviada = toInt(row[colIndexes.qtdEnviada]);
+                        if (!isNaN(pesoUnitario) && !isNaN(qtdEnviada)) {
+                            row[colIndexes.pesoEnviado] = pesoUnitario * qtdEnviada;
+                        }
+                    }
+
+                    if (colIndexes.areaUnitario !== undefined && colIndexes.areaEnviada !== undefined) {
+                        const areaUnitario = toDecimal(row[colIndexes.areaUnitario]);
+                        const qtdEnviada = toInt(row[colIndexes.qtdEnviada]);
+                        if (!isNaN(areaUnitario) && !isNaN(qtdEnviada)) {
+                            row[colIndexes.areaEnviada] = areaUnitario * qtdEnviada;
+                        }
+                    }
+                } else {
+                    if (colIndexes.pesoEnviado !== undefined) row[colIndexes.pesoEnviado] = "";
+                    if (colIndexes.areaEnviada !== undefined) row[colIndexes.areaEnviada] = "";
+                }
+
+                if (colIndexes.dataRomaneio1 !== undefined) {
+                    row[colIndexes.dataRomaneio1] = formatDateBR(row[colIndexes.dataRomaneio1]);
+                }
+                if (colIndexes.dataRomaneio2 !== undefined) {
+                    row[colIndexes.dataRomaneio2] = formatDateBR(row[colIndexes.dataRomaneio2]);
+                }
+            });
+
+            const worksheet = XLSX.utils.aoa_to_sheet(dataToExport);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Romaneio");
+
+            if (worksheet["!ref"]) {
+                const range = XLSX.utils.decode_range(worksheet["!ref"]);
+
+                if (colIndexes.qtdEnviada !== undefined) {
+                    for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
+                        const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: colIndexes.qtdEnviada});
+                        if (worksheet[cellAddress]) {
+                            worksheet[cellAddress].t = 'n';
+                            worksheet[cellAddress].z = '#,##0';
+                        }
+                    }
+                }
+
+                const numericColumns = {
+                    inteiros: [colIndexes.qtde, colIndexes.saldo],
+                    decimais: [
+                        colIndexes.pesoKg, colIndexes.areaSuperficie,
+                        colIndexes.pesoEnviado, colIndexes.areaEnviada,
+                        colIndexes.pesoUnitario, colIndexes.areaUnitario,
+                        colIndexes.pesoTotal, colIndexes.areaTotal
+                    ]
+                };
+
+                numericColumns.inteiros.forEach(col => {
+                    if (col !== undefined) {
+                        for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
+                            const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: col});
+                            if (worksheet[cellAddress] && worksheet[cellAddress].v !== "") {
+                                worksheet[cellAddress].t = 'n';
+                                worksheet[cellAddress].z = '#,##0';
+                            }
+                        }
+                    }
+                });
+
+                numericColumns.decimais.forEach(col => {
+                    if (col !== undefined) {
+                        for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
+                            const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: col});
+                            if (worksheet[cellAddress] && worksheet[cellAddress].v !== "") {
+                                worksheet[cellAddress].t = 'n';
+                                worksheet[cellAddress].z = '#,##0.00';
+                            }
+                        }
+                    }
+                });
+            }
+
+            worksheet["!cols"] = data[0].map((_, i) => ({
+                wch: Math.max(...dataToExport.map(row => (row[i] ? row[i].toString().length : 10))) + 2
+            }));
+
+            XLSX.writeFile(workbook, `Romaneio_Suporte_${currentServico || ''}.xlsx`);
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadServices();
+        });
+
+        window.addEventListener('beforeunload', function() {
+            const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+            localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
+        });
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then((registration) => {
+                    console.log('Service Worker registrado com sucesso:', registration);
+                })
+                .catch((error) => {
+                    console.error('Erro ao registrar o Service Worker:', error);
+                });
+        }
+    
+function abrirModalDownload() {
+    document.getElementById("downloadModalOverlay").style.display = "flex";
+}
+
+function fecharModal() {
+    document.getElementById("downloadModalOverlay").style.display = "none";
+}
+
+function gerarExcelBlob(servicoSelecionado) {
+    const headerRow = data[0];
+    const filteredRows = data.slice(1).filter(row => row[servicoIndex] === servicoSelecionado);
+    const dataToExport = [headerRow, ...filteredRows];
+
+    const worksheet = XLSX.utils.aoa_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, servicoSelecionado);
+
+    const blob = XLSX.write(workbook, { bookType: 'xlsx', type: 'blob' });
+    return { blob, fileName: `Romaneio_Suporte_${servicoSelecionado.replace(/[\\/\\?%*:|"<>]/g, '_')}.xlsx` };
+}
+
+function executarDownload() {
+    const servicoSelecionado = document.getElementById("servicoSelect").value;
+    if (!servicoSelecionado) return alert("Selecione um serviço.");
+    const { blob, fileName } = gerarExcelBlob(servicoSelecionado);
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    link.click();
+    fecharModal();
+}
+
+async function compartilharExcel() {
+    const servicoSelecionado = document.getElementById("servicoSelect").value;
+    if (!servicoSelecionado) return alert("Selecione um serviço.");
+    const { blob, fileName } = gerarExcelBlob(servicoSelecionado);
+    const file = new File([blob], fileName, {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+            await navigator.share({
+                title: "Romaneio de Suporte",
+                text: `Segue o romaneio do serviço ${servicoSelecionado}.`,
+                files: [file]
+            });
+        } catch (err) {
+            console.error("Erro ao compartilhar:", err);
+            alert("Erro ao compartilhar o arquivo.");
+        }
+    } else {
+        alert("Este navegador/dispositivo não suporta compartilhamento de arquivos.");
+    }
+
+    fecharModal();
+}
+</script>
+
+<div id="opcoesModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 3000;">
+  <div class="modal" style="background: #fff; padding: 20px; border-radius: 10px; color: black; text-align: center;">
+    <p style="font-size: 16px; font-weight: bold;">Deseja:</p>
+    <button onclick="executarDownload()">Baixar Local</button>
+    <button onclick="compartilharExcel()">Compartilhar</button>
+    <button class="close-btn" onclick="fecharModal()">Cancelar</button>
+  </div>
+</div>
+
+<div id="downloadModalOverlay" class="modal-overlay" style="z-index: 3000;">
+    <div class="modal" style="text-align: center;">
+        <p id="downloadModalMessage" style="font-size: 16px;">Como deseja exportar o Excel?</p>
+        <div class="modal-footer" style="display: flex; flex-direction: column; gap: 10px;">
+            <button onclick="executarDownload()" style="background-color: #28a745; color: white;" class="save-btn">BAIXAR</button>
+            <button onclick="compartilharExcel()" style="background-color: #007BFF; color: white;">COMPARTILHAR</button>
+            <button onclick="fecharModal()" style="background-color: #dc3545; color: white;" class="close-btn">CANCELAR</button>
+        </div>
+    </div>
+</div>
+</body>
+
+</html>
