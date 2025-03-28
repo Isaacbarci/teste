@@ -404,16 +404,17 @@ let eventosConfigurados = false;
             "localização", "status", "peso unitário", "qtde enviada", "obs romaneio", "qtde", "saldo", "tipo de suporte", "tipo estrutura", "id", "serviço",
             "identificação 2", "area m²", "peso", "peso enviado", "área enviada", "peso total", "área m² total"
         ];
-        
-let alertaConfirmado = false;
-let eventosConfigurados = false;
 
+        {
+        
 function configurarEventosQuantidade() {
     const qtdInput = document.getElementById("QTDENVIADA");
     const okBtn = document.getElementById("okBtnKeyboard");
 
     alertaConfirmado = false;
     qtdInput.classList.remove('valido', 'invalido');
+
+    if (eventosConfigurados) return;
 
     function atualizarEstado() {
         const saldo = parseFloat(document.getElementById("Saldo").value || 0);
@@ -440,100 +441,26 @@ function configurarEventosQuantidade() {
         }
     }
 
-    // Adiciona os eventos só uma vez
-    if (!eventosConfigurados) {
-        qtdInput.addEventListener('input', atualizarEstado);
+    qtdInput.addEventListener('input', atualizarEstado);
 
-        qtdInput.addEventListener('focus', function () {
-            okBtn.style.display = 'block';
-        });
+    qtdInput.addEventListener('focus', function () {
+        okBtn.style.display = 'block';
+    });
 
-        qtdInput.addEventListener('blur', function (e) {
-            if (e.relatedTarget === okBtn) return;
-            if (parseFloat(qtdInput.value) > parseFloat(document.getElementById("Saldo").value || 0) && !alertaConfirmado) {
-                e.preventDefault();
-                qtdInput.focus();
-            } else {
-                okBtn.style.display = 'none';
-            }
-        });
-
-        okBtn.addEventListener('click', function () {
-            const saldo = parseFloat(document.getElementById("Saldo").value || 0);
-            const valor = parseFloat(qtdInput.value || 0);
-
-            if (valor > saldo && !alertaConfirmado) {
-                const confirmacao = confirm("ATENÇÃO: Quantidade maior que o saldo!\nDeseja continuar mesmo assim?");
-                if (!confirmacao) {
-                    qtdInput.value = "";
-                    qtdInput.focus();
-                    return;
-                }
-                alertaConfirmado = true;
-            }
-
-            okBtn.style.display = 'none';
-            qtdInput.blur();
-        });
-
-        eventosConfigurados = true;
-    }
-}
-
-       
-
-
-    function atualizarEstado() {
+    qtdInput.addEventListener('blur', function (e) {
+        if (e.relatedTarget === okBtn) return;
         const saldo = parseFloat(document.getElementById("Saldo").value || 0);
         const valor = parseFloat(qtdInput.value || 0);
 
-        qtdInput.classList.remove('valido', 'invalido');
-        precisaConfirmar = false;
-
-        if (qtdInput.value !== "") {
-            if (valor > saldo) {
-                qtdInput.classList.add('invalido');
-                precisaConfirmar = true;
-
-                // Exibe alerta apenas se ainda não foi confirmado
-                if (!alertaConfirmado) {
-                    const confirmacao = confirm("ATENÇÃO: Quantidade maior que o saldo!\nDeseja continuar mesmo assim?");
-                    if (!confirmacao) {
-                        qtdInput.value = "";
-                        qtdInput.focus();
-                        return;
-                    }
-                    alertaConfirmado = true;
-                }
-            } else {
-                qtdInput.classList.add('valido');
-                alertaConfirmado = false; // Reset caso volte a ficar dentro do saldo
-            }
-        }
-    }
-
-    // Reset inicial
-    qtdInput.classList.remove('valido', 'invalido');
-    alertaConfirmado = false;
-
-    // Evita múltiplos listeners acumulados
-    qtdInput.oninput = atualizarEstado;
-
-    qtdInput.onfocus = function () {
-        okBtn.style.display = 'block';
-    };
-
-    qtdInput.onblur = function (e) {
-        if (e.relatedTarget === okBtn) return;
-        if (precisaConfirmar && !alertaConfirmado) {
+        if (valor > saldo && !alertaConfirmado) {
             e.preventDefault();
             qtdInput.focus();
         } else {
             okBtn.style.display = 'none';
         }
-    };
+    });
 
-    okBtn.onclick = function () {
+    okBtn.addEventListener('click', function () {
         const saldo = parseFloat(document.getElementById("Saldo").value || 0);
         const valor = parseFloat(qtdInput.value || 0);
 
@@ -549,7 +476,9 @@ function configurarEventosQuantidade() {
 
         okBtn.style.display = 'none';
         qtdInput.blur();
-    };
+    });
+
+    eventosConfigurados = true;
 }
             
         function debounce(func, wait) {
