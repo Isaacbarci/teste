@@ -466,17 +466,18 @@
         return;
     }
 
-    const selectedServico = document.getElementById("servicoSelect").value;
+    const selectedServico = document.getElementById("serviceList").value;
     if (!selectedServico) {
         alert("Selecione um serviço da lista para carregar.");
         return;
     }
 
     const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
-    const temEdicoesSalvas = stored[currentFileName] && stored[currentFileName][selectedServico] && Object.keys(stored[currentFileName][selectedServico]).length > 0;
+    const temEdicoesSalvas = stored[currentFileName] &&
+        stored[currentFileName][selectedServico] &&
+        Object.keys(stored[currentFileName][selectedServico]).length > 0;
 
     if (temEdicoesSalvas) {
-        // Abre modal personalizado
         const overlay = document.getElementById("confirmModalOverlay");
         overlay.style.display = "flex";
 
@@ -504,19 +505,18 @@
     } else {
         renderSelectedServico(false); // sem edições, carrega normalmente
     }
+
+    if (editedRows.size > 0) {
+        const confirmChange = confirm("ATENÇÃO!\n\nAo trocar de serviço, todas as alterações não salvas serão perdidas.\n\nDeseja realmente trocar de serviço?");
+        if (!confirmChange) {
+            return;
+        }
+    }
+
+    currentService = selectedServico;
+    loadServiceData(selectedServico);
 }
 
-
-            if (editedRows.size > 0) {
-                const confirmChange = confirm("ATENÇÃO!\n\nAo trocar de serviço, todas as alterações não salvas serão perdidas.\n\nDeseja realmente trocar de serviço?");
-                if (!confirmChange) {
-                    return;
-                }
-            }
-
-            currentService = selectedService;
-            loadServiceData(selectedService);
-        }
 
         function loadServiceData(serviceName) {
             fetch("Spools.xlsx")
