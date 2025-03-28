@@ -813,19 +813,34 @@ function configurarEventosQuantidade() {
             const originalIndex = parseInt(document.getElementById("editIndex").value);
             const selectedServico = document.getElementById("servicoSelect").value;
 
+            const dataRomaneio = document.getElementById("DATADOROMANEIO").value.trim();
+            const qtdEnviada = document.getElementById("QTDENVIADA").value.trim();
+            const obsRomaneio = document.getElementById("OBSROMANEIO").value.trim();
+
+            // Validações
+            if (dataRomaneio && !qtdEnviada) {
+                alert("Informe a Quantidade Enviada antes de salvar.");
+                document.getElementById("QTDENVIADA").focus();
+                return;
+            }
+
+            if (qtdEnviada && !dataRomaneio) {
+                alert("Informe a Data do Romaneio antes de salvar.");
+                document.getElementById("DATADOROMANEIO").focus();
+                return;
+            }
+
             if (data[originalIndex][servicoIndex] !== selectedServico) {
                 alert("ERRO: O item não pertence ao serviço selecionado!");
                 closeModal();
                 return;
             }
 
-            data[originalIndex][columnIndexes["data do romaneio"]] = document.getElementById("DATADOROMANEIO").value;
-            data[originalIndex][columnIndexes["qtd enviada"]] = document.getElementById("QTDENVIADA").value;
-            data[originalIndex][columnIndexes["obs romaneio"]] = document.getElementById("OBSROMANEIO").value;
+            data[originalIndex][columnIndexes["data do romaneio"]] = dataRomaneio;
+            data[originalIndex][columnIndexes["qtd enviada"]] = qtdEnviada;
+            data[originalIndex][columnIndexes["obs romaneio"]] = obsRomaneio;
 
-            if (!document.getElementById("DATADOROMANEIO").value &&
-                !document.getElementById("QTDENVIADA").value &&
-                !document.getElementById("OBSROMANEIO").value) {
+            if (!dataRomaneio && !qtdEnviada && !obsRomaneio) {
                 editedRows.delete(originalIndex);
             } else {
                 editedRows.add(originalIndex);
@@ -833,19 +848,14 @@ function configurarEventosQuantidade() {
 
             const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
 
-            if (!stored[currentFileName]) {
-                stored[currentFileName] = {};
-            }
-
-            if (!stored[currentFileName][selectedServico]) {
-                stored[currentFileName][selectedServico] = {};
-            }
+            if (!stored[currentFileName]) stored[currentFileName] = {};
+            if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
 
             if (editedRows.has(originalIndex)) {
                 stored[currentFileName][selectedServico][originalIndex] = {
-                    dataRomaneio: data[originalIndex][columnIndexes["data do romaneio"]],
-                    qtdEnviada: data[originalIndex][columnIndexes["qtd enviada"]],
-                    obsRomaneio: data[originalIndex][columnIndexes["obs romaneio"]]
+                    dataRomaneio,
+                    qtdEnviada,
+                    obsRomaneio
                 };
             } else {
                 delete stored[currentFileName][selectedServico][originalIndex];
