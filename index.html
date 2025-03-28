@@ -768,15 +768,21 @@
         return;
     }
 
-    // Obter o nome do serviço selecionado (igual no Romaneio de Suporte)
     const selectedService = document.getElementById("serviceList").value;
-    const serviceName = selectedService ? selectedService.replace(/[\/\\?%*:|"<>]/g, '_') : '';
+    if (!selectedService) {
+        alert("Selecione um serviço para exportar.");
+        return;
+    }
 
-    const formattedData = data.map((row, rowIndex) => {
+    const headerRow = data[0];
+    const filteredRows = data.slice(1).filter(row => row[servicoIndex] === selectedService);
+    const dataToExport = [headerRow, ...filteredRows];
+
+    const formattedData = dataToExport.map((row, rowIndex) => {
         if (rowIndex === 0) return row;
 
         return row.map((cell, colIndex) => {
-            let header = data[0][colIndex].trim().toLowerCase();
+            let header = dataToExport[0][colIndex].trim().toLowerCase();
 
             if (header === "data do romaneio") {
                 return formatDate(cell);
@@ -796,9 +802,8 @@
 
     const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, currentService || "Romaneio de Spool");
+    XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
 
-    // Ocultar a coluna "ROMANEIOS" no Excel
     const romaneiosIndex = data[0].findIndex(
         header => header.trim().toLowerCase() === "romaneios"
     );
@@ -807,15 +812,16 @@
         const width = Math.max(...formattedData.map(row => (row[i] ? row[i].toString().length : 10))) + 2;
         return {
             wch: width,
-            hidden: i === romaneiosIndex // Oculta a coluna ROMANEIOS
+            hidden: i === romaneiosIndex
         };
     });
 
     worksheet["!cols"] = colWidths;
 
-    // Usando XLSX.writeFile com o nome do serviço (igual no Romaneio de Suporte)
-    XLSX.writeFile(workbook, `Romaneio_Spool_${serviceName || ''}.xlsx`);
+    const nomeArquivo = `Romaneio_Spool_${selectedService.replace(/[\/\\?%*:|"<>]/g, '_')}.xlsx`;
+    XLSX.writeFile(workbook, nomeArquivo);
 }
+
 
         document.addEventListener("DOMContentLoaded", () => {
             loadServices();
