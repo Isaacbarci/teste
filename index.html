@@ -805,15 +805,9 @@ function configurarEventosQuantidade() {
 }
 
 
-const obsRomaneio = document.getElementById("OBSROMANEIO");
-const valorObs = obsRomaneio.value.trim().toUpperCase();
-obsRomaneio.style.backgroundColor = 
-    (valorObs && valorObs !== "N/A" && valorObs !== "NA") 
-    ? "rgba(255, 193, 7, 0.2)" 
-    : "#2c2c2c";
-
-                
-   });
+const corFundo = (valorObs && valorObs.trim().toUpperCase() !== "N/A" && valorObs.trim().toUpperCase() !== "NA")
+        ? "rgba(255, 193, 7, 0.2)" 
+        : "#2c2c2c";
 
                         configurarEventosQuantidade();
 
