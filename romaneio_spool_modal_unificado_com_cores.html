@@ -14,6 +14,7 @@
             background-color: #000;
             color: white;
         }
+
         h2 {
             color: white;
             padding: 20px;
@@ -21,6 +22,7 @@
             display: flex;
             align-items: center;
         }
+
         input[type="text"], button, select {
             margin: 5px;
             padding: 10px;
@@ -28,12 +30,15 @@
             border: 1px solid #ccc;
             font-size: 14px;
         }
+
         input[type="text"] {
             width: 300px;
         }
+
         #identificacaoFilter {
             width: 300px !important;
         }
+
         select {
             margin: 3px;
             padding: 3px;
@@ -43,6 +48,7 @@
             width: 205px;
             height: 25px;
         }
+
         button {
             background-color: #007BFF;
             color: white;
@@ -50,26 +56,33 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
+
         button:hover {
             background-color: #0056b3;
         }
+
         .close-btn {
             background-color: #dc3545;
         }
+
         .close-btn:hover {
             background-color: #c82333;
         }
+
         .save-btn {
             background-color: #28a745;
         }
+
         .save-btn:hover {
             background-color: #218838;
         }
+
         .table-container {
             width: 100%;
             overflow-x: auto;
             margin-top: 20px;
         }
+
         table {
             border-collapse: collapse;
             width: 100%;
@@ -78,6 +91,7 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             border: 2px solid black;
         }
+
         th, td {
             border: none;
             padding: 10px;
@@ -85,13 +99,16 @@
             text-align: left;
             white-space: nowrap;
         }
+
         th {
             background-color: #007BFF;
             color: white;
         }
+
         td {
             cursor: pointer;
         }
+
         .modal-overlay {
             display: none;
             position: fixed;
@@ -104,6 +121,7 @@
             justify-content: center;
             align-items: center;
         }
+
         .modal {
             background-color: #1e1e1e;
             color: #fff;
@@ -116,6 +134,7 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
             border: 1px solid #444;
         }
+
         .modal label {
             display: flex;
             flex-direction: column;
@@ -124,6 +143,7 @@
             color: #fff;
             font-size: 14px;
         }
+
         .modal input {
             width: 100%;
             padding: 10px;
@@ -135,6 +155,7 @@
             color: #fff;
             box-sizing: border-box;
         }
+
         .modal input[type="date"] {
             padding: 9px;
             background-color: #2c2c2c;
@@ -145,6 +166,7 @@
             position: relative;
             padding-right: 30px;
         }
+
         .modal input[type="date"]::after {
             content: "";
             position: absolute;
@@ -157,6 +179,7 @@
             background-repeat: no-repeat;
             pointer-events: none;
         }
+
         .modal input[type="date"]::-webkit-calendar-picker-indicator {
             opacity: 0;
             position: absolute;
@@ -165,6 +188,7 @@
             height: 100%;
             cursor: pointer;
         }
+
         .modal input[type="date"]::-moz-calendar-picker-indicator {
             opacity: 0;
             position: absolute;
@@ -173,15 +197,18 @@
             height: 100%;
             cursor: pointer;
         }
+
         .modal input[readonly] {
             background-color: #333;
             cursor: not-allowed;
         }
+
         .modal-footer {
             display: flex;
             gap: 10px;
             margin-top: 20px;
         }
+
         .modal-footer button {
             flex: 1;
             padding: 10px;
@@ -190,9 +217,11 @@
             border: none;
             cursor: pointer;
         }
+
         .edited-row {
             background-color: darkgray !important;
         }
+
         #shareHelp {
             display: none;
             position: fixed;
@@ -206,6 +235,7 @@
             padding: 20px;
             text-align: center;
         }
+
         #shareStatus {
             display: none;
             position: fixed;
@@ -217,6 +247,7 @@
             border-radius: 5px;
             max-width: 300px;
         }
+
         @media (max-width: 768px) {
             .modal {
                 width: 95%;
@@ -224,10 +255,12 @@
                 max-height: 90vh;
                 padding: 20px;
             }
+
             .modal-footer {
                 flex-direction: column;
                 gap: 8px;
             }
+
             input[type="text"] {
                 width: calc(100% - 20px);
             }
@@ -360,73 +393,467 @@
             "QR"
         ];
 
-        // ========== FUNÇÕES PRINCIPAIS ========== //
+        // Funções auxiliares
+        function debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
 
-        // Carrega os serviços disponíveis
+        function parseDateString(dateString) {
+            if (!dateString) return null;
+            if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+                const parts = dateString.split('-');
+                return new Date(parts[0], parts[1] - 1, parts[2]);
+            }
+            if (typeof dateString === 'string' && dateString.includes('/')) {
+                const parts = dateString.split('/');
+                if (parts.length === 3) {
+                    return new Date(parts[2], parts[1] - 1, parts[0]);
+                }
+            }
+            const date = new Date(dateString);
+            return isNaN(date.getTime()) ? null : date;
+        }
+
+        function formatDate(dateString) {
+            const date = parseDateString(dateString);
+            if (!date) return "";
+            const day = String(date.getDate()).padStart(2, "0");
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        function formatDateForInput(dateString) {
+            const date = parseDateString(dateString);
+            if (!date) return "";
+            const day = String(date.getDate()).padStart(2, "0");
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const year = date.getFullYear();
+            return `${year}-${month}-${day}`;
+        }
+
+        // Funções principais
         function loadServices() {
             fetch(currentFileName)
-                .then(response => response.ok ? response.arrayBuffer() : Promise.reject("Erro ao carregar arquivo"))
+                .then(response => {
+                    if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
+                    return response.arrayBuffer();
+                })
                 .then(arrayBuffer => {
+                    clearPreviousFileData();
+
                     const workbook = XLSX.read(arrayBuffer, { type: 'array' });
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
                     const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
-                    window.originalData = jsonData;
-                    data = [...jsonData];
+                    if (jsonData.length === 0) {
+                        throw new Error("O arquivo está vazio ou não contém dados.");
+                    }
+
+                    window.originalData = JSON.parse(JSON.stringify(jsonData));
+                    data = JSON.parse(JSON.stringify(jsonData));
                     filteredData = data.slice(1);
 
                     findColumnIndexes();
+                    mapColumnIndexes();
                     populateServicoOptions();
-                    renderTable();
+
+                    const ultimoServico = localStorage.getItem("ultimoServico");
+                    const servicoSelect = document.getElementById("serviceList");
+
+                    if (ultimoServico && Array.from(servicoSelect.options).some(o => o.value === ultimoServico)) {
+                        servicoSelect.value = ultimoServico;
+                        renderSelectedServico(true);
+                    } else if (servicoSelect.options.length > 0) {
+                        servicoSelect.value = servicoSelect.options[0].value;
+                        renderSelectedServico(true);
+                    }
                 })
                 .catch(error => {
-                    console.error("Erro:", error);
-                    alert("Não foi possível carregar o arquivo.");
+                    console.error("Erro ao carregar Excel:", error);
+                    alert("Não foi possível carregar o arquivo do diretório.");
                 });
         }
 
-        // Renderiza a tabela com os dados filtrados
+        function confirmLoadService() {
+            const senhaCorreta = "1234";
+            const tentativa = prompt("Digite a senha para continuar:");
+
+            if (tentativa !== senhaCorreta) {
+                alert("Senha incorreta. Ação cancelada.");
+                return;
+            }
+
+            const selectedServico = document.getElementById("serviceList").value;
+            if (!selectedServico) {
+                alert("Selecione um serviço da lista para carregar.");
+                return;
+            }
+
+            const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+            const temEdicoesSalvas = stored[currentFileName] && stored[currentFileName][selectedServico] && Object.keys(stored[currentFileName][selectedServico]).length > 0;
+
+            if (temEdicoesSalvas) {
+                const overlay = document.getElementById("confirmModalOverlay");
+                overlay.style.display = "flex";
+
+                const simBtn = document.getElementById("btnConfirmSim");
+                const novoBtn = document.getElementById("btnConfirmNovo");
+
+                const fecharModal = () => {
+                    overlay.style.display = "none";
+                    simBtn.onclick = null;
+                    novoBtn.onclick = null;
+                };
+
+                simBtn.onclick = () => {
+                    fecharModal();
+                    renderSelectedServico(true);
+                };
+
+                novoBtn.onclick = () => {
+                    delete stored[currentFileName][selectedServico];
+                    localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
+                    fecharModal();
+                    renderSelectedServico(false);
+                };
+            } else {
+                renderSelectedServico(false);
+            }
+        }
+
+        function renderSelectedServico(manterEdicoes = false) {
+            const selectedServico = document.getElementById("serviceList").value;
+
+            if (window.originalData) {
+                data = JSON.parse(JSON.stringify(window.originalData));
+                filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
+            }
+
+            if (!manterEdicoes) {
+                editedRows.clear();
+                const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+                if (stored[currentFileName] && stored[currentFileName][selectedServico]) {
+                    delete stored[currentFileName][selectedServico];
+                    localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
+                }
+            } else {
+                loadSavedEdits();
+            }
+
+            localStorage.setItem("ultimoServico", selectedServico);
+            document.getElementById("dataTable").innerHTML = "";
+            renderTable();
+        }
+
+        function loadSavedEdits() {
+            const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+            const currentServico = document.getElementById("serviceList").value;
+
+            if (!stored[currentFileName] || !stored[currentFileName][currentServico]) {
+                return;
+            }
+
+            const servicoEdits = stored[currentFileName][currentServico];
+
+            Object.keys(servicoEdits).forEach(index => {
+                const rowIndex = parseInt(index);
+                if (rowIndex >= 0 && rowIndex < data.length &&
+                    data[rowIndex][servicoIndex] === currentServico) {
+
+                    const edit = servicoEdits[rowIndex];
+                    data[rowIndex][columnIndexes["data do romaneio"]] = edit.dataRomaneio || "";
+                    data[rowIndex][columnIndexes["obs romaneio"]] = edit.obsRomaneio || "";
+
+                    editedRows.add(rowIndex);
+                }
+            });
+        }
+
+        function clearPreviousFileData() {
+            editedRows.clear();
+        }
+
+        function findColumnIndexes() {
+            const headers = data[0];
+            servicoIndex = headers.findIndex(header => header.trim().toLowerCase() === "serviço");
+
+            if (servicoIndex === -1) {
+                alert("Coluna 'SERVIÇO' não encontrada no arquivo. Certifique-se de que existe uma coluna com este nome.");
+                return;
+            }
+
+            columnIndexes = {};
+            headers.forEach((name, index) => {
+                columnIndexes[name.trim().toLowerCase()] = index;
+            });
+        }
+
+        function mapColumnIndexes() {
+            const headers = data[0];
+            columnIndexes = {};
+            headers.forEach((name, index) => {
+                columnIndexes[name.trim().toLowerCase()] = index;
+            });
+        }
+
+        function populateServicoOptions() {
+            const servicoSet = new Set();
+
+            if (servicoIndex === -1 || !data.length) {
+                return;
+            }
+
+            for (let i = 1; i < data.length; i++) {
+                const servico = data[i][servicoIndex];
+                if (servico && servico.trim() !== "") {
+                    servicoSet.add(servico.trim());
+                }
+            }
+
+            const servicoSelect = document.getElementById("serviceList");
+            servicoSelect.innerHTML = '<option value="">Selecione um serviço</option>';
+
+            const servicosOrdenados = Array.from(servicoSet).sort();
+
+            servicosOrdenados.forEach(servico => {
+                const option = document.createElement("option");
+                option.value = servico;
+                option.textContent = servico;
+                servicoSelect.appendChild(option);
+            });
+
+            const ultimoServico = localStorage.getItem("ultimoServico");
+            if (ultimoServico && servicosOrdenados.includes(ultimoServico)) {
+                servicoSelect.value = ultimoServico;
+            }
+        }
+
         function renderTable() {
             const table = document.getElementById("dataTable");
             table.innerHTML = "";
 
             if (!data.length) return;
 
+            const fragment = document.createDocumentFragment();
+
             // Cabeçalho
             const headerRow = document.createElement("tr");
             ordemColunasExibidas.forEach(col => {
                 const th = document.createElement("th");
-                th.textContent = col;
+                th.textContent = col.toUpperCase();
                 headerRow.appendChild(th);
             });
-            table.appendChild(headerRow);
+            fragment.appendChild(headerRow);
 
-            // Dados
+            // Linhas de dados
             filteredData.slice(0, itemsPerPage).forEach((row, index) => {
+                const originalIndex = data.indexOf(row);
+                if (originalIndex === -1) return;
+
                 const tr = document.createElement("tr");
-                tr.onclick = () => openEditModal(index + 1); // +1 porque pulamos o cabeçalho
+                tr.onclick = () => openEditModal(originalIndex);
 
                 ordemColunasExibidas.forEach(col => {
-                    const td = document.createElement("td");
                     const colIndex = columnIndexes[col.toLowerCase()];
-                    td.textContent = col.toLowerCase().includes("data") ? formatDate(row[colIndex]) : row[colIndex];
+                    const td = document.createElement("td");
+                    let cellValue = row[colIndex] || "";
+
+                    if (col.toLowerCase() === "data do romaneio") {
+                        cellValue = formatDate(cellValue);
+                    }
+
+                    td.textContent = cellValue;
                     tr.appendChild(td);
                 });
 
-                if (editedRows.has(index + 1)) {
+                if (editedRows.has(originalIndex)) {
                     tr.classList.add("edited-row");
                 }
 
-                table.appendChild(tr);
+                fragment.appendChild(tr);
+            });
+
+            table.appendChild(fragment);
+        }
+
+        function openEditModal(index) {
+            if (index < 0 || index >= data.length) return;
+
+            document.getElementById("editIndex").value = index;
+            document.getElementById("ISOMETRICO").value = data[index][columnIndexes["isométrico"]] || "";
+            document.getElementById("SPOOL").value = data[index][columnIndexes["spool"]] || "";
+            document.getElementById("AREA").value = data[index][columnIndexes["área"]] || "";
+            document.getElementById("PROGFAB").value = data[index][columnIndexes["prog fab"]] || "";
+            document.getElementById("PESO").value = data[index][columnIndexes["peso"]] || "";
+
+            const dataRomaneio = data[index][columnIndexes["data do romaneio"]];
+            document.getElementById("DATADOROMANEIO").value = formatDateForInput(dataRomaneio);
+
+            document.getElementById("OBSROMANEIO").value = data[index][columnIndexes["obs romaneio"]] || "";
+
+            document.getElementById("modalOverlay").style.display = "flex";
+            document.body.style.overflow = "hidden";
+        }
+
+        function saveEdit() {
+            const originalIndex = parseInt(document.getElementById("editIndex").value);
+            const selectedServico = document.getElementById("serviceList").value;
+
+            const dataRomaneio = document.getElementById("DATADOROMANEIO").value.trim();
+            const obsRomaneio = document.getElementById("OBSROMANEIO").value.trim();
+
+            if (data[originalIndex][servicoIndex] !== selectedServico) {
+                alert("ERRO: O item não pertence ao serviço selecionado!");
+                closeModal();
+                return;
+            }
+
+            data[originalIndex][columnIndexes["data do romaneio"]] = dataRomaneio;
+            data[originalIndex][columnIndexes["obs romaneio"]] = obsRomaneio;
+
+            if (!dataRomaneio && !obsRomaneio) {
+                editedRows.delete(originalIndex);
+            } else {
+                editedRows.add(originalIndex);
+            }
+
+            const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+
+            if (!stored[currentFileName]) stored[currentFileName] = {};
+            if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
+
+            if (editedRows.has(originalIndex)) {
+                stored[currentFileName][selectedServico][originalIndex] = {
+                    dataRomaneio,
+                    obsRomaneio
+                };
+            } else {
+                delete stored[currentFileName][selectedServico][originalIndex];
+            }
+
+            localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
+            localStorage.setItem("ultimoServico", selectedServico);
+
+            closeModal();
+            renderTable();
+        }
+
+        function closeModal() {
+            document.getElementById("modalOverlay").style.display = "none";
+            document.body.style.overflow = "";
+        }
+
+        function startQrScanner() {
+            document.getElementById("qr-container").style.display = "block";
+            document.getElementById("closeScannerBtn").style.display = "block";
+
+            qrScanner = new Html5Qrcode("qr-reader");
+            qrScanner.start(
+                { facingMode: "environment" },
+                {
+                    fps: 10,
+                    qrbox: 250
+                },
+                (decodedText, decodedResult) => {
+                    document.getElementById("identificacaoFilter").value = decodedText;
+                    applyFilter();
+                    stopQrScanner();
+                },
+                (errorMessage) => {
+                    console.error(errorMessage);
+                }
+            ).catch((err) => {
+                console.error(err);
             });
         }
 
-        // ========== COMPARTILHAMENTO ATUALIZADO ========== //
+        function stopQrScanner() {
+            if (qrScanner) {
+                qrScanner.stop().then(() => {
+                    document.getElementById("qr-container").style.display = "none";
+                    document.getElementById("closeScannerBtn").style.display = "none";
+                }).catch((err) => {
+                    console.error(err);
+                });
+            }
+        }
+
+        function applyFilter() {
+            const filterValue = document.getElementById("identificacaoFilter").value.trim().toLowerCase();
+            const currentServico = document.getElementById("serviceList").value;
+
+            const colIdentificacao1 = columnIndexes["isométrico"];
+            const colQR = columnIndexes["qr"];
+
+            filteredData = data.slice(1).filter(row => {
+                if (currentServico && row[servicoIndex] !== currentServico) {
+                    return false;
+                }
+
+                const identificacao1 = String(row[colIdentificacao1] || "").toLowerCase();
+                const qr = String(row[colQR] || "").toLowerCase();
+
+                return identificacao1.includes(filterValue) || qr.includes(filterValue);
+            });
+
+            renderTable();
+        }
+
+        function abrirModalDownload() {
+            const selectedService = document.getElementById("serviceList").value;
+            if (!selectedService) {
+                alert("Selecione um serviço para exportar.");
+                return;
+            }
+            document.getElementById("downloadModalOverlay").style.display = "flex";
+        }
+
+        function fecharModal() {
+            document.getElementById("downloadModalOverlay").style.display = "none";
+        }
+
+        function executarDownload() {
+            const selectedService = document.getElementById("serviceList").value;
+            if (!selectedService) {
+                alert("Selecione um serviço para exportar.");
+                return;
+            }
+
+            const headerRow = data[0];
+            const filteredRows = data.slice(1).filter(row => row[servicoIndex] === selectedService);
+            const dataToExport = [headerRow, ...filteredRows];
+
+            const formattedData = dataToExport.map((row, rowIndex) => {
+                if (rowIndex === 0) return row;
+                return row.map((cell, colIndex) => {
+                    let header = dataToExport[0][colIndex].trim().toLowerCase();
+                    if (header === "data do romaneio") return formatDate(cell);
+                    if (header === "peso" || header === "área superf.") {
+                        const numericValue = parseFloat((cell || "").toString().replace(",", "."));
+                        return isNaN(numericValue) ? "" : numericValue;
+                    }
+                    return cell;
+                });
+            });
+
+            const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
+
+            const nomeArquivo = `Romaneio_Spool_${selectedService.replace(/[\/?:*"<>|]/g, "_")}.xlsx`;
+            XLSX.writeFile(workbook, nomeArquivo);
+            fecharModal();
+        }
 
         async function compartilharExcel() {
             const selectedService = document.getElementById("serviceList").value;
             if (!selectedService) {
-                alert("Selecione um serviço primeiro.");
+                alert("Selecione um serviço para exportar.");
                 return;
             }
 
@@ -435,35 +862,43 @@
             shareBtn.textContent = "Preparando...";
 
             try {
-                // Verifica se o navegador suporta compartilhamento
                 if (!navigator.share) {
                     throw new Error("Seu navegador não suporta compartilhamento nativo.");
                 }
 
-                // Cria a planilha
                 const workbook = await criarPlanilhaParaExportacao(selectedService);
-                const excelArrayBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-                const blob = new Blob([excelArrayBuffer], { 
-                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+                const excelArrayBuffer = XLSX.write(workbook, {
+                    bookType: 'xlsx',
+                    type: 'array'
+                });
+                
+                const blob = new Blob([excelArrayBuffer], {
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                 });
 
-                // Cria o arquivo para compartilhamento
                 const fileName = `Romaneio_${selectedService.replace(/[^a-z0-9]/gi, '_')}.xlsx`;
                 const file = new File([blob], fileName, { type: blob.type });
 
-                // Compartilha
+                if (navigator.canShare && !navigator.canShare({ files: [file] })) {
+                    throw new Error("Não é possível compartilhar este tipo de arquivo");
+                }
+
                 await navigator.share({
                     title: `Romaneio ${selectedService}`,
-                    text: "Confira o romaneio de spools",
+                    text: `Romaneio de spools do serviço ${selectedService}`,
                     files: [file]
                 });
 
-                mostrarStatusCompartilhamento("Arquivo compartilhado com sucesso!");
+                mostrarStatusCompartilhamento("Compartilhado com sucesso!");
 
             } catch (error) {
-                console.error("Erro ao compartilhar:", error);
-                mostrarStatusCompartilhamento(`Erro: ${error.message}`, true);
-                executarDownload(); // Fallback para download
+                console.error("Erro no compartilhamento:", error);
+                
+                if (error.name !== 'AbortError') {
+                    mostrarStatusCompartilhamento(`Erro: ${error.message}`, true);
+                    await executarDownload();
+                }
+                
             } finally {
                 shareBtn.disabled = false;
                 shareBtn.textContent = "COMPARTILHAR";
@@ -471,7 +906,30 @@
             }
         }
 
-        // ========== FUNÇÕES AUXILIARES ========== //
+        async function criarPlanilhaParaExportacao(selectedService) {
+            const headerRow = data[0];
+            const filteredRows = data.slice(1).filter(row => row[servicoIndex] === selectedService);
+            const dataToExport = [headerRow, ...filteredRows];
+
+            const formattedData = dataToExport.map((row, rowIndex) => {
+                if (rowIndex === 0) return row;
+                return row.map((cell, colIndex) => {
+                    const header = (dataToExport[0][colIndex] || "").toString().trim().toLowerCase();
+                    if (header === "data do romaneio") return formatDate(cell);
+                    if (header === "peso" || header === "área superf.") {
+                        const num = parseFloat((cell || "").toString().replace(",", "."));
+                        return isNaN(num) ? "" : num;
+                    }
+                    return cell;
+                });
+            });
+
+            const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, selectedService.substring(0, 30));
+            
+            return workbook;
+        }
 
         function mostrarStatusCompartilhamento(mensagem, isError = false) {
             const statusDiv = document.getElementById('shareStatus');
@@ -484,22 +942,58 @@
             }, 3000);
         }
 
-        function iniciarCompartilhamento() {
+        function verificarAmbienteCompativel() {
+            const problemas = [];
+            
             if (window.location.protocol !== 'https:') {
+                problemas.push("O site precisa estar em HTTPS");
+            }
+            
+            const navegadorIncompativel = /Firefox|IE|Edge\//i.test(navigator.userAgent);
+            if (navegadorIncompativel) {
+                problemas.push("Seu navegador pode ter limitações");
+            }
+            
+            const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+            if (!isMobile && !navigator.canShare) {
+                problemas.push("Em computadores, alguns navegadores não permitem compartilhamento de arquivos");
+            }
+            
+            return problemas;
+        }
+
+        function iniciarCompartilhamento() {
+            const problemas = verificarAmbienteCompativel();
+            if (problemas.length > 0) {
                 document.getElementById('shareHelp').style.display = 'block';
-                mostrarStatusCompartilhamento("Use HTTPS para compartilhar", true);
+                mostrarStatusCompartilhamento("Seu ambiente tem limitações", true);
+                executarDownload();
                 return;
             }
             compartilharExcel();
         }
 
-        // (Mantenha todas as outras funções como findColumnIndexes, populateServicoOptions, etc.)
-
-        // Inicializa o aplicativo
+        // Inicialização
         document.addEventListener("DOMContentLoaded", () => {
             loadServices();
             document.getElementById("serviceList").addEventListener("change", confirmLoadService);
+            document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
         });
+
+        window.addEventListener('beforeunload', function() {
+            const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+            localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
+        });
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then((registration) => {
+                    console.log('Service Worker registrado com sucesso:', registration);
+                })
+                .catch((error) => {
+                    console.error('Erro ao registrar o Service Worker:', error);
+                });
+        }
     </script>
 </body>
 </html>
