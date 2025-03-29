@@ -4,18 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Romaneio de Spool</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
-function voltarInicio() {
-    window.location.href = "index.html";
-}
-
-</script>
-    <script src="https://unpkg.com/html5-qrcode">
-function voltarInicio() {
-    window.location.href = "index.html";
-}
-
-</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -252,6 +242,28 @@ function voltarInicio() {
     </style>
 </head>
 <body>
+<button onclick="voltarMenu()" style="
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  cursor: pointer;
+  z-index: 9999;
+">
+  Voltar ao Menu
+</button>
+
+<script>
+  function voltarMenu() {
+    localStorage.removeItem("ultimaTela");
+    window.location.href = "index.html";
+  }
+</script>
+
     <h2>
         <img src="image.png" alt="Logo" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;">
         ROMANEIO DE SPOOL
@@ -268,13 +280,6 @@ function voltarInicio() {
         <input type="text" id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code">
         <button onclick="downloadExcel()">Download Excel</button>
         <button onclick="startQrScanner()">Escanear QR Code</button>
-<button onclick="voltarInicio()" style="display: inline-flex; align-items: center; background-color: #007BFF; color: white; border: none; border-radius: 5px; padding: 10px;">
-    <svg style="margin-right: 5px;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" viewBox="0 0 16 16">
-        <path fill-rule="evenodd" d="M11 1a1 1 0 0 1 1 1v4.5H5.707l2.147-2.146a.5.5 0 1 0-.708-.708l-3 3a.5.5 0 0 0 0 .708l3 3a.5.5 0 0 0 .708-.708L5.707 8.5H12V13a1 1 0 0 1-2 0V2a1 1 0 0 1 1-1z"/>
-    </svg>
-    Voltar
-</button>
-
     </div>
 
     <div id="confirmModalOverlay" class="modal-overlay" style="z-index: 2000;">
@@ -290,13 +295,6 @@ function voltarInicio() {
     <div id="qr-container" style="display: none;">
         <div id="qr-reader" style="width:300px; margin-top:10px;"></div>
         <button class="close-btn" id="closeScannerBtn" style="display: none;" onclick="stopQrScanner()">Fechar Scanner</button>
-<button onclick="voltarInicio()" style="display: inline-flex; align-items: center; background-color: #007BFF; color: white; border: none; border-radius: 5px; padding: 10px;">
-    <svg style="margin-right: 5px;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" viewBox="0 0 16 16">
-        <path fill-rule="evenodd" d="M11 1a1 1 0 0 1 1 1v4.5H5.707l2.147-2.146a.5.5 0 1 0-.708-.708l-3 3a.5.5 0 0 0 0 .708l3 3a.5.5 0 0 0 .708-.708L5.707 8.5H12V13a1 1 0 0 1-2 0V2a1 1 0 0 1 1-1z"/>
-    </svg>
-    Voltar
-</button>
-
     </div>
 
     <div class="table-container">
@@ -848,7 +846,6 @@ function voltarInicio() {
 
 
         document.addEventListener("DOMContentLoaded", () => {
-    localStorage.setItem("ultimaTela", "spool");
             loadServices();
         document.getElementById("serviceList").addEventListener("change", confirmLoadService);
         });
@@ -867,11 +864,6 @@ function voltarInicio() {
                     console.error('Erro ao registrar o Service Worker:', error);
                 });
         }
-    
-function voltarInicio() {
-    window.location.href = "index.html";
-}
-
-</script>
+    </script>
 </body>
 </html>
