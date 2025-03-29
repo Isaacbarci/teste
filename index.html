@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -66,12 +67,6 @@
   </style>
 </head>
 <body>
-<script>
-  const ultimaPagina = localStorage.getItem('pagina_atual');
-  if (ultimaPagina && !window.location.pathname.includes(ultimaPagina)) {
-    window.location.href = ultimaPagina;
-  }
-</script>
 
 <div id="menu" class="menu">
   <img src="file-G9pWvSEJTYyLYkJbdxmTZt" alt="Palmont Logo" style="max-width: 180px; margin-bottom: 20px;">
@@ -111,38 +106,6 @@
     menu.style.display = "flex";
     btn.style.display = "none";
   }
-</script>
-
-
-<script>
-  let touchStartY = 0;
-
-  document.addEventListener('touchstart', function (e) {
-    touchStartY = e.touches[0].clientY;
-  }, { passive: false });
-
-  document.addEventListener('touchmove', function (e) {
-    const touchY = e.touches[0].clientY;
-    if (window.scrollY === 0 && touchY > touchStartY) {
-      // Impede o pull to refresh
-      e.preventDefault();
-    }
-  }, { passive: false });
-</script>
-
-
-<script>
-  let touchStartY = 0;
-  document.addEventListener('touchstart', function (e) {
-    touchStartY = e.touches[0].clientY;
-  }, { passive: false });
-
-  document.addEventListener('touchmove', function (e) {
-    const touchY = e.touches[0].clientY;
-    if (window.scrollY === 0 && touchY > touchStartY) {
-      e.preventDefault(); // bloqueia o pull-to-refresh
-    }
-  }, { passive: false });
 </script>
 
 </body>
