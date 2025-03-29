@@ -330,23 +330,8 @@ input[type=number] {
         </select>
         <button onclick="confirmLoadService()">Carregar Serviço</button>
         <input type="text" id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação">
-<button onclick="baixarExcel()">Download Excel</button>
-        <button onclick="startQrScanner()">Escanear QR Code</button> 
-        <button onclick="parent.voltar()" style="
-            background-color: #dc3545;
-            border: none;
-            padding: 10px 14px;
-            border-radius: 5px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            height: 42px;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="white" viewBox="0 0 24 24">
-            <path d="M10 19l-7-7 7-7v4h8v6h-8v4z"/>
-          </svg>
-        </button>
-        </div>
+        <button onclick="downloadExcel()">Download Excel</button>
+        <button onclick="startQrScanner()">Escanear QR Code</button>
     </div>
 
 
@@ -1008,90 +993,209 @@ function configurarEventosQuantidade() {
             }
         }
 
-        
+        function downloadExcel() {
+            if (!data.length) {
+                alert("Nenhum dado carregado para exportar.");
+                return;
+            }
 
+            const currentServico = document.getElementById("servicoSelect").value;
+            let filteredDataToExport = data.slice(1).filter(row => row[servicoIndex] === currentServico);
 
-function gerarExcelBlob(servicoSelecionado) {
-    const headerRow = data[0];
-    const filteredRows = data.slice(1).filter(row => row[servicoIndex] === servicoSelecionado);
-    const dataToExport = [headerRow, ...filteredRows];
+            let dataToExport = [data[0], ...filteredDataToExport.map(row => [...row])];
 
-    const worksheet = XLSX.utils.aoa_to_sheet(dataToExport);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, servicoSelecionado);
+            const findColumnIndex = (colName) => {
+                const lowerColName = colName.toLowerCase().replace(/\s+/g, '');
+                for (let i = 0; i < data[0].length; i++) {
+                    const header = String(data[0][i]).toLowerCase().replace(/\s+/g, '');
+                    if (header === lowerColName) {
+                        return i;
+                    }
+                }
+                return undefined;
+            };
 
-    const blob = XLSX.write(workbook, { bookType: 'xlsx', type: 'blob' });
-    return { blob, fileName: `Romaneio_Suporte_${servicoSelecionado.replace(/[\\/\\?%*:|"<>]/g, '_')}.xlsx` };
-}
+            const colIndexes = {
+                qtde: findColumnIndex("qtde"),
+                qtdEnviada: findColumnIndex("QTD ENVIADA"),
+                qtdeEnviada: findColumnIndex("Qtde Enviada"),
+                saldo: findColumnIndex("saldo"),
+                pesoKg: findColumnIndex("peso (kg)"),
+                areaSuperficie: findColumnIndex("área superfície"),
+                pesoEnviado: findColumnIndex("peso enviado"),
+                areaEnviada: findColumnIndex("área enviada"),
+                pesoUnitario: findColumnIndex("peso unitário"),
+                areaUnitario: findColumnIndex("area m² unitário"),
+                pesoTotal: findColumnIndex("peso total"),
+                areaTotal: findColumnIndex("área m² total"),
+                dataRomaneio1: findColumnIndex("DATA DO ROMANEIO"),
+                dataRomaneio2: findColumnIndex("Data Romaneio")
+            };
 
-function executarDownload() {
-    const servicoSelecionado = document.getElementById("servicoSelect").value;
-    if (!servicoSelecionado) return alert("Selecione um serviço.");
-    const { blob, fileName } = gerarExcelBlob(servicoSelecionado);
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = fileName;
-    link.click();
-    fecharModal();
-}
+            const formatDateBR = (value) => {
+                if (!value) return "";
 
-async function compartilharExcel() {
-    const servicoSelecionado = document.getElementById("servicoSelect").value;
-    if (!servicoSelecionado) return alert("Selecione um serviço.");
-    const { blob, fileName } = gerarExcelBlob(servicoSelecionado);
-    const file = new File([blob], fileName, {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    });
+                if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+                    return value;
+                }
 
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-            await navigator.share({
-                title: "Romaneio de Suporte",
-                text: `Segue o romaneio do serviço ${servicoSelecionado}.`,
-                files: [file]
+                if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(value)) {
+                    const [mes, dia, ano] = value.split('/');
+
+                    let anoCorrigido = ano.length === 2 ? `20${ano}` : ano;
+                    const diaFormatado = String(dia).padStart(2, '0');
+                    const mesFormatado = String(mes).padStart(2, '0');
+
+                    return `${diaFormatado}/${mesFormatado}/${anoCorrigido}`;
+                }
+
+                if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+                    const [ano, mes, dia] = value.split("-");
+                    return `${dia}/${mes}/${ano}`;
+                }
+
+                return value;
+            };
+
+            dataToExport.forEach((row, rowIndex) => {
+                if (rowIndex === 0) return;
+
+                const toInt = (value) => {
+                    if (value === "" || value === null || value === undefined) return "";
+                    const num = Number(value);
+                    return isNaN(num) ? value : Math.round(num);
+                };
+
+                const toDecimal = (value) => {
+                    if (value === "" || value === null || value === undefined) return "";
+                    const num = Number(value);
+                    return isNaN(num) ? value : num;
+                };
+
+                if (colIndexes.qtdeEnviada !== undefined) {
+                    const originalValue = row[colIndexes.qtdeEnviada];
+                    row[colIndexes.qtdeEnviada] = toInt(originalValue);
+                    if (originalValue !== "" && !isNaN(Number(originalValue))) {
+                        row[colIndexes.qtdeEnviada] = Math.round(Number(originalValue));
+                    }
+                }
+
+                if (colIndexes.qtde !== undefined) row[colIndexes.qtde] = toInt(row[colIndexes.qtde]);
+                if (colIndexes.saldo !== undefined) row[colIndexes.saldo] = toInt(row[colIndexes.saldo]);
+
+                if (colIndexes.pesoKg !== undefined) row[colIndexes.pesoKg] = toDecimal(row[colIndexes.pesoKg]);
+                if (colIndexes.areaSuperficie !== undefined) row[colIndexes.areaSuperficie] = toDecimal(row[colIndexes.areaSuperficie]);
+                if (colIndexes.pesoUnitario !== undefined) row[colIndexes.pesoUnitario] = toDecimal(row[colIndexes.pesoUnitario]);
+                if (colIndexes.areaUnitario !== undefined) row[colIndexes.areaUnitario] = toDecimal(row[colIndexes.areaUnitario]);
+                if (colIndexes.pesoTotal !== undefined) row[colIndexes.pesoTotal] = toDecimal(row[colIndexes.pesoTotal]);
+                if (colIndexes.areaTotal !== undefined) row[colIndexes.areaTotal] = toDecimal(row[colIndexes.areaTotal]);
+
+                if (colIndexes.qtdEnviada !== undefined && row[colIndexes.qtdEnviada] !== "") {
+                    if (colIndexes.pesoUnitario !== undefined && colIndexes.pesoEnviado !== undefined) {
+                        const pesoUnitario = toDecimal(row[colIndexes.pesoUnitario]);
+                        const qtdEnviada = toInt(row[colIndexes.qtdEnviada]);
+                        if (!isNaN(pesoUnitario) && !isNaN(qtdEnviada)) {
+                            row[colIndexes.pesoEnviado] = pesoUnitario * qtdEnviada;
+                        }
+                    }
+
+                    if (colIndexes.areaUnitario !== undefined && colIndexes.areaEnviada !== undefined) {
+                        const areaUnitario = toDecimal(row[colIndexes.areaUnitario]);
+                        const qtdEnviada = toInt(row[colIndexes.qtdEnviada]);
+                        if (!isNaN(areaUnitario) && !isNaN(qtdEnviada)) {
+                            row[colIndexes.areaEnviada] = areaUnitario * qtdEnviada;
+                        }
+                    }
+                } else {
+                    if (colIndexes.pesoEnviado !== undefined) row[colIndexes.pesoEnviado] = "";
+                    if (colIndexes.areaEnviada !== undefined) row[colIndexes.areaEnviada] = "";
+                }
+
+                if (colIndexes.dataRomaneio1 !== undefined) {
+                    row[colIndexes.dataRomaneio1] = formatDateBR(row[colIndexes.dataRomaneio1]);
+                }
+                if (colIndexes.dataRomaneio2 !== undefined) {
+                    row[colIndexes.dataRomaneio2] = formatDateBR(row[colIndexes.dataRomaneio2]);
+                }
             });
-        } catch (err) {
-            console.error("Erro ao compartilhar:", err);
-            alert("Erro ao compartilhar o arquivo.");
+
+            const worksheet = XLSX.utils.aoa_to_sheet(dataToExport);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Romaneio");
+
+            if (worksheet["!ref"]) {
+                const range = XLSX.utils.decode_range(worksheet["!ref"]);
+
+                if (colIndexes.qtdEnviada !== undefined) {
+                    for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
+                        const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: colIndexes.qtdEnviada});
+                        if (worksheet[cellAddress]) {
+                            worksheet[cellAddress].t = 'n';
+                            worksheet[cellAddress].z = '#,##0';
+                        }
+                    }
+                }
+
+                const numericColumns = {
+                    inteiros: [colIndexes.qtde, colIndexes.saldo],
+                    decimais: [
+                        colIndexes.pesoKg, colIndexes.areaSuperficie,
+                        colIndexes.pesoEnviado, colIndexes.areaEnviada,
+                        colIndexes.pesoUnitario, colIndexes.areaUnitario,
+                        colIndexes.pesoTotal, colIndexes.areaTotal
+                    ]
+                };
+
+                numericColumns.inteiros.forEach(col => {
+                    if (col !== undefined) {
+                        for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
+                            const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: col});
+                            if (worksheet[cellAddress] && worksheet[cellAddress].v !== "") {
+                                worksheet[cellAddress].t = 'n';
+                                worksheet[cellAddress].z = '#,##0';
+                            }
+                        }
+                    }
+                });
+
+                numericColumns.decimais.forEach(col => {
+                    if (col !== undefined) {
+                        for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
+                            const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: col});
+                            if (worksheet[cellAddress] && worksheet[cellAddress].v !== "") {
+                                worksheet[cellAddress].t = 'n';
+                                worksheet[cellAddress].z = '#,##0.00';
+                            }
+                        }
+                    }
+                });
+            }
+
+            worksheet["!cols"] = data[0].map((_, i) => ({
+                wch: Math.max(...dataToExport.map(row => (row[i] ? row[i].toString().length : 10))) + 2
+            }));
+
+            XLSX.writeFile(workbook, `Romaneio_Suporte_${currentServico || ''}.xlsx`);
         }
-    } else {
-        alert("Este navegador/dispositivo não suporta compartilhamento de arquivos.");
-    }
 
-    fecharModal();
-}
-</script>
+        document.addEventListener("DOMContentLoaded", () => {
+            loadServices();
+        });
 
-<div id="opcoesModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 3000;">
-  <div class="modal" style="background: #fff; padding: 20px; border-radius: 10px; color: black; text-align: center;">
-    <p style="font-size: 16px; font-weight: bold;">Deseja:</p>
-    <button onclick="executarDownload()">Baixar Local</button>
-    <button onclick="compartilharExcel()">Compartilhar</button>
-    <button class="close-btn" onclick="fecharModal()">Cancelar</button>
-  </div>
-</div>
+        window.addEventListener('beforeunload', function() {
+            const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+            localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
+        });
 
-<div id="downloadModalOverlay" class="modal-overlay" style="z-index: 3000;">
-    <div class="modal" style="text-align: center;">
-        <p id="downloadModalMessage" style="font-size: 16px;">Como deseja exportar o Excel?</p>
-        <div class="modal-footer" style="display: flex; flex-direction: column; gap: 10px;">
-            <button onclick="executarDownload()" style="background-color: #28a745; color: white;" class="save-btn">BAIXAR</button>
-            <button onclick="compartilharExcel()" style="background-color: #007BFF; color: white;">COMPARTILHAR</button>
-            <button onclick="fecharModal()" style="background-color: #dc3545; color: white;" class="close-btn">CANCELAR</button>
-        </div>
-    </div>
-</div>
-
-<script>
-function baixarExcel() {
-  const worksheet = XLSX.utils.table_to_sheet(document.getElementById("dataTable"));
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Romaneio");
-  XLSX.writeFile(workbook, "romaneio_exportado.xlsx");
-}
-</script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then((registration) => {
+                    console.log('Service Worker registrado com sucesso:', registration);
+                })
+                .catch((error) => {
+                    console.error('Erro ao registrar o Service Worker:', error);
+                });
+        }
+    </script>
 </body>
-
-
 </html>
