@@ -258,7 +258,20 @@
         <input type="text" id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code">
         <button onclick="downloadExcel()">Download Excel</button>
         <button onclick="startQrScanner()">Escanear QR Code</button>
-    </div>
+    
+  <button onclick="window.parent.voltar()" style="
+      background-color: #dc3545;
+      border: none;
+      border-radius: 6px;
+      padding: 10px;
+      margin-left: 5px;
+      cursor: pointer;
+  " title="Voltar para o menu">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" viewBox="0 0 24 24">
+      <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+    </svg>
+  </button>
+</div>
 
     <div id="confirmModalOverlay" class="modal-overlay" style="z-index: 2000;">
         <div class="modal" style="text-align: center;">
