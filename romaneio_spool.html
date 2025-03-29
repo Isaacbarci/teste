@@ -242,28 +242,6 @@
     </style>
 </head>
 <body>
-<button onclick="voltarMenu()" style="
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 10px 20px;
-  cursor: pointer;
-  z-index: 9999;
-">
-  Voltar ao Menu
-</button>
-
-<script>
-  function voltarMenu() {
-    localStorage.removeItem("ultimaTela");
-    window.location.href = "index.html";
-  }
-</script>
-
     <h2>
         <img src="image.png" alt="Logo" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;">
         ROMANEIO DE SPOOL
@@ -280,6 +258,10 @@
         <input type="text" id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code">
         <button onclick="downloadExcel()">Download Excel</button>
         <button onclick="startQrScanner()">Escanear QR Code</button>
+<button onclick="voltarMenu()" style="margin-left: 5px; background-color: #dc3545; color: white; border: none; border-radius: 6px; padding: 10px 15px; cursor: pointer;">
+  Voltar ao Menu
+</button>
+
     </div>
 
     <div id="confirmModalOverlay" class="modal-overlay" style="z-index: 2000;">
@@ -461,7 +443,7 @@
 
         function confirmLoadService() {
             const senhaCorreta = "1234";
-            const tentativa = prompt("Digite a senha para continuar:");
+            const tentativa = window.prompt("Digite a senha para continuar:");
 
             if (tentativa !== senhaCorreta) {
                 alert("Senha incorreta. Ação cancelada.");
@@ -640,6 +622,7 @@
 
                 ordemColunasExibidas.forEach(col => {
                     const colIndex = columnIndexes[col.toLowerCase()];
+                    if (colIndex === undefined) return;
                     const td = document.createElement("td");
                     let cellValue = row[colIndex] || "";
 
