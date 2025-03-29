@@ -330,8 +330,23 @@ input[type=number] {
         </select>
         <button onclick="confirmLoadService()">Carregar Serviço</button>
         <input type="text" id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação">
-        <button onclick="compartilharArquivo()">COMPARTILHAR</button>
-        <button onclick="startQrScanner()">Escanear QR Code</button> <button onclick="parent.voltar()" style="background-color: #6c757d; color: white;">Voltar</button>
+<button onclick="baixarExcel()">Download Excel</button>
+        <button onclick="startQrScanner()">Escanear QR Code</button> 
+        <button onclick="parent.voltar()" style="
+            background-color: #dc3545;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 42px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="white" viewBox="0 0 24 24">
+            <path d="M10 19l-7-7 7-7v4h8v6h-8v4z"/>
+          </svg>
+        </button>
+        </div>
     </div>
 
 
@@ -1198,10 +1213,6 @@ function configurarEventosQuantidade() {
                 });
         }
     
-function abrirModalDownload() {
-    document.getElementById("downloadModalOverlay").style.display = "flex";
-}
-
 function fecharModal() {
     document.getElementById("downloadModalOverlay").style.display = "none";
 }
@@ -1277,6 +1288,16 @@ async function compartilharExcel() {
         </div>
     </div>
 </div>
+
+<script>
+function baixarExcel() {
+  const worksheet = XLSX.utils.table_to_sheet(document.getElementById("dataTable"));
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Romaneio");
+  XLSX.writeFile(workbook, "romaneio_exportado.xlsx");
+}
+</script>
 </body>
+
 
 </html>
