@@ -83,44 +83,7 @@
   const iframe = document.getElementById("frameApp");
   const menu = document.getElementById("menu");
 
-  function abrir(tipo) {
-    localStorage.setItem("ultimaTela", tipo);
-    iframe.src = tipo === "spool" ? "romaneio_spool.html" : "romaneio_suporte.html";
-    iframe.style.display = "block";
-    menu.style.display = "none";
-    document.getElementById("btnVoltar").style.display = "block";
-  }
-
-  function voltar() {
-    iframe.src = "";
-    iframe.style.display = "none";
-    menu.style.display = "flex";
-    document.getElementById("btnVoltar").style.display = "none";
-    localStorage.removeItem("ultimaTela");
-  }
-
-  window.onload = () => {
-    const ultimaTela = localStorage.getItem("ultimaTela");
-    if (ultimaTela) abrir(ultimaTela);
-  };
-</script>
-
-<button id="btnVoltar" class="voltar-btn-remove" onclick="voltar()">VOLTAR AO MENU</button>
-  function abrir(tipo) {
-    const iframe = document.getElementById("frameApp");
-    const menu = document.getElementById("menu");
-    const btn = document.getElementById("btnVoltar");
-
-    if (tipo === "spool") {
-      iframe.src = "romaneio_spool.html";
-    } else {
-      iframe.src = "romaneio_suporte.html";
-    }
-
-    iframe.style.display = "block";
-    menu.style.display = "none";
-    btn.style.display = "block";
-  }
+  
 
   function voltar() {
     const iframe = document.getElementById("frameApp");
