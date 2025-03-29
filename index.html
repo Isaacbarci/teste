@@ -963,7 +963,6 @@ function downloadExcel() {
 }
 function compartilharExcel() {
   if (typeof executarCompartilhamento === "function") executarCompartilhamento();
-  fecharModalDownload();
 }
 document.addEventListener("DOMContentLoaded", () => {
   const btnDownload = document.getElementById("btnDownloadExcel");
