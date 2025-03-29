@@ -1186,6 +1186,13 @@ function configurarEventosQuantidade() {
     if (btnShare) btnShare.addEventListener("click", compartilharExcel);
     if (btnCancel) btnCancel.addEventListener("click", fecharModal);
 
+    const btnDownload = document.getElementById("btnDownload");
+    const btnShare = document.getElementById("btnShare");
+    const btnCancel = document.getElementById("btnCancel");
+    if (btnDownload) btnDownload.addEventListener("click", executarDownload);
+    if (btnShare) btnShare.addEventListener("click", compartilharExcel);
+    if (btnCancel) btnCancel.addEventListener("click", fecharModal);
+
     document.getElementById("servicoSelect").addEventListener("change", confirmLoadService);
             loadServices();
         });
