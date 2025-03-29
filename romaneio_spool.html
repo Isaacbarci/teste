@@ -5,16 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Romaneio de Spool</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
-function voltarMenu() {
-    localStorage.removeItem("ultimaTela");
-    window.location.href = "index.html";
-}
+    // Salva o nome do sistema (spool ou suporte) como o último aberto
+    localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
+
+    function voltarParaIndex() {
+        window.location.href = "index.html";
+    }
+
 </script>
     <script src="https://unpkg.com/html5-qrcode">
-function voltarMenu() {
-    localStorage.removeItem("ultimaTela");
-    window.location.href = "index.html";
-}
+    // Salva o nome do sistema (spool ou suporte) como o último aberto
+    localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
+
+    function voltarParaIndex() {
+        window.location.href = "index.html";
+    }
+
 </script>
     <style>
         body {
@@ -268,8 +274,12 @@ function voltarMenu() {
         <input type="text" id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code">
         <button onclick="downloadExcel()">Download Excel</button>
         <button onclick="startQrScanner()">Escanear QR Code</button>
-<button onclick="voltarMenu()" style="margin-left: 5px; background-color: #dc3545; color: white; border: none; border-radius: 6px; padding: 10px 15px; cursor: pointer;">
-  Voltar ao Menu
+
+<button onclick="voltarParaIndex()" title="Voltar para o Início">
+    <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24" fill="white" style="vertical-align: middle; margin-right: 5px;">
+        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+    </svg>
+    Voltar
 </button>
 
     </div>
@@ -453,7 +463,7 @@ function voltarMenu() {
 
         function confirmLoadService() {
             const senhaCorreta = "1234";
-            const tentativa = window.prompt("Digite a senha para continuar:");
+            const tentativa = prompt("Digite a senha para continuar:");
 
             if (tentativa !== senhaCorreta) {
                 alert("Senha incorreta. Ação cancelada.");
@@ -632,7 +642,6 @@ function voltarMenu() {
 
                 ordemColunasExibidas.forEach(col => {
                     const colIndex = columnIndexes[col.toLowerCase()];
-                    if (colIndex === undefined) return;
                     const td = document.createElement("td");
                     let cellValue = row[colIndex] || "";
 
@@ -858,10 +867,13 @@ function voltarMenu() {
                 });
         }
     
-function voltarMenu() {
-    localStorage.removeItem("ultimaTela");
-    window.location.href = "index.html";
-}
+    // Salva o nome do sistema (spool ou suporte) como o último aberto
+    localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
+
+    function voltarParaIndex() {
+        window.location.href = "index.html";
+    }
+
 </script>
 </body>
 </html>
