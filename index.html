@@ -17,6 +17,11 @@
             margin: 0;
         }
 
+        img.logo {
+            width: 200px;
+            margin-bottom: 20px;
+        }
+
         h1 {
             margin-bottom: 20px;
         }
@@ -27,29 +32,32 @@
             margin: 10px;
             border: none;
             border-radius: 8px;
-            background-color: #007BFF;
-            color: white;
             cursor: pointer;
         }
 
-        button:hover {
+        .spool {
+            background-color: #007BFF;
+            color: white;
+        }
+
+        .spool:hover {
             background-color: #0056b3;
         }
+
+        .suporte {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .suporte:hover {
+            background-color: #218838;
+        }
     </style>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const ultimo = localStorage.getItem("ultimoSistemaAberto");
-            if (ultimo === "spool") {
-                window.location.href = "romaneio_spool.html";
-            } else if (ultimo === "suporte") {
-                window.location.href = "romaneio_suporte.html";
-            }
-        });
-    </script>
 </head>
 <body>
+    <img src="logo_palmont.png" alt="Logo Palmont" class="logo">
     <h1>Escolha o sistema</h1>
-    <button onclick="location.href='romaneio_spool.html'">Romaneio de Spool</button>
-    <button onclick="location.href='romaneio_suporte.html'">Romaneio de Suporte</button>
+    <button class="spool" onclick="location.href='romaneio_spool.html'">Romaneio de Spool</button>
+    <button class="suporte" onclick="location.href='romaneio_suporte.html'">Romaneio de Suporte</button>
 </body>
 </html>
