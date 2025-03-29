@@ -4,8 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Romaneio de Spool</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
+function voltarMenu() {
+    localStorage.removeItem("ultimaTela");
+    window.location.href = "index.html";
+}
+</script>
+    <script src="https://unpkg.com/html5-qrcode">
+function voltarMenu() {
+    localStorage.removeItem("ultimaTela");
+    window.location.href = "index.html";
+}
+</script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -847,6 +857,11 @@
                     console.error('Erro ao registrar o Service Worker:', error);
                 });
         }
-    </script>
+    
+function voltarMenu() {
+    localStorage.removeItem("ultimaTela");
+    window.location.href = "index.html";
+}
+</script>
 </body>
 </html>
