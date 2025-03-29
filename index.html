@@ -2,111 +2,20 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Romaneio Palmont</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #000;
-      color: white;
-    }
-    .menu {
-  padding-top: 20px;
-  padding-bottom: 20px;
-  gap: 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 40px 20px;
-  min-height: auto;
-  height: auto;
-  box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      text-align: center;
-      padding: 20px;
-    }
-    .menu button {
-  margin: 10px auto;
-      width: 80%;
-      max-width: 300px;
-      margin: 15px;
-      padding: 15px;
-      font-size: 18px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    .spool-btn { background-color: #007bff; color: white; }
-    .suporte-btn { background-color: #28a745; color: white; }
-    iframe {
-      width: 100%;
-      height: 100vh;
-      border: none;
-      display: none;
-    }
-    .voltar-btn-remove {
-      background-color: #dc3545;
-      color: white;
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      z-index: 9999;
-      display: none;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Início</title>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const ultimaTela = localStorage.getItem("ultimaTela");
+            if (ultimaTela === "spool") {
+                window.location.href = "romaneio_spool.html";
+            } else if (ultimaTela === "suporte") {
+                window.location.href = "romaneio_suporte.html";
+            }
+        });
+    </script>
 </head>
 <body>
-
-<div id="menu" class="menu">
-  <img src="file-G9pWvSEJTYyLYkJbdxmTZt" alt="Palmont Logo" style="max-width: 180px; margin-bottom: 20px;">
-  <h1>Romaneio Palmont</h1>
-  <button class="spool-btn" onclick="abrir('spool')">Romaneio de Spool</button>
-  <button class="suporte-btn" onclick="abrir('suporte')">Romaneio de Suporte</button>
-</div>
-
-
-
-<iframe id="frameApp" src=""></iframe>
-
-<script>
-  function abrir(tipo) {
-    const iframe = document.getElementById("frameApp");
-    const menu = document.getElementById("menu");
-    const btn = document.getElementById("btnVoltar");
-
-    if (tipo === "spool") {
-      iframe.src = "romaneio_spool.html";
-    } else {
-      iframe.src = "romaneio_suporte.html";
-    }
-
-    iframe.style.display = "block";
-    menu.style.display = "none";
-    btn.style.display = "block";
-  }
-
-  function voltar() {
-    const iframe = document.getElementById("frameApp");
-    const menu = document.getElementById("menu");
-    const btn = document.getElementById("btnVoltar");
-
-    iframe.src = "";
-    iframe.style.display = "none";
-    menu.style.display = "flex";
-    btn.style.display = "none";
-  }
-</script>
-
+    <h1 style="color:white; background-color:black; text-align:center; padding:50px;">Carregando...</h1>
 </body>
 </html>
