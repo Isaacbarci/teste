@@ -318,17 +318,6 @@
         </div>
     </div>
 
-    <div id="downloadModalOverlay" class="modal-overlay" style="z-index: 3000; display: none;">
-        <div class="modal" style="text-align: center;">
-            <p id="downloadModalMessage" style="font-size: 16px;">Como deseja exportar o Excel?</p>
-            <div class="modal-footer" style="display: flex; flex-direction: column; gap: 10px;">
-                <button onclick="executarDownload()" style="background-color: #28a745; color: white;" class="save-btn">BAIXAR</button>
-                <button onclick="compartilharExcel()" style="background-color: #007BFF; color: white;">COMPARTILHAR</button>
-                <button onclick="fecharModal()" style="background-color: #dc3545; color: white;" class="close-btn">CANCELAR</button>
-            </div>
-        </div>
-    </div>
-
     <script>
         let data = [];
         let filteredData = [];
@@ -348,6 +337,7 @@
             "ÁREA SUPERF.", "OBS ROMANEIO", "ID_SPOOL", "SERVIÇO", "ROMANEIOS"
         ];
 
+        // Ordem fixa de colunas a exibir na tabela
         const ordemColunasExibidas = [
             "ISOMÉTRICO",
             "SPOOL",
@@ -772,132 +762,66 @@
             renderTable();
         }
 
-        function abrirModalDownload() {
-            const selectedService = document.getElementById("serviceList").value;
-            if (!selectedService) {
-                alert("Selecione um serviço para exportar.");
-                return;
-            }
-            document.getElementById("downloadModalOverlay").style.display = "flex";
-        }
+        function downloadExcel() {
+    if (data.length === 0) {
+        alert("Nenhum dado disponível para exportar.");
+        return;
+    }
 
-        function fecharModal() {
-            document.getElementById("downloadModalOverlay").style.display = "none";
-        }
+    const selectedService = document.getElementById("serviceList").value;
+    if (!selectedService) {
+        alert("Selecione um serviço para exportar.");
+        return;
+    }
 
-        function executarDownload() {
-            const selectedService = document.getElementById("serviceList").value;
-            if (!selectedService) {
-                alert("Selecione um serviço para exportar.");
-                return;
-            }
+    const headerRow = data[0];
+    const filteredRows = data.slice(1).filter(row => row[servicoIndex] === selectedService);
+    const dataToExport = [headerRow, ...filteredRows];
 
-            const headerRow = data[0];
-            const filteredRows = data.slice(1).filter(row => row[servicoIndex] === selectedService);
-            const dataToExport = [headerRow, ...filteredRows];
+    const formattedData = dataToExport.map((row, rowIndex) => {
+        if (rowIndex === 0) return row;
 
-            const formattedData = dataToExport.map((row, rowIndex) => {
-                if (rowIndex === 0) return row;
-                return row.map((cell, colIndex) => {
-                    let header = dataToExport[0][colIndex].trim().toLowerCase();
-                    if (header === "data do romaneio") return formatDate(cell);
-                    if (header === "peso" || header === "área superf.") {
-                        const numericValue = parseFloat((cell || "").toString().replace(",", "."));
-                        return isNaN(numericValue) ? "" : numericValue;
-                    }
-                    return cell;
-                });
-            });
+        return row.map((cell, colIndex) => {
+            let header = dataToExport[0][colIndex].trim().toLowerCase();
 
-            const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
-
-            const nomeArquivo = `Romaneio_Spool_${selectedService.replace(/[\/?:*"<>|]/g, "_")}.xlsx`;
-            XLSX.writeFile(workbook, nomeArquivo);
-            fecharModal();
-        }
-
-        async function compartilharExcel() {
-            const selectedService = document.getElementById("serviceList").value;
-            if (!selectedService) {
-                alert("Selecione um serviço para exportar.");
-                return;
+            if (header === "data do romaneio") {
+                return formatDate(cell);
             }
 
-            try {
-                // 1. Preparar os dados
-                const headerRow = data[0];
-                const filteredRows = data.slice(1).filter(row => row[servicoIndex] === selectedService);
-                const dataToExport = [headerRow, ...filteredRows];
-
-                const formattedData = dataToExport.map((row, rowIndex) => {
-                    if (rowIndex === 0) return row;
-                    return row.map((cell, colIndex) => {
-                        let header = dataToExport[0][colIndex].trim().toLowerCase();
-                        if (header === "data do romaneio") return formatDate(cell);
-                        if (header === "peso" || header === "área superf.") {
-                            const numericValue = parseFloat((cell || "").toString().replace(",", "."));
-                            return isNaN(numericValue) ? "" : numericValue;
-                        }
-                        return cell;
-                    });
-                });
-
-                // 2. Criar a planilha
-                const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
-                const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
-
-                // 3. Gerar o arquivo
-                const excelArrayBuffer = await XLSX.write(workbook, { 
-                    bookType: 'xlsx', 
-                    type: 'array' 
-                });
-                
-                // 4. Criar o Blob
-                const blob = new Blob([excelArrayBuffer], { 
-                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-                });
-                
-                // 5. Verificar se o navegador suporta compartilhamento
-                if (!navigator.share) {
-                    alert("Seu navegador não suporta a API de compartilhamento. Use a opção de download.");
-                    return;
+            if (header === "peso" || header === "área superf.") {
+                if (cell === "" || cell === null || cell === undefined) {
+                    return "";
                 }
-
-                // 6. Criar arquivo para compartilhamento
-                const fileName = `Romaneio_Spool_${selectedService.replace(/[\/?:*"<>|]/g, "_")}.xlsx`;
-                const file = new File([blob], fileName, { 
-                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-                });
-
-                // 7. Verificar se pode compartilhar o arquivo
-                if (!navigator.canShare || !navigator.canShare({ files: [file] })) {
-                    alert("Seu navegador não permite compartilhar este tipo de arquivo. Use a opção de download.");
-                    return;
-                }
-
-                // 8. Tentar compartilhar
-                await navigator.share({
-                    title: 'Romaneio de Spool',
-                    text: `Romaneio do serviço ${selectedService}`,
-                    files: [file]
-                });
-
-            } catch (error) {
-                console.error('Erro ao compartilhar:', error);
-                
-                // Mensagens de erro mais amigáveis
-                if (error.name === 'AbortError') {
-                    console.log('Compartilhamento cancelado pelo usuário');
-                } else {
-                    alert(`Erro ao compartilhar: ${error.message}. Você pode baixar o arquivo normalmente.`);
-                }
-            } finally {
-                fecharModal();
+                const numericValue = parseFloat(cell.toString().replace(",", "."));
+                return isNaN(numericValue) ? "" : numericValue;
             }
-        }
+
+            return cell;
+        });
+    });
+
+    const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
+
+    const romaneiosIndex = data[0].findIndex(
+        header => header.trim().toLowerCase() === "romaneios"
+    );
+
+    const colWidths = formattedData[0].map((_, i) => {
+        const width = Math.max(...formattedData.map(row => (row[i] ? row[i].toString().length : 10))) + 2;
+        return {
+            wch: width,
+            hidden: i === romaneiosIndex
+        };
+    });
+
+    worksheet["!cols"] = colWidths;
+
+    const nomeArquivo = `Romaneio_Spool_${selectedService.replace(/[\/\\?%*:|"<>]/g, '_')}.xlsx`;
+    XLSX.writeFile(workbook, nomeArquivo);
+}
+
 
         document.addEventListener("DOMContentLoaded", () => {
             loadServices();
@@ -918,6 +842,183 @@
                     console.error('Erro ao registrar o Service Worker:', error);
                 });
         }
-    </script>
+    
+function abrirModalDownload() {
+    document.getElementById("downloadModalOverlay").style.display = "flex";
+}
+
+function fecharModal() {
+    document.getElementById("downloadModalOverlay").style.display = "none";
+}
+
+function gerarExcelBlob(servicoSelecionado) {
+    const headerRow = data[0];
+    const filteredRows = data.slice(1).filter(row => row[servicoIndex] === servicoSelecionado);
+    const dataToExport = [headerRow, ...filteredRows];
+
+    const formattedData = dataToExport.map((row, rowIndex) => {
+        if (rowIndex === 0) return row;
+        return row.map((cell, colIndex) => {
+            let header = dataToExport[0][colIndex].trim().toLowerCase();
+            if (header === "data do romaneio") return formatDate(cell);
+            return cell;
+        });
+    });
+
+    const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, servicoSelecionado);
+
+    const blob = XLSX.write(workbook, { bookType: 'xlsx', type: 'blob' });
+    return { blob, fileName: `Romaneio_Spool_${servicoSelecionado.replace(/[\\/\\?%*:|"<>]/g, '_')}.xlsx` };
+}
+
+function executarDownload() {
+    const servicoSelecionado = document.getElementById("serviceList").value;
+    if (!servicoSelecionado) return alert("Selecione um serviço.");
+    const { blob, fileName } = gerarExcelBlob(servicoSelecionado);
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    link.click();
+    fecharModal();
+}
+
+async function compartilharExcel() {
+    const servicoSelecionado = document.getElementById("serviceList").value;
+    if (!servicoSelecionado) return alert("Selecione um serviço.");
+    const { blob, fileName } = gerarExcelBlob(servicoSelecionado);
+    const file = new File([blob], fileName, {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+            await navigator.share({
+                title: "Romaneio de Spool",
+                text: `Segue o romaneio do serviço ${servicoSelecionado}.`,
+                files: [file]
+            });
+        } catch (err) {
+            console.error("Erro ao compartilhar:", err);
+            alert("Erro ao compartilhar o arquivo.");
+        }
+    } else {
+        alert("Este navegador/dispositivo não suporta compartilhamento de arquivos.");
+    }
+
+    fecharModal();
+}
+</script>
+
+
+
+
+<div id="downloadModalOverlay" class="modal-overlay" style="z-index: 3000; display: none;">
+    <div class="modal" style="text-align: center;">
+        <p id="downloadModalMessage" style="font-size: 16px;">Como deseja exportar o Excel?</p>
+        <div class="modal-footer" style="display: flex; flex-direction: column; gap: 10px;">
+            <button onclick="executarDownload()" style="background-color: #28a745; color: white;" class="save-btn">BAIXAR</button>
+            <button onclick="compartilharExcel()" style="background-color: #007BFF; color: white;">COMPARTILHAR</button>
+            <button onclick="fecharModal()" style="background-color: #dc3545; color: white;" class="close-btn">CANCELAR</button>
+        </div>
+    </div>
+</div>
 </body>
+
+
 </html>
+
+<script>
+function executarDownload() {
+    const selectedService = document.getElementById("serviceList").value;
+    if (!selectedService) {
+        alert("Selecione um serviço para exportar.");
+        return;
+    }
+
+    const headerRow = data[0];
+    const filteredRows = data.slice(1).filter(row => row[servicoIndex] === selectedService);
+    const dataToExport = [headerRow, ...filteredRows];
+
+    const formattedData = dataToExport.map((row, rowIndex) => {
+        if (rowIndex === 0) return row;
+        return row.map((cell, colIndex) => {
+            let header = dataToExport[0][colIndex].trim().toLowerCase();
+            if (header === "data do romaneio") return formatDate(cell);
+            if (header === "peso" || header === "área superf.") {
+                const numericValue = parseFloat((cell || "").toString().replace(",", "."));
+                return isNaN(numericValue) ? "" : numericValue;
+            }
+            return cell;
+        });
+    });
+
+    const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
+
+    const nomeArquivo = `Romaneio_Spool_${selectedService.replace(/[\/?:*"<>|]/g, "_")}.xlsx`;
+    XLSX.writeFile(workbook, nomeArquivo);
+    fecharModal();
+}
+
+function compartilharExcel() {
+    const selectedService = document.getElementById("serviceList").value;
+    if (!selectedService) {
+        alert("Selecione um serviço para exportar.");
+        return;
+    }
+
+    const headerRow = data[0];
+    const filteredRows = data.slice(1).filter(row => row[servicoIndex] === selectedService);
+    const dataToExport = [headerRow, ...filteredRows];
+
+    const formattedData = dataToExport.map((row, rowIndex) => {
+        if (rowIndex === 0) return row;
+        return row.map((cell, colIndex) => {
+            let header = dataToExport[0][colIndex].trim().toLowerCase();
+            if (header === "data do romaneio") return formatDate(cell);
+            if (header === "peso" || header === "área superf.") {
+                const numericValue = parseFloat((cell || "").toString().replace(",", "."));
+                return isNaN(numericValue) ? "" : numericValue;
+            }
+            return cell;
+        });
+    });
+
+    const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
+
+    const blob = gerarExcelBlob(workbook);
+    const file = new File([blob], `Romaneio_Spool_${selectedService.replace(/[\/?:*"<>|]/g, "_")}.xlsx`, { type: blob.type });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({
+            title: 'Romaneio Spool',
+            text: 'Segue romaneio exportado:',
+            files: [file]
+        }).catch(console.error);
+    } else {
+        alert("Seu navegador não suporta compartilhamento de arquivos.");
+    }
+
+    fecharModal();
+}
+
+function gerarExcelBlob(workbook) {
+    const wopts = { bookType: 'xlsx', type: 'binary' };
+    const wbout = XLSX.write(workbook, wopts);
+
+    const buf = new ArrayBuffer(wbout.length);
+    const view = new Uint8Array(buf);
+    for (let i = 0; i < wbout.length; ++i) view[i] = wbout.charCodeAt(i) & 0xFF;
+
+    return new Blob([buf], { type: "application/octet-stream" });
+}
+
+function fecharModal() {
+    document.getElementById("downloadModalOverlay").style.display = "none";
+}
+</script>
