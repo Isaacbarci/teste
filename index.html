@@ -67,6 +67,12 @@
   </style>
 </head>
 <body>
+<script>
+  const ultimaPagina = localStorage.getItem('pagina_atual');
+  if (ultimaPagina && !window.location.pathname.includes(ultimaPagina)) {
+    window.location.href = ultimaPagina;
+  }
+</script>
 
 <div id="menu" class="menu">
   <img src="file-G9pWvSEJTYyLYkJbdxmTZt" alt="Palmont Logo" style="max-width: 180px; margin-bottom: 20px;">
