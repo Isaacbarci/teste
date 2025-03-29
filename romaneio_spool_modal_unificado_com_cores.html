@@ -825,60 +825,78 @@
                 return;
             }
 
-            const headerRow = data[0];
-            const filteredRows = data.slice(1).filter(row => row[servicoIndex] === selectedService);
-            const dataToExport = [headerRow, ...filteredRows];
+            try {
+                // 1. Preparar os dados
+                const headerRow = data[0];
+                const filteredRows = data.slice(1).filter(row => row[servicoIndex] === selectedService);
+                const dataToExport = [headerRow, ...filteredRows];
 
-            const formattedData = dataToExport.map((row, rowIndex) => {
-                if (rowIndex === 0) return row;
-                return row.map((cell, colIndex) => {
-                    let header = dataToExport[0][colIndex].trim().toLowerCase();
-                    if (header === "data do romaneio") return formatDate(cell);
-                    if (header === "peso" || header === "área superf.") {
-                        const numericValue = parseFloat((cell || "").toString().replace(",", "."));
-                        return isNaN(numericValue) ? "" : numericValue;
-                    }
-                    return cell;
-                });
-            });
-
-            const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
-
-            // Gerar o arquivo como ArrayBuffer
-            const excelArrayBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-            
-            // Criar Blob
-            const blob = new Blob([excelArrayBuffer], { 
-                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-            });
-            
-            // Criar File
-            const fileName = `Romaneio_Spool_${selectedService.replace(/[\/?:*"<>|]/g, "_")}.xlsx`;
-            const file = new File([blob], fileName, { 
-                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-            });
-
-            // Verificar se o navegador suporta compartilhamento de arquivos
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({
-                        title: 'Romaneio de Spool',
-                        text: `Romaneio do serviço ${selectedService}`,
-                        files: [file]
+                const formattedData = dataToExport.map((row, rowIndex) => {
+                    if (rowIndex === 0) return row;
+                    return row.map((cell, colIndex) => {
+                        let header = dataToExport[0][colIndex].trim().toLowerCase();
+                        if (header === "data do romaneio") return formatDate(cell);
+                        if (header === "peso" || header === "área superf.") {
+                            const numericValue = parseFloat((cell || "").toString().replace(",", "."));
+                            return isNaN(numericValue) ? "" : numericValue;
+                        }
+                        return cell;
                     });
-                } catch (error) {
-                    console.error('Erro ao compartilhar:', error);
-                    if (error.name !== 'AbortError') {
-                        alert('Erro ao compartilhar o arquivo. Você pode baixá-lo normalmente.');
-                    }
-                }
-            } else {
-                alert("Seu navegador não suporta compartilhamento de arquivos. Você pode baixar o arquivo normalmente.");
-            }
+                });
 
-            fecharModal();
+                // 2. Criar a planilha
+                const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
+
+                // 3. Gerar o arquivo
+                const excelArrayBuffer = await XLSX.write(workbook, { 
+                    bookType: 'xlsx', 
+                    type: 'array' 
+                });
+                
+                // 4. Criar o Blob
+                const blob = new Blob([excelArrayBuffer], { 
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+                });
+                
+                // 5. Verificar se o navegador suporta compartilhamento
+                if (!navigator.share) {
+                    alert("Seu navegador não suporta a API de compartilhamento. Use a opção de download.");
+                    return;
+                }
+
+                // 6. Criar arquivo para compartilhamento
+                const fileName = `Romaneio_Spool_${selectedService.replace(/[\/?:*"<>|]/g, "_")}.xlsx`;
+                const file = new File([blob], fileName, { 
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+                });
+
+                // 7. Verificar se pode compartilhar o arquivo
+                if (!navigator.canShare || !navigator.canShare({ files: [file] })) {
+                    alert("Seu navegador não permite compartilhar este tipo de arquivo. Use a opção de download.");
+                    return;
+                }
+
+                // 8. Tentar compartilhar
+                await navigator.share({
+                    title: 'Romaneio de Spool',
+                    text: `Romaneio do serviço ${selectedService}`,
+                    files: [file]
+                });
+
+            } catch (error) {
+                console.error('Erro ao compartilhar:', error);
+                
+                // Mensagens de erro mais amigáveis
+                if (error.name === 'AbortError') {
+                    console.log('Compartilhamento cancelado pelo usuário');
+                } else {
+                    alert(`Erro ao compartilhar: ${error.message}. Você pode baixar o arquivo normalmente.`);
+                }
+            } finally {
+                fecharModal();
+            }
         }
 
         document.addEventListener("DOMContentLoaded", () => {
