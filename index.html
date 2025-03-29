@@ -1,9 +1,47 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Início</title>
+    <title>Romaneio Palmont</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 300px;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 15px;
+            font-size: 16px;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const ultimaTela = localStorage.getItem("ultimaTela");
@@ -16,6 +54,10 @@
     </script>
 </head>
 <body>
-    <h1 style="color:white; background-color:black; text-align:center; padding:50px;">Carregando...</h1>
+    <div class="container">
+        <h1>Romaneio Palmont</h1>
+        <button onclick="location.href='romaneio_spool.html'">Romaneio de Spool</button>
+        <button onclick="location.href='romaneio_suporte.html'">Romaneio de Suporte</button>
+    </div>
 </body>
 </html>
