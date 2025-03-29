@@ -1179,20 +1179,6 @@ function configurarEventosQuantidade() {
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-    const btnDownload = document.getElementById("btnDownload");
-    const btnShare = document.getElementById("btnShare");
-    const btnCancel = document.getElementById("btnCancel");
-    if (btnDownload) btnDownload.addEventListener("click", executarDownload);
-    if (btnShare) btnShare.addEventListener("click", compartilharExcel);
-    if (btnCancel) btnCancel.addEventListener("click", fecharModal);
-
-    const btnDownload = document.getElementById("btnDownload");
-    const btnShare = document.getElementById("btnShare");
-    const btnCancel = document.getElementById("btnCancel");
-    if (btnDownload) btnDownload.addEventListener("click", executarDownload);
-    if (btnShare) btnShare.addEventListener("click", compartilharExcel);
-    if (btnCancel) btnCancel.addEventListener("click", fecharModal);
-
     document.getElementById("servicoSelect").addEventListener("change", confirmLoadService);
             loadServices();
         });
@@ -1275,8 +1261,8 @@ async function compartilharExcel() {
     background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 3000;">
   <div class="modal" style="background: #fff; padding: 20px; border-radius: 10px; color: black; text-align: center;">
     <p style="font-size: 16px; font-weight: bold;">Deseja:</p>
-    <button id="btnDownload" class="save-btn">Baixar Local</button>
-    <button id="btnShare" style="background-color: #007BFF; color: white;">Compartilhar</button>
+    <button onclick="executarDownload()">Baixar Local</button>
+    <button onclick="compartilharExcel()">Compartilhar</button>
     <button class="close-btn" onclick="fecharModal()">Cancelar</button>
   </div>
 </div>
@@ -1285,9 +1271,9 @@ async function compartilharExcel() {
     <div class="modal" style="text-align: center;">
         <p id="downloadModalMessage" style="font-size: 16px;">Como deseja exportar o Excel?</p>
         <div class="modal-footer" style="display: flex; flex-direction: column; gap: 10px;">
-            <button id="btnDownload" class="save-btn">BAIXAR</button>
-            <button id="btnShare" style="background-color: #007BFF; color: white;">COMPARTILHAR</button>
-            <button id="btnCancel" class="close-btn">CANCELAR</button>
+            <button onclick="executarDownload()" style="background-color: #28a745; color: white;" class="save-btn">BAIXAR</button>
+            <button onclick="compartilharExcel()" style="background-color: #007BFF; color: white;">COMPARTILHAR</button>
+            <button onclick="fecharModal()" style="background-color: #dc3545; color: white;" class="close-btn">CANCELAR</button>
         </div>
     </div>
 </div>
