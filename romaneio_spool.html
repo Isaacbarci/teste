@@ -1,16 +1,33 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Romaneio de Spool</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
-    // Salva o nome do sistema (spool ou suporte) como o último aberto
-    localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Romaneio Spool</title>
+</head>
+<body>
+  <h1>Romaneio Spool</h1>
+  <select id="servicoSelect"></select>
 
-    function voltarParaIndex() {
-        window.location.href = "index.html";
+  <script>
+    const keyServico = "spool_ultimoServico";
+    const keyEdicoes = "spool_edicoes";
+    const servicoSelect = document.getElementById("servicoSelect");
+
+    function renderServicos() {
+      const servicos = ["Compressores", "Trocadores", "Tubulações"];
+      servicoSelect.innerHTML = servicos.map(s => `<option>${s}</option>`).join("");
+      const ultimo = localStorage.getItem(keyServico);
+      if (ultimo) servicoSelect.value = ultimo;
     }
+
+    servicoSelect.addEventListener("change", () => {
+      localStorage.setItem(keyServico, servicoSelect.value);
+      console.log("[Spool] Salvo:", servicoSelect.value);
+    });
+
+    renderServicos();
+  
 
 </script>
     <script src="https://unpkg.com/html5-qrcode">
