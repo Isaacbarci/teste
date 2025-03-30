@@ -10,7 +10,7 @@
   <select id="servicoSelect"></select>
 
   <script>
-    const keyServico = "suporte_ultimoServico";
+    const keyServico = "suporte_suporte_ultimoServico";
     const keyEdicoes = "suporte_edicoes";
     const servicoSelect = document.getElementById("servicoSelect");
 
@@ -591,11 +591,11 @@ function configurarEventosQuantidade() {
                     mapColumnIndexes();
                     populateServicoOptions();
 
-                    const ultimoServico = localStorage.getItem("ultimoServico");
+                    const suporte_ultimoServico = localStorage.getItem("suporte_ultimoServico");
                     const servicoSelect = document.getElementById("servicoSelect");
 
-                    if (ultimoServico && Array.from(servicoSelect.options).some(o => o.value === ultimoServico)) {
-                        servicoSelect.value = ultimoServico;
+                    if (suporte_ultimoServico && Array.from(servicoSelect.options).some(o => o.value === suporte_ultimoServico)) {
+                        servicoSelect.value = suporte_ultimoServico;
                         renderSelectedServico(true);
                     } else if (servicoSelect.options.length > 0) {
                         servicoSelect.value = servicoSelect.options[0].value;
@@ -623,7 +623,7 @@ function configurarEventosQuantidade() {
         return;
     }
 
-    const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+    const stored = JSON.parse(localStorage.getItem("suporte_edicoes") || "{}");
     const temEdicoesSalvas = stored[currentFileName] && stored[currentFileName][selectedServico] && Object.keys(stored[currentFileName][selectedServico]).length > 0;
 
     if (temEdicoesSalvas) {
@@ -647,7 +647,7 @@ function configurarEventosQuantidade() {
 
         novoBtn.onclick = () => {
             delete stored[currentFileName][selectedServico];
-            localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
+            localStorage.setItem("suporte_edicoes", JSON.stringify(stored));
             fecharModal();
             renderSelectedServico(false); // limpa e carrega do zero
         };
@@ -668,22 +668,22 @@ function configurarEventosQuantidade() {
 
             if (!manterEdicoes) {
                 editedRows.clear();
-                const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+                const stored = JSON.parse(localStorage.getItem("suporte_edicoes") || "{}");
                 if (stored[currentFileName] && stored[currentFileName][selectedServico]) {
                     delete stored[currentFileName][selectedServico];
-                    localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
+                    localStorage.setItem("suporte_edicoes", JSON.stringify(stored));
                 }
             } else {
                 loadSavedEdits();
             }
 
-            localStorage.setItem("ultimoServico", selectedServico);
+            localStorage.setItem("suporte_ultimoServico", selectedServico);
             document.getElementById("dataTable").innerHTML = "";
             renderTable();
         }
 
         function loadSavedEdits() {
-            const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+            const stored = JSON.parse(localStorage.getItem("suporte_edicoes") || "{}");
             const currentServico = document.getElementById("servicoSelect").value;
 
             if (!stored[currentFileName] || !stored[currentFileName][currentServico]) {
@@ -790,9 +790,9 @@ function configurarEventosQuantidade() {
                 servicoSelect.appendChild(option);
             });
 
-            const ultimoServico = localStorage.getItem("ultimoServico");
-            if (ultimoServico && servicosOrdenados.includes(ultimoServico)) {
-                servicoSelect.value = ultimoServico;
+            const suporte_ultimoServico = localStorage.getItem("suporte_ultimoServico");
+            if (suporte_ultimoServico && servicosOrdenados.includes(suporte_ultimoServico)) {
+                servicoSelect.value = suporte_ultimoServico;
             }
         }
 
@@ -961,7 +961,7 @@ function configurarEventosQuantidade() {
                 editedRows.add(originalIndex);
             }
 
-            const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+            const stored = JSON.parse(localStorage.getItem("suporte_edicoes") || "{}");
 
             if (!stored[currentFileName]) stored[currentFileName] = {};
             if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
@@ -976,8 +976,8 @@ function configurarEventosQuantidade() {
                 delete stored[currentFileName][selectedServico][originalIndex];
             }
 
-            localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
-            localStorage.setItem("ultimoServico", selectedServico);
+            localStorage.setItem("suporte_edicoes", JSON.stringify(stored));
+            localStorage.setItem("suporte_ultimoServico", selectedServico);
 
             closeModal();
             renderTable();
@@ -1225,8 +1225,8 @@ function configurarEventosQuantidade() {
         });
 
         window.addEventListener('beforeunload', function() {
-            const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
-            localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
+            const stored = JSON.parse(localStorage.getItem("suporte_edicoes") || "{}");
+            localStorage.setItem("suporte_edicoes", JSON.stringify(stored));
         });
 
         if ('serviceWorker' in navigator) {

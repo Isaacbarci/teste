@@ -10,7 +10,7 @@
   <select id="servicoSelect"></select>
 
   <script>
-    const keyServico = "spool_ultimoServico";
+    const keyServico = "spool_spool_ultimoServico";
     const keyEdicoes = "spool_edicoes";
     const servicoSelect = document.getElementById("servicoSelect");
 
@@ -461,11 +461,11 @@
                     mapColumnIndexes();
                     populateServicoOptions();
 
-                    const ultimoServico = localStorage.getItem("ultimoServico");
+                    const spool_ultimoServico = localStorage.getItem("spool_ultimoServico");
                     const servicoSelect = document.getElementById("serviceList");
 
-                    if (ultimoServico && Array.from(servicoSelect.options).some(o => o.value === ultimoServico)) {
-                        servicoSelect.value = ultimoServico;
+                    if (spool_ultimoServico && Array.from(servicoSelect.options).some(o => o.value === spool_ultimoServico)) {
+                        servicoSelect.value = spool_ultimoServico;
                         renderSelectedServico(true);
                     } else if (servicoSelect.options.length > 0) {
                         servicoSelect.value = servicoSelect.options[0].value;
@@ -493,7 +493,7 @@
                 return;
             }
 
-            const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
             const temEdicoesSalvas = stored[currentFileName] && stored[currentFileName][selectedServico] && Object.keys(stored[currentFileName][selectedServico]).length > 0;
 
             if (temEdicoesSalvas) {
@@ -516,7 +516,7 @@
 
                 novoBtn.onclick = () => {
                     delete stored[currentFileName][selectedServico];
-                    localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
+                    localStorage.setItem("spool_edicoes", JSON.stringify(stored));
                     fecharModal();
                     renderSelectedServico(false);
                 };
@@ -535,22 +535,22 @@
 
             if (!manterEdicoes) {
                 editedRows.clear();
-                const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+                const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
                 if (stored[currentFileName] && stored[currentFileName][selectedServico]) {
                     delete stored[currentFileName][selectedServico];
-                    localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
+                    localStorage.setItem("spool_edicoes", JSON.stringify(stored));
                 }
             } else {
                 loadSavedEdits();
             }
 
-            localStorage.setItem("ultimoServico", selectedServico);
+            localStorage.setItem("spool_ultimoServico", selectedServico);
             document.getElementById("dataTable").innerHTML = "";
             renderTable();
         }
 
         function loadSavedEdits() {
-            const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
             const currentServico = document.getElementById("serviceList").value;
 
             if (!stored[currentFileName] || !stored[currentFileName][currentServico]) {
@@ -626,9 +626,9 @@
                 servicoSelect.appendChild(option);
             });
 
-            const ultimoServico = localStorage.getItem("ultimoServico");
-            if (ultimoServico && servicosOrdenados.includes(ultimoServico)) {
-                servicoSelect.value = ultimoServico;
+            const spool_ultimoServico = localStorage.getItem("spool_ultimoServico");
+            if (spool_ultimoServico && servicosOrdenados.includes(spool_ultimoServico)) {
+                servicoSelect.value = spool_ultimoServico;
             }
         }
 
@@ -721,7 +721,7 @@
                 editedRows.add(originalIndex);
             }
 
-            const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
+            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
 
             if (!stored[currentFileName]) stored[currentFileName] = {};
             if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
@@ -735,8 +735,8 @@
                 delete stored[currentFileName][selectedServico][originalIndex];
             }
 
-            localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
-            localStorage.setItem("ultimoServico", selectedServico);
+            localStorage.setItem("spool_edicoes", JSON.stringify(stored));
+            localStorage.setItem("spool_ultimoServico", selectedServico);
 
             closeModal();
             renderTable();
@@ -870,8 +870,8 @@
         });
 
         window.addEventListener('beforeunload', function() {
-            const stored = JSON.parse(localStorage.getItem("edicoesServicoAtual") || "{}");
-            localStorage.setItem("edicoesServicoAtual", JSON.stringify(stored));
+            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
+            localStorage.setItem("spool_edicoes", JSON.stringify(stored));
         });
 
         if ('serviceWorker' in navigator) {
