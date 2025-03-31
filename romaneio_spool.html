@@ -586,14 +586,25 @@
             editedRows.clear();
         }
 
+        
         function findColumnIndexes() {
             const headers = data[0];
-            servicoIndex = headers.findIndex(header => header.trim().toLowerCase() === "serviço");
+            servicoIndex = headers.findIndex(header => {
+                const nome = header.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+                return nome === "servico";
+            });
 
             if (servicoIndex === -1) {
                 alert("Coluna 'SERVIÇO' não encontrada no arquivo. Certifique-se de que existe uma coluna com este nome.");
                 return;
             }
+
+            columnIndexes = {};
+            headers.forEach((name, index) => {
+                columnIndexes[name.trim().toLowerCase()] = index;
+            });
+        }
+    
 
             columnIndexes = {};
             headers.forEach((name, index) => {
