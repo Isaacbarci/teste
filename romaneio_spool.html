@@ -12,13 +12,6 @@
         window.location.href = "index.html";
     }
 
-
-    function getRowId(row) {
-        if (!row || !columnIndexes) return null;
-        const idIndex = columnIndexes["id_spool"];
-        return row[idIndex] ? row[idIndex].toString().trim().toLowerCase() : null;
-    }
-    
 </script>
     <script src="https://unpkg.com/html5-qrcode">
     // Salva o nome do sistema (spool ou suporte) como o último aberto
@@ -28,13 +21,6 @@
         window.location.href = "index.html";
     }
 
-
-    function getRowId(row) {
-        if (!row || !columnIndexes) return null;
-        const idIndex = columnIndexes["id_spool"];
-        return row[idIndex] ? row[idIndex].toString().trim().toLowerCase() : null;
-    }
-    
 </script>
     <style>
         body {
@@ -555,13 +541,30 @@
             renderTable();
         }
 
+        
         function loadSavedEdits() {
             const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
             const currentServico = document.getElementById("serviceList").value;
 
-            if (!stored[currentFileName] || !stored[currentFileName][currentServico]) {
-                return;
-            }
+            if (!stored[currentFileName] || !stored[currentFileName][currentServico]) return;
+
+            const servicoEdits = stored[currentFileName][currentServico];
+
+            filteredData.forEach((row, i) => {
+                const originalIndex = data.indexOf(row);
+                const isometrico = row[columnIndexes["isométrico"]];
+                const spool = row[columnIndexes["spool"]];
+                const chaveUnica = `${isometrico}||${spool}`;
+
+                const edit = servicoEdits[chaveUnica];
+                if (edit) {
+                    data[originalIndex][columnIndexes["data do romaneio"]] = edit.dataRomaneio || "";
+                    data[originalIndex][columnIndexes["obs romaneio"]] = edit.obsRomaneio || "";
+                    editedRows.add(originalIndex);
+                }
+            });
+        }
+
 
             const servicoEdits = stored[currentFileName][currentServico];
 
@@ -706,51 +709,46 @@
         }
 
         
-    function saveEdit() {
-        const originalIndex = parseInt(document.getElementById("editIndex").value);
-        const selectedServico = document.getElementById("serviceList").value;
-        const dataRomaneio = document.getElementById("DATADOROMANEIO").value.trim();
-        const obsRomaneio = document.getElementById("OBSROMANEIO").value.trim();
-
-        if (!data[originalIndex]) return;
-
-        const id = getRowId(data[originalIndex]);
-        if (!id) {
-            alert("ID inválido. Verifique a planilha.");
-            return;
-        }
-
-        const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
-        if (!stored[currentFileName]) stored[currentFileName] = {};
-        if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
-
-        if (!dataRomaneio && !obsRomaneio) {
-            delete stored[currentFileName][selectedServico][id];
-        } else {
-            stored[currentFileName][selectedServico][id] = {
-                dataRomaneio,
-                obsRomaneio
-            };
-        }
-
-        localStorage.setItem("spool_edicoes", JSON.stringify(stored));
-        localStorage.setItem("spool_ultimoServico", selectedServico);
-
-        closeModal();
-        renderTable();
-    }
-    
+        function saveEdit() {
             const originalIndex = parseInt(document.getElementById("editIndex").value);
             const selectedServico = document.getElementById("serviceList").value;
 
             const dataRomaneio = document.getElementById("DATADOROMANEIO").value.trim();
             const obsRomaneio = document.getElementById("OBSROMANEIO").value.trim();
 
-            if (data[originalIndex][servicoIndex] !== selectedServico) {
-                alert("ERRO: O item não pertence ao serviço selecionado!");
-                closeModal();
-                return;
+            const isometrico = data[originalIndex][columnIndexes["isométrico"]];
+            const spool = data[originalIndex][columnIndexes["spool"]];
+            const chaveUnica = `${isometrico}||${spool}`;
+
+            data[originalIndex][columnIndexes["data do romaneio"]] = dataRomaneio;
+            data[originalIndex][columnIndexes["obs romaneio"]] = obsRomaneio;
+
+            if (!dataRomaneio && !obsRomaneio) {
+                editedRows.delete(originalIndex);
+            } else {
+                editedRows.add(originalIndex);
             }
+
+            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
+            if (!stored[currentFileName]) stored[currentFileName] = {};
+            if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
+
+            if (editedRows.has(originalIndex)) {
+                stored[currentFileName][selectedServico][chaveUnica] = {
+                    dataRomaneio,
+                    obsRomaneio
+                };
+            } else {
+                delete stored[currentFileName][selectedServico][chaveUnica];
+            }
+
+            localStorage.setItem("spool_edicoes", JSON.stringify(stored));
+            localStorage.setItem("spool_ultimoServico", selectedServico);
+
+            closeModal();
+            renderTable();
+        }
+
 
             data[originalIndex][columnIndexes["data do romaneio"]] = dataRomaneio;
             data[originalIndex][columnIndexes["obs romaneio"]] = obsRomaneio;
@@ -931,13 +929,6 @@
         window.location.href = "index.html";
     }
 
-
-    function getRowId(row) {
-        if (!row || !columnIndexes) return null;
-        const idIndex = columnIndexes["id_spool"];
-        return row[idIndex] ? row[idIndex].toString().trim().toLowerCase() : null;
-    }
-    
 </script>
 </body>
 </html>
