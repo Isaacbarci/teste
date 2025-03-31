@@ -324,6 +324,7 @@
     </div>
 
     <script>
+        // Variáveis globais
         let data = [];
         let filteredData = [];
         let columnIndexes = {};
@@ -335,12 +336,7 @@
         let idSpoolIndex = -1;
         let originalData = [];
 
-        const hiddenColumns = [
-            "ÁREA", "REV", "MATERIAL", "EXECUTANTE FAB",
-            "PESO", "LINHA", "COND PINT", "DIÂM. NOMINAL",
-            "ÁREA SUPERF.", "OBS ROMANEIO", "ID_SPOOL", "SERVIÇO", "ROMANEIOS"
-        ];
-
+        // Configurações de colunas
         const ordemColunasExibidas = [
             "ISOMÉTRICO",
             "SPOOL",
@@ -349,11 +345,25 @@
             "QR"
         ];
 
+        // Função para obter o ID_SPOOL de uma linha
         function getRowId(row) {
             if (!row || idSpoolIndex === -1) return null;
             return row[idSpoolIndex] ? row[idSpoolIndex].toString() : null;
         }
 
+        // Cria mapa de ID_SPOOL para índices
+        function createIdIndexMap() {
+            const map = {};
+            if (idSpoolIndex === -1) return map;
+            
+            data.slice(1).forEach((row, index) => {
+                const id = getRowId(row);
+                if (id) map[id] = index + 1; // +1 porque o cabeçalho é índice 0
+            });
+            return map;
+        }
+
+        // Função para debounce
         function debounce(func, wait) {
             let timeout;
             return function (...args) {
@@ -362,21 +372,19 @@
             };
         }
 
+        // Funções para formatação de data
         function parseDateString(dateString) {
             if (!dateString) return null;
-
             if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
                 const parts = dateString.split('-');
                 return new Date(parts[0], parts[1] - 1, parts[2]);
             }
-
             if (typeof dateString === 'string' && dateString.includes('/')) {
                 const parts = dateString.split('/');
                 if (parts.length === 3) {
                     return new Date(parts[2], parts[1] - 1, parts[0]);
                 }
             }
-
             const date = new Date(dateString);
             return isNaN(date.getTime()) ? null : date;
         }
@@ -384,7 +392,6 @@
         function formatDate(dateString) {
             const date = parseDateString(dateString);
             if (!date) return "";
-
             const day = String(date.getDate()).padStart(2, "0");
             const month = String(date.getMonth() + 1).padStart(2, "0");
             const year = date.getFullYear();
@@ -394,15 +401,13 @@
         function formatDateForInput(dateString) {
             const date = parseDateString(dateString);
             if (!date) return "";
-
             const day = String(date.getDate()).padStart(2, "0");
             const month = String(date.getMonth() + 1).padStart(2, "0");
             const year = date.getFullYear();
             return `${year}-${month}-${day}`;
         }
 
-        document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
-
+        // Função principal para carregar serviços
         function loadServices() {
             fetch(currentFileName)
                 .then(response => {
@@ -410,80 +415,65 @@
                     return response.arrayBuffer();
                 })
                 .then(arrayBuffer => {
-                    // 1. Guarda as edições atuais antes de limpar
-                    const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
+                    // Guarda o estado atual ANTES de carregar novo arquivo
                     const currentService = document.getElementById("serviceList").value;
+                    const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
                     const currentEdits = stored[currentFileName]?.[currentService] || {};
                     
-                    // 2. Limpa dados anteriores
-                    editedRows.clear();
-                    
-                    // 3. Carrega novo arquivo
+                    // Carrega novo arquivo
                     const workbook = XLSX.read(arrayBuffer, { type: 'array' });
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
                     const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
-                    if (jsonData.length === 0) {
-                        throw new Error("O arquivo está vazio ou não contém dados.");
-                    }
-
-                    window.originalData = JSON.parse(JSON.stringify(jsonData));
+                    window.originalData = jsonData;
                     data = JSON.parse(JSON.stringify(jsonData));
                     filteredData = data.slice(1);
 
-                    // 4. Mapeia colunas (verifica ID_SPOOL)
+                    // Encontra índices das colunas críticas
                     findColumnIndexes();
                     
-                    // 5. Prepara para migrar edições usando ID_SPOOL
-                    if (Object.keys(currentEdits).length > 0 && idSpoolIndex !== -1) {
-                        const newEdits = {};
-                        
-                        // Cria um mapa de ID_SPOOL para índices
-                        const idMap = {};
-                        data.slice(1).forEach((row, index) => {
-                            const id = getRowId(row);
-                            if (id) idMap[id] = index + 1; // +1 para cabeçalho
-                        });
-
-                        // Migra edições para novas posições
-                        Object.entries(currentEdits).forEach(([oldIndex, editData]) => {
-                            if (editData.rowId && idMap[editData.rowId]) {
-                                const newIndex = idMap[editData.rowId];
-                                newEdits[newIndex] = {
-                                    dataRomaneio: editData.dataRomaneio,
-                                    obsRomaneio: editData.obsRomaneio,
-                                    rowId: editData.rowId
-                                };
-                                editedRows.add(newIndex);
-                            }
-                        });
-
-                        // Atualiza localStorage
-                        if (!stored[currentFileName]) stored[currentFileName] = {};
-                        stored[currentFileName][currentService] = newEdits;
-                        localStorage.setItem("spool_edicoes", JSON.stringify(stored));
-                    }
+                    // Cria mapa de IDs do NOVO arquivo
+                    const newIdMap = createIdIndexMap();
                     
-                    // 6. Continua o fluxo normal
+                    // Migra edições para o novo arquivo
+                    const migratedEdits = {};
+                    Object.entries(currentEdits).forEach(([oldIndex, editData]) => {
+                        if (editData.rowId && newIdMap[editData.rowId]) {
+                            const newIndex = newIdMap[editData.rowId];
+                            migratedEdits[newIndex] = {
+                                dataRomaneio: editData.dataRomaneio,
+                                obsRomaneio: editData.obsRomaneio,
+                                rowId: editData.rowId
+                            };
+                        }
+                    });
+
+                    // Atualiza localStorage com edições migradas
+                    if (!stored[currentFileName]) stored[currentFileName] = {};
+                    stored[currentFileName][currentService] = migratedEdits;
+                    localStorage.setItem("spool_edicoes", JSON.stringify(stored));
+
+                    // Aplica edições aos dados em memória
+                    Object.keys(migratedEdits).forEach(index => {
+                        const i = parseInt(index);
+                        if (data[i]) {
+                            data[i][columnIndexes["data do romaneio"]] = migratedEdits[index].dataRomaneio;
+                            data[i][columnIndexes["obs romaneio"]] = migratedEdits[index].obsRomaneio;
+                            editedRows.add(i);
+                        }
+                    });
+
+                    // Atualiza a interface
                     populateServicoOptions();
-                    
-                    const spool_ultimoServico = localStorage.getItem("spool_ultimoServico");
-                    const servicoSelect = document.getElementById("serviceList");
-
-                    if (spool_ultimoServico && Array.from(servicoSelect.options).some(o => o.value === spool_ultimoServico)) {
-                        servicoSelect.value = spool_ultimoServico;
-                        renderSelectedServico(true);
-                    } else if (servicoSelect.options.length > 0) {
-                        servicoSelect.value = servicoSelect.options[0].value;
-                        renderSelectedServico(true);
-                    }
+                    renderTable();
                 })
                 .catch(error => {
                     console.error("Erro ao carregar Excel:", error);
-                    alert("Não foi possível carregar o arquivo do diretório.");
+                    alert("Erro ao carregar arquivo: " + error.message);
                 });
         }
 
+        // Função para confirmar carregamento de serviço
         function confirmLoadService() {
             const senhaCorreta = "1234";
             const tentativa = prompt("Digite a senha para continuar:");
@@ -531,6 +521,7 @@
             }
         }
 
+        // Função para renderizar serviço selecionado
         function renderSelectedServico(manterEdicoes = false) {
             const selectedServico = document.getElementById("serviceList").value;
 
@@ -550,6 +541,7 @@
             renderTable();
         }
 
+        // Função para cargar edições salvas
         function loadSavedEdits() {
             const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
             const currentServico = document.getElementById("serviceList").value;
@@ -574,17 +566,19 @@
             });
         }
 
+        // Função para encontrar índices das colunas
         function findColumnIndexes() {
             const headers = data[0];
             servicoIndex = headers.findIndex(header => header.trim().toLowerCase() === "serviço");
             idSpoolIndex = headers.findIndex(header => header.trim().toLowerCase() === "id_spool");
 
             if (servicoIndex === -1) {
-                alert("Coluna 'SERVIÇO' não encontrada no arquivo.");
+                console.warn("Coluna 'SERVIÇO' não encontrada no arquivo.");
             }
 
             if (idSpoolIndex === -1) {
-                alert("Coluna 'ID_SPOOL' não encontrada no arquivo. Esta coluna é essencial para o funcionamento correto.");
+                console.error("Coluna 'ID_SPOOL' não encontrada no arquivo. Esta coluna é essencial para o funcionamento correto.");
+                alert("AVISO: A coluna ID_SPOOL não foi encontrada. As edições podem não ser salvas corretamente.");
             }
 
             columnIndexes = {};
@@ -593,6 +587,7 @@
             });
         }
 
+        // Função para popular opções de serviço
         function populateServicoOptions() {
             const servicoSet = new Set();
 
@@ -625,6 +620,7 @@
             }
         }
 
+        // Função para renderizar tabela
         function renderTable() {
             const table = document.getElementById("dataTable");
             table.innerHTML = "";
@@ -673,6 +669,7 @@
             table.appendChild(fragment);
         }
 
+        // Função para abrir modal de edição
         function openEditModal(index) {
             if (index < 0 || index >= data.length) return;
 
@@ -692,6 +689,7 @@
             document.body.style.overflow = "hidden";
         }
 
+        // Função para salvar edição
         function saveEdit() {
             const originalIndex = parseInt(document.getElementById("editIndex").value);
             const selectedServico = document.getElementById("serviceList").value;
@@ -699,23 +697,30 @@
             const dataRomaneio = document.getElementById("DATADOROMANEIO").value.trim();
             const obsRomaneio = document.getElementById("OBSROMANEIO").value.trim();
 
-            if (data[originalIndex][servicoIndex] !== selectedServico) {
-                alert("ERRO: O item não pertence ao serviço selecionado!");
-                closeModal();
+            // Validações
+            if (originalIndex < 0 || originalIndex >= data.length) {
+                alert("Índice inválido!");
                 return;
             }
 
+            if (data[originalIndex][servicoIndex] !== selectedServico) {
+                alert("ERRO: O item não pertence ao serviço selecionado!");
+                return;
+            }
+
+            // Atualiza dados
             data[originalIndex][columnIndexes["data do romaneio"]] = dataRomaneio;
             data[originalIndex][columnIndexes["obs romaneio"]] = obsRomaneio;
 
+            // Atualiza conjunto de linhas editadas
             if (!dataRomaneio && !obsRomaneio) {
                 editedRows.delete(originalIndex);
             } else {
                 editedRows.add(originalIndex);
             }
 
+            // Prepara objeto para salvar
             const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
-
             if (!stored[currentFileName]) stored[currentFileName] = {};
             if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
 
@@ -729,6 +734,7 @@
                 delete stored[currentFileName][selectedServico][originalIndex];
             }
 
+            // Salva no localStorage
             localStorage.setItem("spool_edicoes", JSON.stringify(stored));
             localStorage.setItem("spool_ultimoServico", selectedServico);
 
@@ -736,11 +742,13 @@
             renderTable();
         }
 
+        // Função para fechar modal
         function closeModal() {
             document.getElementById("modalOverlay").style.display = "none";
             document.body.style.overflow = "";
         }
 
+        // Funções para QR Scanner
         function startQrScanner() {
             document.getElementById("qr-container").style.display = "block";
             document.getElementById("closeScannerBtn").style.display = "block";
@@ -776,6 +784,7 @@
             }
         }
 
+        // Função para aplicar filtro
         function applyFilter() {
             const filterValue = document.getElementById("identificacaoFilter").value.trim().toLowerCase();
             const currentServico = document.getElementById("serviceList").value;
@@ -797,6 +806,7 @@
             renderTable();
         }
 
+        // Função para download do Excel
         function downloadExcel() {
             if (data.length === 0) {
                 alert("Nenhum dado disponível para exportar.");
@@ -857,16 +867,14 @@
             XLSX.writeFile(workbook, nomeArquivo);
         }
 
+        // Inicialização
         document.addEventListener("DOMContentLoaded", () => {
             loadServices();
             document.getElementById("serviceList").addEventListener("change", confirmLoadService);
+            document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
         });
 
-        window.addEventListener('beforeunload', function() {
-            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
-            localStorage.setItem("spool_edicoes", JSON.stringify(stored));
-        });
-
+        // Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('service-worker.js')
                 .then((registration) => {
@@ -876,13 +884,14 @@
                     console.error('Erro ao registrar o Service Worker:', error);
                 });
         }
-    
-        // Salva o nome do sistema (spool ou suporte) como o último aberto
-        localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
 
+        // Funções auxiliares
         function voltarParaIndex() {
             window.location.href = "index.html";
         }
+
+        // Salva o nome do sistema como último aberto
+        localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
     </script>
 </body>
 </html>
