@@ -930,7 +930,41 @@ function configurarEventosQuantidade() {
             document.body.style.overflow = "hidden";
         }
 
-        function saveEdit() {
+        
+    function saveEdit() {
+        const originalIndex = parseInt(document.getElementById("editIndex").value);
+        const selectedServico = document.getElementById("serviceList").value;
+        const dataRomaneio = document.getElementById("DATADOROMANEIO").value.trim();
+        const obsRomaneio = document.getElementById("OBSROMANEIO").value.trim();
+
+        if (!data[originalIndex]) return;
+
+        const id = getRowId(data[originalIndex]);
+        if (!id) {
+            alert("ID inválido. Verifique a planilha.");
+            return;
+        }
+
+        const stored = JSON.parse(localStorage.getItem("suporte_edicoes") || "{}");
+        if (!stored[currentFileName]) stored[currentFileName] = {};
+        if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
+
+        if (!dataRomaneio && !obsRomaneio) {
+            delete stored[currentFileName][selectedServico][id];
+        } else {
+            stored[currentFileName][selectedServico][id] = {
+                dataRomaneio,
+                obsRomaneio
+            };
+        }
+
+        localStorage.setItem("suporte_edicoes", JSON.stringify(stored));
+        localStorage.setItem("suporte_ultimoServico", selectedServico);
+
+        closeModal();
+        renderTable();
+    }
+    
             const originalIndex = parseInt(document.getElementById("editIndex").value);
             const selectedServico = document.getElementById("servicoSelect").value;
 
@@ -973,20 +1007,13 @@ function configurarEventosQuantidade() {
             if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
 
             if (editedRows.has(originalIndex)) {
-                const id = getRowId(data[originalIndex]);
-        if (!id) {
-            alert("ID inválido ou não encontrado. Verifique a coluna ID.");
-            return;
-        }
-        stored[currentFileName][selectedServico][id] = {
+                stored[currentFileName][selectedServico][originalIndex] = {
                     dataRomaneio,
                     qtdEnviada,
                     obsRomaneio
                 };
             } else {
-                const id = getRowId(data[originalIndex]);
-        if (!id) return;
-        delete stored[currentFileName][selectedServico][id];
+                delete stored[currentFileName][selectedServico][originalIndex];
             }
 
             localStorage.setItem("suporte_edicoes", JSON.stringify(stored));
