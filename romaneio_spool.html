@@ -12,6 +12,13 @@
         window.location.href = "index.html";
     }
 
+
+    function getRowId(row) {
+        if (!row || !columnIndexes) return null;
+        const idIndex = columnIndexes["id_spool"];
+        return row[idIndex] ? row[idIndex].toString().trim().toLowerCase() : null;
+    }
+    
 </script>
     <script src="https://unpkg.com/html5-qrcode">
     // Salva o nome do sistema (spool ou suporte) como o último aberto
@@ -21,6 +28,13 @@
         window.location.href = "index.html";
     }
 
+
+    function getRowId(row) {
+        if (!row || !columnIndexes) return null;
+        const idIndex = columnIndexes["id_spool"];
+        return row[idIndex] ? row[idIndex].toString().trim().toLowerCase() : null;
+    }
+    
 </script>
     <style>
         body {
@@ -720,12 +734,17 @@
 
             if (editedRows.has(originalIndex)) {
                 const id = getRowId(data[originalIndex]);
+        if (!id) {
+            alert("ID inválido ou não encontrado. Verifique a coluna ID.");
+            return;
+        }
         stored[currentFileName][selectedServico][id] = {
                     dataRomaneio,
                     obsRomaneio
                 };
             } else {
                 const id = getRowId(data[originalIndex]);
+        if (!id) return;
         delete stored[currentFileName][selectedServico][id];
             }
 
@@ -885,6 +904,13 @@
         window.location.href = "index.html";
     }
 
+
+    function getRowId(row) {
+        if (!row || !columnIndexes) return null;
+        const idIndex = columnIndexes["id_spool"];
+        return row[idIndex] ? row[idIndex].toString().trim().toLowerCase() : null;
+    }
+    
 </script>
 </body>
 </html>
