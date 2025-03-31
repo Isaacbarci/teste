@@ -668,7 +668,9 @@ function configurarEventosQuantidade() {
 }
 
 
-        function renderSelectedServico(manterEdicoes = false) {
+        let hashServico = "";
+
+function renderSelectedServico(manterEdicoes = false) {
             const selectedServico = document.getElementById("servicoSelect").value;
 
             if (window.originalData) {

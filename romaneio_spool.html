@@ -535,7 +535,9 @@ async function gerarHash(texto) {
             }
         }
 
-        function renderSelectedServico(manterEdicoes = false) {
+        let hashServico = "";
+
+function renderSelectedServico(manterEdicoes = false) {
             const selectedServico = document.getElementById("serviceList").value;
 
             if (window.originalData) {
