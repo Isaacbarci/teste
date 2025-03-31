@@ -4,24 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Romaneio de Spool</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
-    // Salva o nome do sistema (spool ou suporte) como o último aberto
-    localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
-
-    function voltarParaIndex() {
-        window.location.href = "index.html";
-    }
-
-</script>
-    <script src="https://unpkg.com/html5-qrcode">
-    // Salva o nome do sistema (spool ou suporte) como o último aberto
-    localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
-
-    function voltarParaIndex() {
-        window.location.href = "index.html";
-    }
-
-</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -205,15 +189,6 @@
             cursor: pointer;
         }
 
-        .modal input[type="date"]::-moz-calendar-picker-indicator {
-            opacity: 0;
-            position: absolute;
-            right: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-        }
-
         .modal input[readonly] {
             background-color: #333;
             cursor: not-allowed;
@@ -263,8 +238,7 @@
         button[onclick*="voltarParaIndex()"]:hover {
             background-color: #c82333;
         }
-
-</style>
+    </style>
 </head>
 <body>
     <h2>
@@ -283,14 +257,12 @@
         <input type="text" id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code">
         <button onclick="downloadExcel()">Download Excel</button>
         <button onclick="startQrScanner()">Escanear QR Code</button>
-
-<button onclick="voltarParaIndex()" title="Voltar para o Início">
-    <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24" fill="white" style="vertical-align: middle; margin-right: 5px;">
-        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-    </svg>
-    Voltar
-</button>
-
+        <button onclick="voltarParaIndex()" title="Voltar para o Início">
+            <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24" fill="white" style="vertical-align: middle; margin-right: 5px;">
+                <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+            </svg>
+            Voltar
+        </button>
     </div>
 
     <div id="confirmModalOverlay" class="modal-overlay" style="z-index: 2000;">
@@ -359,9 +331,8 @@
         let qrScanner;
         let currentFileName = "Spools.xlsx";
         const itemsPerPage = 300;
-        let services = new Set();
-        let currentService = "";
         let servicoIndex = -1;
+        let idSpoolIndex = -1;
         let originalData = [];
 
         const hiddenColumns = [
@@ -370,7 +341,6 @@
             "ÁREA SUPERF.", "OBS ROMANEIO", "ID_SPOOL", "SERVIÇO", "ROMANEIOS"
         ];
 
-        // Ordem fixa de colunas a exibir na tabela
         const ordemColunasExibidas = [
             "ISOMÉTRICO",
             "SPOOL",
@@ -378,6 +348,11 @@
             "PROG FAB",
             "QR"
         ];
+
+        function getRowId(row) {
+            if (!row || idSpoolIndex === -1) return null;
+            return row[idSpoolIndex] ? row[idSpoolIndex].toString() : null;
+        }
 
         function debounce(func, wait) {
             let timeout;
@@ -435,8 +410,15 @@
                     return response.arrayBuffer();
                 })
                 .then(arrayBuffer => {
-                    clearPreviousFileData();
-
+                    // 1. Guarda as edições atuais antes de limpar
+                    const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
+                    const currentService = document.getElementById("serviceList").value;
+                    const currentEdits = stored[currentFileName]?.[currentService] || {};
+                    
+                    // 2. Limpa dados anteriores
+                    editedRows.clear();
+                    
+                    // 3. Carrega novo arquivo
                     const workbook = XLSX.read(arrayBuffer, { type: 'array' });
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
                     const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
@@ -449,10 +431,42 @@
                     data = JSON.parse(JSON.stringify(jsonData));
                     filteredData = data.slice(1);
 
+                    // 4. Mapeia colunas (verifica ID_SPOOL)
                     findColumnIndexes();
-                    mapColumnIndexes();
-                    populateServicoOptions();
+                    
+                    // 5. Prepara para migrar edições usando ID_SPOOL
+                    if (Object.keys(currentEdits).length > 0 && idSpoolIndex !== -1) {
+                        const newEdits = {};
+                        
+                        // Cria um mapa de ID_SPOOL para índices
+                        const idMap = {};
+                        data.slice(1).forEach((row, index) => {
+                            const id = getRowId(row);
+                            if (id) idMap[id] = index + 1; // +1 para cabeçalho
+                        });
 
+                        // Migra edições para novas posições
+                        Object.entries(currentEdits).forEach(([oldIndex, editData]) => {
+                            if (editData.rowId && idMap[editData.rowId]) {
+                                const newIndex = idMap[editData.rowId];
+                                newEdits[newIndex] = {
+                                    dataRomaneio: editData.dataRomaneio,
+                                    obsRomaneio: editData.obsRomaneio,
+                                    rowId: editData.rowId
+                                };
+                                editedRows.add(newIndex);
+                            }
+                        });
+
+                        // Atualiza localStorage
+                        if (!stored[currentFileName]) stored[currentFileName] = {};
+                        stored[currentFileName][currentService] = newEdits;
+                        localStorage.setItem("spool_edicoes", JSON.stringify(stored));
+                    }
+                    
+                    // 6. Continua o fluxo normal
+                    populateServicoOptions();
+                    
                     const spool_ultimoServico = localStorage.getItem("spool_ultimoServico");
                     const servicoSelect = document.getElementById("serviceList");
 
@@ -527,11 +541,6 @@
 
             if (!manterEdicoes) {
                 editedRows.clear();
-                const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
-                if (stored[currentFileName] && stored[currentFileName][selectedServico]) {
-                    delete stored[currentFileName][selectedServico];
-                    localStorage.setItem("spool_edicoes", JSON.stringify(stored));
-                }
             } else {
                 loadSavedEdits();
             }
@@ -541,32 +550,13 @@
             renderTable();
         }
 
-        
-        
         function loadSavedEdits() {
             const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
             const currentServico = document.getElementById("serviceList").value;
 
-            if (!stored[currentFileName] || !stored[currentFileName][currentServico]) return;
-
-            const servicoEdits = stored[currentFileName][currentServico];
-
-            filteredData.forEach((row, i) => {
-                const originalIndex = data.indexOf(row);
-                const idUnico = row[columnIndexes["id_spool"]];
-                const edit = servicoEdits[idUnico];
-                if (edit) {
-                    data[originalIndex][columnIndexes["data do romaneio"]] = edit.dataRomaneio || "";
-                    
-                    data[originalIndex][columnIndexes["obs romaneio"]] = edit.obsRomaneio || "";
-                    editedRows.add(originalIndex);
-                }
-            });
-        }
-    
-            });
-        }
-
+            if (!stored[currentFileName] || !stored[currentFileName][currentServico]) {
+                return;
+            }
 
             const servicoEdits = stored[currentFileName][currentServico];
 
@@ -584,27 +574,19 @@
             });
         }
 
-        function clearPreviousFileData() {
-            editedRows.clear();
-        }
-
         function findColumnIndexes() {
             const headers = data[0];
             servicoIndex = headers.findIndex(header => header.trim().toLowerCase() === "serviço");
+            idSpoolIndex = headers.findIndex(header => header.trim().toLowerCase() === "id_spool");
 
             if (servicoIndex === -1) {
-                alert("Coluna 'SERVIÇO' não encontrada no arquivo. Certifique-se de que existe uma coluna com este nome.");
-                return;
+                alert("Coluna 'SERVIÇO' não encontrada no arquivo.");
             }
 
-            columnIndexes = {};
-            headers.forEach((name, index) => {
-                columnIndexes[name.trim().toLowerCase()] = index;
-            });
-        }
+            if (idSpoolIndex === -1) {
+                alert("Coluna 'ID_SPOOL' não encontrada no arquivo. Esta coluna é essencial para o funcionamento correto.");
+            }
 
-        function mapColumnIndexes() {
-            const headers = data[0];
             columnIndexes = {};
             headers.forEach((name, index) => {
                 columnIndexes[name.trim().toLowerCase()] = index;
@@ -710,75 +692,18 @@
             document.body.style.overflow = "hidden";
         }
 
-        
-        
         function saveEdit() {
             const originalIndex = parseInt(document.getElementById("editIndex").value);
             const selectedServico = document.getElementById("serviceList").value;
 
             const dataRomaneio = document.getElementById("DATADOROMANEIO").value.trim();
             const obsRomaneio = document.getElementById("OBSROMANEIO").value.trim();
-            
 
-            const idUnico = data[originalIndex][columnIndexes["id_spool"]];
-            if (!idUnico) {
-                alert("ID não encontrado para salvar edição.");
+            if (data[originalIndex][servicoIndex] !== selectedServico) {
+                alert("ERRO: O item não pertence ao serviço selecionado!");
+                closeModal();
                 return;
             }
-
-            data[originalIndex][columnIndexes["data do romaneio"]] = dataRomaneio;
-            
-            data[originalIndex][columnIndexes["obs romaneio"]] = obsRomaneio;
-
-            if (!dataRomaneio  && !obsRomaneio) {
-                editedRows.delete(originalIndex);
-            } else {
-                editedRows.add(originalIndex);
-            }
-
-            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
-
-            if (!stored[currentFileName]) stored[currentFileName] = {};
-            if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
-
-            if (editedRows.has(originalIndex)) {
-                stored[currentFileName][selectedServico][idUnico] = {
-                    dataRomaneio,
-                    
-                    obsRomaneio
-                };
-            } else {
-                delete stored[currentFileName][selectedServico][idUnico];
-            }
-
-            localStorage.setItem("spool_edicoes", JSON.stringify(stored));
-            localStorage.setItem("spool_ultimoServico", selectedServico);
-
-            closeModal();
-            renderTable();
-        }
-    
-
-            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
-            if (!stored[currentFileName]) stored[currentFileName] = {};
-            if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
-
-            if (editedRows.has(originalIndex)) {
-                stored[currentFileName][selectedServico][chaveUnica] = {
-                    dataRomaneio,
-                    obsRomaneio
-                };
-            } else {
-                delete stored[currentFileName][selectedServico][chaveUnica];
-            }
-
-            localStorage.setItem("spool_edicoes", JSON.stringify(stored));
-            localStorage.setItem("spool_ultimoServico", selectedServico);
-
-            closeModal();
-            renderTable();
-        }
-
 
             data[originalIndex][columnIndexes["data do romaneio"]] = dataRomaneio;
             data[originalIndex][columnIndexes["obs romaneio"]] = obsRomaneio;
@@ -797,7 +722,8 @@
             if (editedRows.has(originalIndex)) {
                 stored[currentFileName][selectedServico][originalIndex] = {
                     dataRomaneio,
-                    obsRomaneio
+                    obsRomaneio,
+                    rowId: getRowId(data[originalIndex]) // Armazena o ID_SPOOL
                 };
             } else {
                 delete stored[currentFileName][selectedServico][originalIndex];
@@ -872,69 +798,68 @@
         }
 
         function downloadExcel() {
-    if (data.length === 0) {
-        alert("Nenhum dado disponível para exportar.");
-        return;
-    }
-
-    const selectedService = document.getElementById("serviceList").value;
-    if (!selectedService) {
-        alert("Selecione um serviço para exportar.");
-        return;
-    }
-
-    const headerRow = data[0];
-    const filteredRows = data.slice(1).filter(row => row[servicoIndex] === selectedService);
-    const dataToExport = [headerRow, ...filteredRows];
-
-    const formattedData = dataToExport.map((row, rowIndex) => {
-        if (rowIndex === 0) return row;
-
-        return row.map((cell, colIndex) => {
-            let header = dataToExport[0][colIndex].trim().toLowerCase();
-
-            if (header === "data do romaneio") {
-                return formatDate(cell);
+            if (data.length === 0) {
+                alert("Nenhum dado disponível para exportar.");
+                return;
             }
 
-            if (header === "peso" || header === "área superf.") {
-                if (cell === "" || cell === null || cell === undefined) {
-                    return "";
-                }
-                const numericValue = parseFloat(cell.toString().replace(",", "."));
-                return isNaN(numericValue) ? "" : numericValue;
+            const selectedService = document.getElementById("serviceList").value;
+            if (!selectedService) {
+                alert("Selecione um serviço para exportar.");
+                return;
             }
 
-            return cell;
-        });
-    });
+            const headerRow = data[0];
+            const filteredRows = data.slice(1).filter(row => row[servicoIndex] === selectedService);
+            const dataToExport = [headerRow, ...filteredRows];
 
-    const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
+            const formattedData = dataToExport.map((row, rowIndex) => {
+                if (rowIndex === 0) return row;
 
-    const romaneiosIndex = data[0].findIndex(
-        header => header.trim().toLowerCase() === "romaneios"
-    );
+                return row.map((cell, colIndex) => {
+                    let header = dataToExport[0][colIndex].trim().toLowerCase();
 
-    const colWidths = formattedData[0].map((_, i) => {
-        const width = Math.max(...formattedData.map(row => (row[i] ? row[i].toString().length : 10))) + 2;
-        return {
-            wch: width,
-            hidden: i === romaneiosIndex
-        };
-    });
+                    if (header === "data do romaneio") {
+                        return formatDate(cell);
+                    }
 
-    worksheet["!cols"] = colWidths;
+                    if (header === "peso" || header === "área superf.") {
+                        if (cell === "" || cell === null || cell === undefined) {
+                            return "";
+                        }
+                        const numericValue = parseFloat(cell.toString().replace(",", "."));
+                        return isNaN(numericValue) ? "" : numericValue;
+                    }
 
-    const nomeArquivo = `Romaneio_Spool_${selectedService.replace(/[\/\\?%*:|"<>]/g, '_')}.xlsx`;
-    XLSX.writeFile(workbook, nomeArquivo);
-}
+                    return cell;
+                });
+            });
 
+            const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
+
+            const romaneiosIndex = data[0].findIndex(
+                header => header.trim().toLowerCase() === "romaneios"
+            );
+
+            const colWidths = formattedData[0].map((_, i) => {
+                const width = Math.max(...formattedData.map(row => (row[i] ? row[i].toString().length : 10))) + 2;
+                return {
+                    wch: width,
+                    hidden: i === romaneiosIndex
+                };
+            });
+
+            worksheet["!cols"] = colWidths;
+
+            const nomeArquivo = `Romaneio_Spool_${selectedService.replace(/[\/\\?%*:|"<>]/g, '_')}.xlsx`;
+            XLSX.writeFile(workbook, nomeArquivo);
+        }
 
         document.addEventListener("DOMContentLoaded", () => {
             loadServices();
-        document.getElementById("serviceList").addEventListener("change", confirmLoadService);
+            document.getElementById("serviceList").addEventListener("change", confirmLoadService);
         });
 
         window.addEventListener('beforeunload', function() {
@@ -952,13 +877,12 @@
                 });
         }
     
-    // Salva o nome do sistema (spool ou suporte) como o último aberto
-    localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
+        // Salva o nome do sistema (spool ou suporte) como o último aberto
+        localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
 
-    function voltarParaIndex() {
-        window.location.href = "index.html";
-    }
-
-</script>
+        function voltarParaIndex() {
+            window.location.href = "index.html";
+        }
+    </script>
 </body>
 </html>
