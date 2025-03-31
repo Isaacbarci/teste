@@ -959,13 +959,15 @@ function configurarEventosQuantidade() {
             if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
 
             if (editedRows.has(originalIndex)) {
-                stored[currentFileName][selectedServico][originalIndex] = {
+                const id = getRowId(data[originalIndex]);
+        stored[currentFileName][selectedServico][id] = {
                     dataRomaneio,
                     qtdEnviada,
                     obsRomaneio
                 };
             } else {
-                delete stored[currentFileName][selectedServico][originalIndex];
+                const id = getRowId(data[originalIndex]);
+        delete stored[currentFileName][selectedServico][id];
             }
 
             localStorage.setItem("suporte_edicoes", JSON.stringify(stored));
