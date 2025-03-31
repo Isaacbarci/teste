@@ -4,8 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Romaneio de Spool</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
+    // Salva o nome do sistema (spool ou suporte) como o último aberto
+    localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
+
+    function voltarParaIndex() {
+        window.location.href = "index.html";
+    }
+
+</script>
+    <script src="https://unpkg.com/html5-qrcode">
+    // Salva o nome do sistema (spool ou suporte) como o último aberto
+    localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
+
+    function voltarParaIndex() {
+        window.location.href = "index.html";
+    }
+
+</script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -189,6 +205,15 @@
             cursor: pointer;
         }
 
+        .modal input[type="date"]::-moz-calendar-picker-indicator {
+            opacity: 0;
+            position: absolute;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
         .modal input[readonly] {
             background-color: #333;
             cursor: not-allowed;
@@ -238,7 +263,8 @@
         button[onclick*="voltarParaIndex()"]:hover {
             background-color: #c82333;
         }
-    </style>
+
+</style>
 </head>
 <body>
     <h2>
@@ -257,12 +283,14 @@
         <input type="text" id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code">
         <button onclick="downloadExcel()">Download Excel</button>
         <button onclick="startQrScanner()">Escanear QR Code</button>
-        <button onclick="voltarParaIndex()" title="Voltar para o Início">
-            <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24" fill="white" style="vertical-align: middle; margin-right: 5px;">
-                <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-            </svg>
-            Voltar
-        </button>
+
+<button onclick="voltarParaIndex()" title="Voltar para o Início">
+    <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24" fill="white" style="vertical-align: middle; margin-right: 5px;">
+        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+    </svg>
+    Voltar
+</button>
+
     </div>
 
     <div id="confirmModalOverlay" class="modal-overlay" style="z-index: 2000;">
@@ -324,7 +352,6 @@
     </div>
 
     <script>
-        // Variáveis globais
         let data = [];
         let filteredData = [];
         let columnIndexes = {};
@@ -332,11 +359,18 @@
         let qrScanner;
         let currentFileName = "Spools.xlsx";
         const itemsPerPage = 300;
+        let services = new Set();
+        let currentService = "";
         let servicoIndex = -1;
-        let idSpoolIndex = -1;
         let originalData = [];
 
-        // Configurações de colunas
+        const hiddenColumns = [
+            "ÁREA", "REV", "MATERIAL", "EXECUTANTE FAB",
+            "PESO", "LINHA", "COND PINT", "DIÂM. NOMINAL",
+            "ÁREA SUPERF.", "OBS ROMANEIO", "ID_SPOOL", "SERVIÇO", "ROMANEIOS"
+        ];
+
+        // Ordem fixa de colunas a exibir na tabela
         const ordemColunasExibidas = [
             "ISOMÉTRICO",
             "SPOOL",
@@ -345,25 +379,6 @@
             "QR"
         ];
 
-        // Função para obter o ID_SPOOL de uma linha
-        function getRowId(row) {
-            if (!row || idSpoolIndex === -1) return null;
-            return row[idSpoolIndex] ? row[idSpoolIndex].toString() : null;
-        }
-
-        // Cria mapa de ID_SPOOL para índices
-        function createIdIndexMap() {
-            const map = {};
-            if (idSpoolIndex === -1) return map;
-            
-            data.slice(1).forEach((row, index) => {
-                const id = getRowId(row);
-                if (id) map[id] = index + 1; // +1 porque o cabeçalho é índice 0
-            });
-            return map;
-        }
-
-        // Função para debounce
         function debounce(func, wait) {
             let timeout;
             return function (...args) {
@@ -372,19 +387,21 @@
             };
         }
 
-        // Funções para formatação de data
         function parseDateString(dateString) {
             if (!dateString) return null;
+
             if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
                 const parts = dateString.split('-');
                 return new Date(parts[0], parts[1] - 1, parts[2]);
             }
+
             if (typeof dateString === 'string' && dateString.includes('/')) {
                 const parts = dateString.split('/');
                 if (parts.length === 3) {
                     return new Date(parts[2], parts[1] - 1, parts[0]);
                 }
             }
+
             const date = new Date(dateString);
             return isNaN(date.getTime()) ? null : date;
         }
@@ -392,6 +409,7 @@
         function formatDate(dateString) {
             const date = parseDateString(dateString);
             if (!date) return "";
+
             const day = String(date.getDate()).padStart(2, "0");
             const month = String(date.getMonth() + 1).padStart(2, "0");
             const year = date.getFullYear();
@@ -401,13 +419,15 @@
         function formatDateForInput(dateString) {
             const date = parseDateString(dateString);
             if (!date) return "";
+
             const day = String(date.getDate()).padStart(2, "0");
             const month = String(date.getMonth() + 1).padStart(2, "0");
             const year = date.getFullYear();
             return `${year}-${month}-${day}`;
         }
 
-        // Função principal para carregar serviços
+        document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
+
         function loadServices() {
             fetch(currentFileName)
                 .then(response => {
@@ -415,65 +435,41 @@
                     return response.arrayBuffer();
                 })
                 .then(arrayBuffer => {
-                    // Guarda o estado atual ANTES de carregar novo arquivo
-                    const currentService = document.getElementById("serviceList").value;
-                    const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
-                    const currentEdits = stored[currentFileName]?.[currentService] || {};
-                    
-                    // Carrega novo arquivo
+                    clearPreviousFileData();
+
                     const workbook = XLSX.read(arrayBuffer, { type: 'array' });
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
                     const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
-                    window.originalData = jsonData;
+                    if (jsonData.length === 0) {
+                        throw new Error("O arquivo está vazio ou não contém dados.");
+                    }
+
+                    window.originalData = JSON.parse(JSON.stringify(jsonData));
                     data = JSON.parse(JSON.stringify(jsonData));
                     filteredData = data.slice(1);
 
-                    // Encontra índices das colunas críticas
                     findColumnIndexes();
-                    
-                    // Cria mapa de IDs do NOVO arquivo
-                    const newIdMap = createIdIndexMap();
-                    
-                    // Migra edições para o novo arquivo
-                    const migratedEdits = {};
-                    Object.entries(currentEdits).forEach(([oldIndex, editData]) => {
-                        if (editData.rowId && newIdMap[editData.rowId]) {
-                            const newIndex = newIdMap[editData.rowId];
-                            migratedEdits[newIndex] = {
-                                dataRomaneio: editData.dataRomaneio,
-                                obsRomaneio: editData.obsRomaneio,
-                                rowId: editData.rowId
-                            };
-                        }
-                    });
-
-                    // Atualiza localStorage com edições migradas
-                    if (!stored[currentFileName]) stored[currentFileName] = {};
-                    stored[currentFileName][currentService] = migratedEdits;
-                    localStorage.setItem("spool_edicoes", JSON.stringify(stored));
-
-                    // Aplica edições aos dados em memória
-                    Object.keys(migratedEdits).forEach(index => {
-                        const i = parseInt(index);
-                        if (data[i]) {
-                            data[i][columnIndexes["data do romaneio"]] = migratedEdits[index].dataRomaneio;
-                            data[i][columnIndexes["obs romaneio"]] = migratedEdits[index].obsRomaneio;
-                            editedRows.add(i);
-                        }
-                    });
-
-                    // Atualiza a interface
+                    mapColumnIndexes();
                     populateServicoOptions();
-                    renderTable();
+
+                    const spool_ultimoServico = localStorage.getItem("spool_ultimoServico");
+                    const servicoSelect = document.getElementById("serviceList");
+
+                    if (spool_ultimoServico && Array.from(servicoSelect.options).some(o => o.value === spool_ultimoServico)) {
+                        servicoSelect.value = spool_ultimoServico;
+                        renderSelectedServico(true);
+                    } else if (servicoSelect.options.length > 0) {
+                        servicoSelect.value = servicoSelect.options[0].value;
+                        renderSelectedServico(true);
+                    }
                 })
                 .catch(error => {
                     console.error("Erro ao carregar Excel:", error);
-                    alert("Erro ao carregar arquivo: " + error.message);
+                    alert("Não foi possível carregar o arquivo do diretório.");
                 });
         }
 
-        // Função para confirmar carregamento de serviço
         function confirmLoadService() {
             const senhaCorreta = "1234";
             const tentativa = prompt("Digite a senha para continuar:");
@@ -521,7 +517,6 @@
             }
         }
 
-        // Função para renderizar serviço selecionado
         function renderSelectedServico(manterEdicoes = false) {
             const selectedServico = document.getElementById("serviceList").value;
 
@@ -532,6 +527,11 @@
 
             if (!manterEdicoes) {
                 editedRows.clear();
+                const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
+                if (stored[currentFileName] && stored[currentFileName][selectedServico]) {
+                    delete stored[currentFileName][selectedServico];
+                    localStorage.setItem("spool_edicoes", JSON.stringify(stored));
+                }
             } else {
                 loadSavedEdits();
             }
@@ -541,44 +541,39 @@
             renderTable();
         }
 
-        // Função para cargar edições salvas
-        function loadSavedEdits() {
-            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
-            const currentServico = document.getElementById("serviceList").value;
+        
+function loadSavedEdits() {
+    const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
+    const currentServico = document.getElementById("serviceList").value;
 
-            if (!stored[currentFileName] || !stored[currentFileName][currentServico]) {
-                return;
-            }
+    if (!stored[currentFileName] || !stored[currentFileName][currentServico]) {
+        return;
+    }
 
-            const servicoEdits = stored[currentFileName][currentServico];
+    const servicoEdits = stored[currentFileName][currentServico];
 
-            Object.keys(servicoEdits).forEach(index => {
-                const rowIndex = parseInt(index);
-                if (rowIndex >= 0 && rowIndex < data.length &&
-                    data[rowIndex][servicoIndex] === currentServico) {
+    Object.entries(servicoEdits).forEach(([idSpool, edit]) => {
+        const rowIndex = data.findIndex(row => row[columnIndexes["id_spool"]] == idSpool);
+        if (rowIndex !== -1 && data[rowIndex][servicoIndex] === currentServico) {
+            data[rowIndex][columnIndexes["data do romaneio"]] = edit.dataRomaneio || "";
+            data[rowIndex][columnIndexes["obs romaneio"]] = edit.obsRomaneio || "";
+            editedRows.add(rowIndex);
+        }
+    });
+}
 
-                    const edit = servicoEdits[rowIndex];
-                    data[rowIndex][columnIndexes["data do romaneio"]] = edit.dataRomaneio || "";
-                    data[rowIndex][columnIndexes["obs romaneio"]] = edit.obsRomaneio || "";
 
-                    editedRows.add(rowIndex);
-                }
-            });
+function clearPreviousFileData() {
+            editedRows.clear();
         }
 
-        // Função para encontrar índices das colunas
         function findColumnIndexes() {
             const headers = data[0];
             servicoIndex = headers.findIndex(header => header.trim().toLowerCase() === "serviço");
-            idSpoolIndex = headers.findIndex(header => header.trim().toLowerCase() === "id_spool");
 
             if (servicoIndex === -1) {
-                console.warn("Coluna 'SERVIÇO' não encontrada no arquivo.");
-            }
-
-            if (idSpoolIndex === -1) {
-                console.error("Coluna 'ID_SPOOL' não encontrada no arquivo. Esta coluna é essencial para o funcionamento correto.");
-                alert("AVISO: A coluna ID_SPOOL não foi encontrada. As edições podem não ser salvas corretamente.");
+                alert("Coluna 'SERVIÇO' não encontrada no arquivo. Certifique-se de que existe uma coluna com este nome.");
+                return;
             }
 
             columnIndexes = {};
@@ -587,7 +582,14 @@
             });
         }
 
-        // Função para popular opções de serviço
+        function mapColumnIndexes() {
+            const headers = data[0];
+            columnIndexes = {};
+            headers.forEach((name, index) => {
+                columnIndexes[name.trim().toLowerCase()] = index;
+            });
+        }
+
         function populateServicoOptions() {
             const servicoSet = new Set();
 
@@ -620,7 +622,6 @@
             }
         }
 
-        // Função para renderizar tabela
         function renderTable() {
             const table = document.getElementById("dataTable");
             table.innerHTML = "";
@@ -669,7 +670,6 @@
             table.appendChild(fragment);
         }
 
-        // Função para abrir modal de edição
         function openEditModal(index) {
             if (index < 0 || index >= data.length) return;
 
@@ -689,66 +689,53 @@
             document.body.style.overflow = "hidden";
         }
 
-        // Função para salvar edição
-        function saveEdit() {
-            const originalIndex = parseInt(document.getElementById("editIndex").value);
-            const selectedServico = document.getElementById("serviceList").value;
+        
+function saveEdit() {
+    const originalIndex = parseInt(document.getElementById("editIndex").value);
+    const selectedServico = document.getElementById("serviceList").value;
 
-            const dataRomaneio = document.getElementById("DATADOROMANEIO").value.trim();
-            const obsRomaneio = document.getElementById("OBSROMANEIO").value.trim();
+    const dataRomaneio = document.getElementById("DATADOROMANEIO").value.trim();
+    const obsRomaneio = document.getElementById("OBSROMANEIO").value.trim();
 
-            // Validações
-            if (originalIndex < 0 || originalIndex >= data.length) {
-                alert("Índice inválido!");
-                return;
-            }
+    if (data[originalIndex][servicoIndex] !== selectedServico) {
+        alert("ERRO: O item não pertence ao serviço selecionado!");
+        closeModal();
+        return;
+    }
 
-            if (data[originalIndex][servicoIndex] !== selectedServico) {
-                alert("ERRO: O item não pertence ao serviço selecionado!");
-                return;
-            }
+    data[originalIndex][columnIndexes["data do romaneio"]] = dataRomaneio;
+    data[originalIndex][columnIndexes["obs romaneio"]] = obsRomaneio;
 
-            // Atualiza dados
-            data[originalIndex][columnIndexes["data do romaneio"]] = dataRomaneio;
-            data[originalIndex][columnIndexes["obs romaneio"]] = obsRomaneio;
+    const idSpool = data[originalIndex][columnIndexes["id_spool"]];
+    const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
 
-            // Atualiza conjunto de linhas editadas
-            if (!dataRomaneio && !obsRomaneio) {
-                editedRows.delete(originalIndex);
-            } else {
-                editedRows.add(originalIndex);
-            }
+    if (!stored[currentFileName]) stored[currentFileName] = {};
+    if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
 
-            // Prepara objeto para salvar
-            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
-            if (!stored[currentFileName]) stored[currentFileName] = {};
-            if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
+    if (dataRomaneio || obsRomaneio) {
+        stored[currentFileName][selectedServico][idSpool] = {
+            dataRomaneio,
+            obsRomaneio
+        };
+        editedRows.add(originalIndex);
+    } else {
+        delete stored[currentFileName][selectedServico][idSpool];
+        editedRows.delete(originalIndex);
+    }
 
-            if (editedRows.has(originalIndex)) {
-                stored[currentFileName][selectedServico][originalIndex] = {
-                    dataRomaneio,
-                    obsRomaneio,
-                    rowId: getRowId(data[originalIndex]) // Armazena o ID_SPOOL
-                };
-            } else {
-                delete stored[currentFileName][selectedServico][originalIndex];
-            }
+    localStorage.setItem("spool_edicoes", JSON.stringify(stored));
+    localStorage.setItem("spool_ultimoServico", selectedServico);
 
-            // Salva no localStorage
-            localStorage.setItem("spool_edicoes", JSON.stringify(stored));
-            localStorage.setItem("spool_ultimoServico", selectedServico);
+    closeModal();
+    renderTable();
+}
 
-            closeModal();
-            renderTable();
-        }
 
-        // Função para fechar modal
-        function closeModal() {
+function closeModal() {
             document.getElementById("modalOverlay").style.display = "none";
             document.body.style.overflow = "";
         }
 
-        // Funções para QR Scanner
         function startQrScanner() {
             document.getElementById("qr-container").style.display = "block";
             document.getElementById("closeScannerBtn").style.display = "block";
@@ -784,7 +771,6 @@
             }
         }
 
-        // Função para aplicar filtro
         function applyFilter() {
             const filterValue = document.getElementById("identificacaoFilter").value.trim().toLowerCase();
             const currentServico = document.getElementById("serviceList").value;
@@ -806,75 +792,77 @@
             renderTable();
         }
 
-        // Função para download do Excel
         function downloadExcel() {
-            if (data.length === 0) {
-                alert("Nenhum dado disponível para exportar.");
-                return;
+    if (data.length === 0) {
+        alert("Nenhum dado disponível para exportar.");
+        return;
+    }
+
+    const selectedService = document.getElementById("serviceList").value;
+    if (!selectedService) {
+        alert("Selecione um serviço para exportar.");
+        return;
+    }
+
+    const headerRow = data[0];
+    const filteredRows = data.slice(1).filter(row => row[servicoIndex] === selectedService);
+    const dataToExport = [headerRow, ...filteredRows];
+
+    const formattedData = dataToExport.map((row, rowIndex) => {
+        if (rowIndex === 0) return row;
+
+        return row.map((cell, colIndex) => {
+            let header = dataToExport[0][colIndex].trim().toLowerCase();
+
+            if (header === "data do romaneio") {
+                return formatDate(cell);
             }
 
-            const selectedService = document.getElementById("serviceList").value;
-            if (!selectedService) {
-                alert("Selecione um serviço para exportar.");
-                return;
+            if (header === "peso" || header === "área superf.") {
+                if (cell === "" || cell === null || cell === undefined) {
+                    return "";
+                }
+                const numericValue = parseFloat(cell.toString().replace(",", "."));
+                return isNaN(numericValue) ? "" : numericValue;
             }
 
-            const headerRow = data[0];
-            const filteredRows = data.slice(1).filter(row => row[servicoIndex] === selectedService);
-            const dataToExport = [headerRow, ...filteredRows];
+            return cell;
+        });
+    });
 
-            const formattedData = dataToExport.map((row, rowIndex) => {
-                if (rowIndex === 0) return row;
+    const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
 
-                return row.map((cell, colIndex) => {
-                    let header = dataToExport[0][colIndex].trim().toLowerCase();
+    const romaneiosIndex = data[0].findIndex(
+        header => header.trim().toLowerCase() === "romaneios"
+    );
 
-                    if (header === "data do romaneio") {
-                        return formatDate(cell);
-                    }
+    const colWidths = formattedData[0].map((_, i) => {
+        const width = Math.max(...formattedData.map(row => (row[i] ? row[i].toString().length : 10))) + 2;
+        return {
+            wch: width,
+            hidden: i === romaneiosIndex
+        };
+    });
 
-                    if (header === "peso" || header === "área superf.") {
-                        if (cell === "" || cell === null || cell === undefined) {
-                            return "";
-                        }
-                        const numericValue = parseFloat(cell.toString().replace(",", "."));
-                        return isNaN(numericValue) ? "" : numericValue;
-                    }
+    worksheet["!cols"] = colWidths;
 
-                    return cell;
-                });
-            });
+    const nomeArquivo = `Romaneio_Spool_${selectedService.replace(/[\/\\?%*:|"<>]/g, '_')}.xlsx`;
+    XLSX.writeFile(workbook, nomeArquivo);
+}
 
-            const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
 
-            const romaneiosIndex = data[0].findIndex(
-                header => header.trim().toLowerCase() === "romaneios"
-            );
-
-            const colWidths = formattedData[0].map((_, i) => {
-                const width = Math.max(...formattedData.map(row => (row[i] ? row[i].toString().length : 10))) + 2;
-                return {
-                    wch: width,
-                    hidden: i === romaneiosIndex
-                };
-            });
-
-            worksheet["!cols"] = colWidths;
-
-            const nomeArquivo = `Romaneio_Spool_${selectedService.replace(/[\/\\?%*:|"<>]/g, '_')}.xlsx`;
-            XLSX.writeFile(workbook, nomeArquivo);
-        }
-
-        // Inicialização
         document.addEventListener("DOMContentLoaded", () => {
             loadServices();
-            document.getElementById("serviceList").addEventListener("change", confirmLoadService);
-            document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
+        document.getElementById("serviceList").addEventListener("change", confirmLoadService);
         });
 
-        // Service Worker
+        window.addEventListener('beforeunload', function() {
+            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
+            localStorage.setItem("spool_edicoes", JSON.stringify(stored));
+        });
+
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('service-worker.js')
                 .then((registration) => {
@@ -884,14 +872,14 @@
                     console.error('Erro ao registrar o Service Worker:', error);
                 });
         }
+    
+    // Salva o nome do sistema (spool ou suporte) como o último aberto
+    localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
 
-        // Funções auxiliares
-        function voltarParaIndex() {
-            window.location.href = "index.html";
-        }
+    function voltarParaIndex() {
+        window.location.href = "index.html";
+    }
 
-        // Salva o nome do sistema como último aberto
-        localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
-    </script>
+</script>
 </body>
 </html>
