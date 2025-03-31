@@ -12,6 +12,15 @@
         window.location.href = "index.html";
     }
 
+
+async function gerarHash(texto) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(texto);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 10);
+}
+
 </script>
     <script src="https://unpkg.com/html5-qrcode">
     // Salva o nome do sistema (spool ou suporte) como o último aberto
@@ -20,6 +29,15 @@
     function voltarParaIndex() {
         window.location.href = "index.html";
     }
+
+
+async function gerarHash(texto) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(texto);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 10);
+}
 
 </script>
     <style>
@@ -485,7 +503,7 @@
                 return;
             }
 
-            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
+            const stored = JSON.parse(localStorage.getItem(`${localKeyEdicoes}_${hashServico}`) || "{}");
             const temEdicoesSalvas = stored[currentFileName] && stored[currentFileName][selectedServico] && Object.keys(stored[currentFileName][selectedServico]).length > 0;
 
             if (temEdicoesSalvas) {
@@ -508,7 +526,7 @@
 
                 novoBtn.onclick = () => {
                     delete stored[currentFileName][selectedServico];
-                    localStorage.setItem("spool_edicoes", JSON.stringify(stored));
+                    localStorage.setItem(`${localKeyEdicoes}_${hashServico}`, JSON.stringify(stored));
                     fecharModal();
                     renderSelectedServico(false);
                 };
@@ -527,10 +545,10 @@
 
             if (!manterEdicoes) {
                 editedRows.clear();
-                const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
+                const stored = JSON.parse(localStorage.getItem(`${localKeyEdicoes}_${hashServico}`) || "{}");
                 if (stored[currentFileName] && stored[currentFileName][selectedServico]) {
                     delete stored[currentFileName][selectedServico];
-                    localStorage.setItem("spool_edicoes", JSON.stringify(stored));
+                    localStorage.setItem(`${localKeyEdicoes}_${hashServico}`, JSON.stringify(stored));
                 }
             } else {
                 loadSavedEdits();
@@ -542,7 +560,7 @@
         }
 
         function loadSavedEdits() {
-            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
+            const stored = JSON.parse(localStorage.getItem(`${localKeyEdicoes}_${hashServico}`) || "{}");
             const currentServico = document.getElementById("serviceList").value;
 
             if (!stored[currentFileName] || !stored[currentFileName][currentServico]) {
@@ -713,7 +731,7 @@
                 editedRows.add(originalIndex);
             }
 
-            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
+            const stored = JSON.parse(localStorage.getItem(`${localKeyEdicoes}_${hashServico}`) || "{}");
 
             if (!stored[currentFileName]) stored[currentFileName] = {};
             if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
@@ -727,7 +745,7 @@
                 delete stored[currentFileName][selectedServico][originalIndex];
             }
 
-            localStorage.setItem("spool_edicoes", JSON.stringify(stored));
+            localStorage.setItem(`${localKeyEdicoes}_${hashServico}`, JSON.stringify(stored));
             localStorage.setItem("spool_ultimoServico", selectedServico);
 
             closeModal();
@@ -862,8 +880,8 @@
         });
 
         window.addEventListener('beforeunload', function() {
-            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
-            localStorage.setItem("spool_edicoes", JSON.stringify(stored));
+            const stored = JSON.parse(localStorage.getItem(`${localKeyEdicoes}_${hashServico}`) || "{}");
+            localStorage.setItem(`${localKeyEdicoes}_${hashServico}`, JSON.stringify(stored));
         });
 
         if ('serviceWorker' in navigator) {
@@ -882,6 +900,15 @@
     function voltarParaIndex() {
         window.location.href = "index.html";
     }
+
+
+async function gerarHash(texto) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(texto);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 10);
+}
 
 </script>
 </body>
