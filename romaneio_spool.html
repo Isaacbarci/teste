@@ -853,34 +853,6 @@
 
     const nomeArquivo = `Romaneio_Spool_${selectedService.replace(/[\/\\?%*:|"<>]/g, '_')}.xlsx`;
     XLSX.writeFile(workbook, nomeArquivo);
-setTimeout(() => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".xlsx";
-    input.style.display = "none";
-
-    input.addEventListener("change", async () => {
-        const file = input.files[0];
-        if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
-            try {
-                await navigator.share({
-                    title: "Compartilhar Romaneio",
-                    text: "Escolha um app para compartilhar:",
-                    files: [file]
-                });
-            } catch (err) {
-                console.error("Compartilhamento cancelado ou falhou:", err);
-            }
-        } else {
-            alert("Seu navegador não suporta compartilhamento de arquivos.");
-        }
-    });
-
-    document.body.appendChild(input);
-    input.click();
-    document.body.removeChild(input);
-}, 800);
-
 }
 
 
