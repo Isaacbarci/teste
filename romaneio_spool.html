@@ -277,7 +277,7 @@
 
     <div style="margin-left: 5px;">
         <select id="serviceList">
-            <option value="" disabled selected style="display:none;">Selecione um serviço</option>
+            <option value="">Selecione um serviço</option>
         </select>
         <button onclick="confirmLoadService()">Carregar Serviço</button>
         <input type="text" id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code">
@@ -547,6 +547,35 @@ function loadSavedEdits() {
     const currentServico = document.getElementById("serviceList").value;
 
     if (!stored[currentFileName] || !stored[currentFileName][currentServico]) {
+        console.warn("Nenhuma edição salva encontrada para este serviço.");
+        return;
+    }
+
+    const idIndex = columnIndexes["id_spool"];
+    if (idIndex === undefined) {
+        console.error("Coluna 'ID_SPOOL' não encontrada ao tentar carregar edições.");
+        alert("Coluna 'ID_SPOOL' não encontrada no arquivo.");
+        return;
+    }
+
+    const servicoEdits = stored[currentFileName][currentServico];
+    console.log("Carregando edições salvas:", servicoEdits);
+
+    Object.entries(servicoEdits).forEach(([idSpool, edit]) => {
+        const rowIndex = data.findIndex(row => row[idIndex] == idSpool);
+        if (rowIndex !== -1 && data[rowIndex][servicoIndex] === currentServico) {
+            data[rowIndex][columnIndexes["data do romaneio"]] = edit.dataRomaneio || "";
+            data[rowIndex][columnIndexes["obs romaneio"]] = edit.obsRomaneio || "";
+            editedRows.add(rowIndex);
+        } else {
+            console.warn(`Linha com ID_SPOOL "${idSpool}" não encontrada no serviço atual.`);
+        }
+    });
+}
+    const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
+    const currentServico = document.getElementById("serviceList").value;
+
+    if (!stored[currentFileName] || !stored[currentFileName][currentServico]) {
         return;
     }
 
@@ -691,6 +720,59 @@ function clearPreviousFileData() {
 
         
 function saveEdit() {
+    const originalIndex = parseInt(document.getElementById("editIndex").value);
+    const selectedServico = document.getElementById("serviceList").value;
+
+    const dataRomaneio = document.getElementById("DATADOROMANEIO").value.trim();
+    const obsRomaneio = document.getElementById("OBSROMANEIO").value.trim();
+
+    if (data[originalIndex][servicoIndex] !== selectedServico) {
+        alert("ERRO: O item não pertence ao serviço selecionado!");
+        closeModal();
+        return;
+    }
+
+    const idIndex = columnIndexes["id_spool"];
+    if (idIndex === undefined) {
+        console.error("Coluna 'ID_SPOOL' não encontrada.");
+        alert("Coluna 'ID_SPOOL' não encontrada no arquivo. Verifique o Excel.");
+        return;
+    }
+
+    const idSpool = data[originalIndex][idIndex];
+    if (!idSpool) {
+        console.warn("ID_SPOOL vazio ou inválido:", idSpool);
+        alert("ID_SPOOL vazio ou inválido. Dados não foram salvos.");
+        return;
+    }
+
+    data[originalIndex][columnIndexes["data do romaneio"]] = dataRomaneio;
+    data[originalIndex][columnIndexes["obs romaneio"]] = obsRomaneio;
+
+    const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
+
+    if (!stored[currentFileName]) stored[currentFileName] = {};
+    if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
+
+    if (dataRomaneio || obsRomaneio) {
+        stored[currentFileName][selectedServico][idSpool] = {
+            dataRomaneio,
+            obsRomaneio
+        };
+        editedRows.add(originalIndex);
+        console.log("Edição salva para ID_SPOOL:", idSpool);
+    } else {
+        delete stored[currentFileName][selectedServico][idSpool];
+        editedRows.delete(originalIndex);
+        console.log("Edição removida para ID_SPOOL:", idSpool);
+    }
+
+    localStorage.setItem("spool_edicoes", JSON.stringify(stored));
+    localStorage.setItem("spool_ultimoServico", selectedServico);
+
+    closeModal();
+    renderTable();
+}
     const originalIndex = parseInt(document.getElementById("editIndex").value);
     const selectedServico = document.getElementById("serviceList").value;
 
