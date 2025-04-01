@@ -1,10 +1,11 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Romaneio de Spool</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Romaneio de Spool</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
     // Salva o nome do sistema (spool ou suporte) como o último aberto
     localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
 
@@ -13,7 +14,7 @@
     }
 
 </script>
-    <script src="https://unpkg.com/html5-qrcode">
+<script src="https://unpkg.com/html5-qrcode">
     // Salva o nome do sistema (spool ou suporte) como o último aberto
     localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
 
@@ -22,7 +23,7 @@
     }
 
 </script>
-    <style>
+<style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -267,91 +268,75 @@
 </style>
 </head>
 <body>
-    <h2>
-        <img src="image.png" alt="Logo" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;">
+<h2>
+<img alt="Logo" src="image.png" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;"/>
         ROMANEIO DE SPOOL
     </h2>
-    <p style="font-size: 6px; color: white; margin-left: 17px; margin-top: -14px;">
+<p style="font-size: 6px; color: white; margin-left: 17px; margin-top: -14px;">
         Developed by Isaac Dutra
     </p>
-
-    <div style="margin-left: 5px;">
-        <select id="serviceList">
-            <option value="">Selecione um serviço</option>
-        </select>
-        <button onclick="confirmLoadService()">Carregar Serviço</button>
-        <input type="text" id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code">
-        <button onclick="downloadExcel()">Download Excel</button>
-        <button onclick="startQrScanner()">Escanear QR Code</button>
-
+<div style="margin-left: 5px;">
+<select id="serviceList">
+<option value="">Selecione um serviço</option>
+</select>
+<button onclick="confirmLoadService()">Carregar Serviço</button>
+<input id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code" type="text"/>
+<button onclick="downloadExcel()">Download Excel</button>
+<button onclick="startQrScanner()">Escanear QR Code</button>
 <button onclick="voltarParaIndex()" title="Voltar para o Início">
-    <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24" fill="white" style="vertical-align: middle; margin-right: 5px;">
-        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-    </svg>
+<svg fill="white" height="16" style="vertical-align: middle; margin-right: 5px;" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
+<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
+</svg>
     Voltar
 </button>
-
-    </div>
-
-    <div id="confirmModalOverlay" class="modal-overlay" style="z-index: 2000;">
-        <div class="modal" style="text-align: center;">
-            <p id="confirmModalMessage" style="font-size: 16px;">Existem dados salvos para este serviço.<br>Deseja continuar o Romaneio existente? </p>
-            <div class="modal-footer">
-                <button id="btnConfirmSim" class="save-btn">SIM</button>
-                <button id="btnConfirmNovo" style="background-color: white; color: black;" class="close-btn">NOVO ROMANEIO</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="qr-container" style="display: none;">
-        <div id="qr-reader" style="width:300px; margin-top:10px;"></div>
-        <button class="close-btn" id="closeScannerBtn" style="display: none;" onclick="stopQrScanner()">Fechar Scanner</button>
-    </div>
-
-    <div class="table-container">
-        <table id="dataTable"></table>
-    </div>
-
-    <div id="modalOverlay" class="modal-overlay">
-        <div class="modal">
-            <input type="hidden" id="editIndex">
-
-            <label>ISOMÉTRICO:
-                <input type="text" id="ISOMETRICO" readonly>
-            </label>
-
-            <label>SPOOL:
-                <input type="text" id="SPOOL" readonly>
-            </label>
-
-            <label>ÁREA:
-                <input type="text" id="AREA" readonly>
-            </label>
-
-            <label>PROG FAB:
-                <input type="text" id="PROGFAB" readonly>
-            </label>
-
-            <label>PESO:
-                <input type="text" id="PESO" readonly>
-            </label>
-
-            <label>Data do Romaneio:
-                <input type="date" id="DATADOROMANEIO">
-            </label>
-
-            <label>Obs Romaneio:
-                <input type="text" id="OBSROMANEIO">
-            </label>
-
-            <div class="modal-footer">
-                <button class="save-btn" onclick="saveEdit()">Salvar</button>
-                <button class="close-btn" onclick="closeModal()">Fechar</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
+</div>
+<div class="modal-overlay" id="confirmModalOverlay" style="z-index: 2000;">
+<div class="modal" style="text-align: center;">
+<p id="confirmModalMessage" style="font-size: 16px;">Existem dados salvos para este serviço.<br/>Deseja continuar o Romaneio existente? </p>
+<div class="modal-footer">
+<button class="save-btn" id="btnConfirmSim">SIM</button>
+<button class="close-btn" id="btnConfirmNovo" style="background-color: white; color: black;">NOVO ROMANEIO</button>
+</div>
+</div>
+</div>
+<div id="qr-container" style="display: none;">
+<div id="qr-reader" style="width:300px; margin-top:10px;"></div>
+<button class="close-btn" id="closeScannerBtn" onclick="stopQrScanner()" style="display: none;">Fechar Scanner</button>
+</div>
+<div class="table-container">
+<table id="dataTable"></table>
+</div>
+<div class="modal-overlay" id="modalOverlay">
+<div class="modal">
+<input id="editIndex" type="hidden"/>
+<label>ISOMÉTRICO:
+                <input id="ISOMETRICO" readonly="" type="text"/>
+</label>
+<label>SPOOL:
+                <input id="SPOOL" readonly="" type="text"/>
+</label>
+<label>ÁREA:
+                <input id="AREA" readonly="" type="text"/>
+</label>
+<label>PROG FAB:
+                <input id="PROGFAB" readonly="" type="text"/>
+</label>
+<label>PESO:
+                <input id="PESO" readonly="" type="text"/>
+</label>
+<label>Data do Romaneio:
+                <input id="DATADOROMANEIO" type="date"/>
+</label>
+<label>Obs Romaneio:
+                <input id="OBSROMANEIO" type="text"/>
+</label>
+<div class="modal-footer">
+<button class="save-btn" onclick="saveEdit()">Salvar</button>
+<button class="close-btn" onclick="closeModal()">Fechar</button>
+</div>
+</div>
+</div>
+<script>
         let data = [];
         let filteredData = [];
         let columnIndexes = {};
@@ -881,5 +866,56 @@ function closeModal() {
     }
 
 </script>
-</body>
+<script>
+async function compartilharViaEmailOuApp() {
+    const currentServico = document.getElementById("serviceList").value;
+    const nomeArquivo = `Romaneio_Spool_${currentServico.replace(/[\\/:*?"<>|]/g, "_")}.xlsx`;
+
+    const header = data[0];
+    const linhas = data.slice(1).filter(row => row[servicoIndex] === currentServico);
+    const dadosExport = [header, ...linhas];
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(dadosExport);
+    XLSX.utils.book_append_sheet(wb, ws, "Romaneio");
+
+    const blob = XLSX.write(wb, { bookType: "xlsx", type: "blob" });
+
+    try {
+        const resp = await fetch("https://us-central1-romaneio-palmont.cloudfunctions.net/uploadExcel", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            },
+            body: blob
+        });
+
+        const result = await resp.json();
+
+        if (!result.url) {
+            alert("Erro ao obter link.");
+            return;
+        }
+
+        const assunto = encodeURIComponent(`Romaneio - ${currentServico}`);
+        const corpo = encodeURIComponent(`Segue o romaneio exportado do serviço: ${currentServico}\n\n📎 Link: ${result.url}`);
+        const mailto = `mailto:?subject=${assunto}&body=${corpo}`;
+
+        if (navigator.share) {
+            navigator.share({
+                title: `Romaneio - ${currentServico}`,
+                text: `Segue o link do romaneio:\n${result.url}`,
+                url: result.url
+            }).catch(() => {
+                window.open(mailto, "_blank");
+            });
+        } else {
+            window.open(mailto, "_blank");
+        }
+    } catch (err) {
+        console.error("Erro ao enviar:", err);
+        alert("Falha ao compartilhar.");
+    }
+}
+</script></body>
 </html>
