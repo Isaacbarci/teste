@@ -455,10 +455,9 @@
                     populateServicoOptions();
 
                     const spool_ultimoServico = localStorage.getItem("spool_ultimoServico");
-                    const servicoSelect = document.getElementById("serviceList");
-
-                    if (spool_ultimoServico && Array.from(servicoSelect.options).some(o => o.value === spool_ultimoServico)) {
-                        servicoSelect.value = spool_ultimoServico;
+if (spool_ultimoServico && servicosOrdenados.includes(spool_ultimoServico)) {
+    servicoSelect.value = spool_ultimoServico;
+}
                         renderSelectedServico(true);
                     } else if (servicoSelect.options.length > 0) {
                         servicoSelect.value = servicoSelect.options[0].value;
@@ -647,8 +646,9 @@ function clearPreviousFileData() {
             });
 
             const spool_ultimoServico = localStorage.getItem("spool_ultimoServico");
-            if (spool_ultimoServico && servicosOrdenados.includes(spool_ultimoServico)) {
-                servicoSelect.value = spool_ultimoServico;
+if (spool_ultimoServico && servicosOrdenados.includes(spool_ultimoServico)) {
+    servicoSelect.value = spool_ultimoServico;
+}
             }
         }
 
