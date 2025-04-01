@@ -351,7 +351,6 @@ input[type=number] {
 
     <div style="margin-left: 5px;">
         <select id="servicoSelect">
-  <option value="" disabled selected hidden>Selecione um serviço</option>
             <option value="">Selecione um serviço</option>
         </select>
         <button onclick="confirmLoadService()">Carregar Serviço</button>
@@ -585,9 +584,10 @@ function configurarEventosQuantidade() {
                     populateServicoOptions();
 
                     const suporte_ultimoServico = localStorage.getItem("suporte_ultimoServico");
-if (suporte_ultimoServico && servicosOrdenados.includes(suporte_ultimoServico)) {
-    servicoSelect.value = suporte_ultimoServico;
-}
+                    const servicoSelect = document.getElementById("servicoSelect");
+
+                    if (suporte_ultimoServico && Array.from(servicoSelect.options).some(o => o.value === suporte_ultimoServico)) {
+                        servicoSelect.value = suporte_ultimoServico;
                         renderSelectedServico(true);
                     } else if (servicoSelect.options.length > 0) {
                         servicoSelect.value = servicoSelect.options[0].value;
@@ -676,36 +676,6 @@ if (suporte_ultimoServico && servicosOrdenados.includes(suporte_ultimoServico)) 
 
         
 function loadSavedEdits() {
-    const stored = JSON.parse(localStorage.getItem("suporte_edicoes") || "{}");
-    const currentServico = document.getElementById("servicoSelect").value;
-
-    if (!stored[currentFileName] || !stored[currentFileName][currentServico]) {
-        console.warn("Nenhuma edição salva encontrada para este serviço.");
-        return;
-    }
-
-    const idIndex = columnIndexes["id"];
-    if (idIndex === undefined) {
-        console.error("Coluna 'ID' não encontrada ao tentar carregar edições.");
-        alert("Coluna 'ID' não encontrada no arquivo.");
-        return;
-    }
-
-    const servicoEdits = stored[currentFileName][currentServico];
-    console.log("Carregando edições salvas:", servicoEdits);
-
-    Object.entries(servicoEdits).forEach(([id, edit]) => {
-        const rowIndex = data.findIndex(row => String(row[idIndex]) === String(id));
-        if (rowIndex !== -1 && data[rowIndex][servicoIndex] === currentServico) {
-            data[rowIndex][columnIndexes["data do romaneio"]] = edit.dataRomaneio || "";
-            data[rowIndex][columnIndexes["qtd enviada"]] = edit.qtdEnviada || "";
-            data[rowIndex][columnIndexes["obs romaneio"]] = edit.obsRomaneio || "";
-            editedRows.add(rowIndex);
-        } else {
-            console.warn(`Linha com ID "${id}" não encontrada no serviço atual.`);
-        }
-    });
-}
     const stored = JSON.parse(localStorage.getItem("suporte_edicoes") || "{}");
     const currentServico = document.getElementById("servicoSelect").value;
 
@@ -799,7 +769,7 @@ function clearPreviousFileData() {
             }
 
             const servicoSelect = document.getElementById("servicoSelect");
-            // Linha removida: opção padrão 'Selecione um serviço'
+            servicoSelect.innerHTML = '<option value="">Selecione um serviço</option>';
 
             const servicosOrdenados = Array.from(servicoSet).sort();
 
@@ -811,9 +781,8 @@ function clearPreviousFileData() {
             });
 
             const suporte_ultimoServico = localStorage.getItem("suporte_ultimoServico");
-if (suporte_ultimoServico && servicosOrdenados.includes(suporte_ultimoServico)) {
-    servicoSelect.value = suporte_ultimoServico;
-}
+            if (suporte_ultimoServico && servicosOrdenados.includes(suporte_ultimoServico)) {
+                servicoSelect.value = suporte_ultimoServico;
             }
         }
 
@@ -947,74 +916,6 @@ if (suporte_ultimoServico && servicosOrdenados.includes(suporte_ultimoServico)) 
 
         
 function saveEdit() {
-    const originalIndex = parseInt(document.getElementById("editIndex").value);
-    const selectedServico = document.getElementById("servicoSelect").value;
-
-    const dataRomaneio = document.getElementById("DATADOROMANEIO").value.trim();
-    const qtdEnviada = document.getElementById("QTDENVIADA").value.trim();
-    const obsRomaneio = document.getElementById("OBSROMANEIO").value.trim();
-
-    if (dataRomaneio && !qtdEnviada) {
-        alert("Informe a Quantidade Enviada antes de salvar.");
-        document.getElementById("QTDENVIADA").focus();
-        return;
-    }
-
-    if (qtdEnviada && !dataRomaneio) {
-        alert("Informe a Data do Romaneio antes de salvar.");
-        document.getElementById("DATADOROMANEIO").focus();
-        return;
-    }
-
-    if (data[originalIndex][servicoIndex] !== selectedServico) {
-        alert("ERRO: O item não pertence ao serviço selecionado!");
-        closeModal();
-        return;
-    }
-
-    const idIndex = columnIndexes["id"];
-    if (idIndex === undefined) {
-        console.error("Coluna 'ID' não encontrada.");
-        alert("Coluna 'ID' não encontrada no arquivo. Verifique o Excel.");
-        return;
-    }
-
-    const id = data[originalIndex][idIndex];
-    if (!id) {
-        console.warn("ID vazio ou inválido:", id);
-        alert("ID vazio ou inválido. Dados não foram salvos.");
-        return;
-    }
-
-    data[originalIndex][columnIndexes["data do romaneio"]] = dataRomaneio;
-    data[originalIndex][columnIndexes["qtd enviada"]] = qtdEnviada;
-    data[originalIndex][columnIndexes["obs romaneio"]] = obsRomaneio;
-
-    const stored = JSON.parse(localStorage.getItem("suporte_edicoes") || "{}");
-
-    if (!stored[currentFileName]) stored[currentFileName] = {};
-    if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
-
-    if (dataRomaneio || qtdEnviada || obsRomaneio) {
-        stored[currentFileName][selectedServico][id] = {
-            dataRomaneio,
-            qtdEnviada,
-            obsRomaneio
-        };
-        editedRows.add(originalIndex);
-        console.log("Edição salva para ID:", id);
-    } else {
-        delete stored[currentFileName][selectedServico][id];
-        editedRows.delete(originalIndex);
-        console.log("Edição removida para ID:", id);
-    }
-
-    localStorage.setItem("suporte_edicoes", JSON.stringify(stored));
-    localStorage.setItem("suporte_ultimoServico", selectedServico);
-
-    closeModal();
-    renderTable();
-}
     const originalIndex = parseInt(document.getElementById("editIndex").value);
     const selectedServico = document.getElementById("servicoSelect").value;
 
