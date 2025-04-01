@@ -351,6 +351,7 @@ input[type=number] {
 
     <div style="margin-left: 5px;">
         <select id="servicoSelect">
+  <option value="" disabled selected hidden>Selecione um serviço</option>
             <option value="">Selecione um serviço</option>
         </select>
         <button onclick="confirmLoadService()">Carregar Serviço</button>
@@ -695,7 +696,7 @@ function loadSavedEdits() {
     console.log("Carregando edições salvas:", servicoEdits);
 
     Object.entries(servicoEdits).forEach(([id, edit]) => {
-        const rowIndex = data.findIndex(row => row[idIndex] == id);
+        const rowIndex = data.findIndex(row => String(row[idIndex]) === String(id));
         if (rowIndex !== -1 && data[rowIndex][servicoIndex] === currentServico) {
             data[rowIndex][columnIndexes["data do romaneio"]] = edit.dataRomaneio || "";
             data[rowIndex][columnIndexes["qtd enviada"]] = edit.qtdEnviada || "";
@@ -799,7 +800,7 @@ function clearPreviousFileData() {
             }
 
             const servicoSelect = document.getElementById("servicoSelect");
-            servicoSelect.innerHTML = '<option value="">Selecione um serviço</option>';
+            // Linha removida: opção padrão 'Selecione um serviço'
 
             const servicosOrdenados = Array.from(servicoSet).sort();
 
