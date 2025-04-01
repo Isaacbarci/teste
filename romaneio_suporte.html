@@ -355,7 +355,7 @@ input[type=number] {
 </select>
 <button onclick="confirmLoadService()">Carregar Serviço</button>
 <input id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação" type="text"/>
-<button onclick="downloadExcel()">Download Excel</button>
+<button onclick="abrirDownloadOptions()">Download Excel</button><button onclick="compartilharViaEmailOuApp()">Compartilhar</button>
 <button onclick="startQrScanner()">Escanear QR Code</button>
 <button onclick="voltarParaIndex()" title="Voltar para o Início">
 <svg fill="white" height="16" style="vertical-align: middle; margin-right: 5px;" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
@@ -1262,6 +1262,22 @@ async function compartilharViaEmailOuApp() {
         console.error("Erro ao enviar:", err);
         alert("Falha ao compartilhar.");
     }
+}
+</script>
+<div class="modal-overlay" id="downloadOptionsModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0008;align-items:center;justify-content:center;z-index:9999">
+<div class="modal" style="background:#fff;padding:20px;border-radius:8px;text-align:center;">
+<p style="font-size:16px;">O que deseja fazer?</p>
+<button onclick="downloadExcel(); fecharDownloadOptions()">Download</button>
+<button onclick="compartilharViaEmailOuApp(); fecharDownloadOptions()">Compartilhar</button>
+<button onclick="fecharDownloadOptions()">Cancelar</button>
+</div>
+</div>
+<script>
+function abrirDownloadOptions() {
+  document.getElementById("downloadOptionsModal").style.display = "flex";
+}
+function fecharDownloadOptions() {
+  document.getElementById("downloadOptionsModal").style.display = "none";
 }
 </script></body>
 </html>
