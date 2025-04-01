@@ -267,7 +267,16 @@
 
 </style>
 </head>
-<body>
+<body><script>
+const data = [
+  ["Serviço", "Nome", "Quantidade"],
+  ["Spool", "João", 10],
+  ["Spool", "Maria", 5],
+  ["Outro", "Pedro", 2]
+];
+
+const servicoIndex = 0;
+</script>
 <h2>
 <img alt="Logo" src="image.png" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;"/>
         ROMANEIO DE SPOOL
@@ -336,7 +345,6 @@
 </div>
 </div>
 </div>
-
 <script>
 function downloadExcel() {
     const currentServico = document.getElementById("serviceList").value;

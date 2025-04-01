@@ -341,7 +341,16 @@ input[type=number] {
 
 </style>
 </head>
-<body>
+<body><script>
+const data = [
+  ["Serviço", "Nome", "Quantidade"],
+  ["Suporte", "João", 10],
+  ["Suporte", "Maria", 5],
+  ["Outro", "Pedro", 2]
+];
+
+const servicoIndex = 0;
+</script>
 <h2 style="display: flex; align-items: center;">
 <img alt="Logo" src="image.png" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;"/>
 <span style="font-size: 23px;">ROMANEIO DE SUPORTE</span>
@@ -426,7 +435,6 @@ input[type=number] {
 </div>
 </div>
 </div>
-
 <script>
 function downloadExcel() {
     const currentServico = document.getElementById("servicoSelect").value;
