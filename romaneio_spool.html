@@ -975,14 +975,14 @@ const blob = new Blob([uint8], {
   type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 });
 
-        const resp = await fetch("https://us-central1-romaneio-palmont.cloudfunctions.net/uploadExcel", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            },
-            body: blob
-        });
-
+        
+const resp = await fetch("https://us-central1-romaneio-palmont.cloudfunctions.net/uploadExcel", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  },
+  body: blob
+});
         const result = await resp.json();
         if (!result.url) {
             alert("Erro ao obter link.");
