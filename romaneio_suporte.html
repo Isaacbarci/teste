@@ -1266,7 +1266,7 @@ const resp = await fetch("https://us-central1-romaneio-palmont.cloudfunctions.ne
         try {
           result = JSON.parse(text);
         } catch (e) {
-          throw new Error("Resposta inesperada do servidor: " + text.substring(0, 100));
+          alert("Resposta inesperada do servidor:\n" + text); throw new Error("Resposta inválida");
         }
         
         if (!result.url) {
@@ -1344,7 +1344,7 @@ const blob = new Blob([uint8], {
         try {
           result = JSON.parse(text);
         } catch (e) {
-          throw new Error("Resposta inesperada do servidor: " + text.substring(0, 100));
+          alert("Resposta inesperada do servidor:\n" + text); throw new Error("Resposta inválida");
         }
         
         if (!result.url) {
