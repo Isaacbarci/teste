@@ -3,12 +3,13 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Histórico de Downloads</title>
+  <title>Histórico de Romaneios</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <style>
     body { font-family: Arial, sans-serif; background: #f8f8f8; padding: 20px; }
     h1 { color: #333; }
+    select, button { padding: 8px; margin-right: 10px; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
     th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
     th { background: #eee; }
@@ -17,6 +18,23 @@
 </head>
 <body>
   <h1>Histórico de Romaneios</h1>
+  
+  <div>
+    <label for="tipoFiltro">Tipo:</label>
+    <select id="tipoFiltro">
+      <option value="">Todos</option>
+      <option value="spool">Spool</option>
+      <option value="suporte">Suporte</option>
+    </select>
+
+    <label for="servicoFiltro">Serviço:</label>
+    <select id="servicoFiltro">
+      <option value="">Todos</option>
+    </select>
+
+    <button onclick="aplicarFiltro()">Filtrar</button>
+  </div>
+
   <table>
     <thead>
       <tr>
@@ -42,11 +60,42 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    let todos = [];
+
     async function carregarHistorico() {
-      const tabela = document.getElementById("tabelaHistorico");
       const snap = await db.collection("romaneios").orderBy("createdAt", "desc").get();
-      snap.forEach(doc => {
-        const dado = doc.data();
+      todos = snap.docs.map(doc => doc.data());
+
+      preencherServicos();
+      renderizar(todos);
+    }
+
+    function preencherServicos() {
+      const servicos = [...new Set(todos.map(d => d.servico).filter(Boolean))];
+      const servicoSelect = document.getElementById("servicoFiltro");
+      servicoSelect.innerHTML = '<option value="">Todos</option>';
+      servicos.forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s;
+        opt.innerText = s;
+        servicoSelect.appendChild(opt);
+      });
+    }
+
+    function aplicarFiltro() {
+      const tipo = document.getElementById("tipoFiltro").value;
+      const servico = document.getElementById("servicoFiltro").value;
+      const filtrado = todos.filter(item =>
+        (!tipo || item.tipo === tipo) &&
+        (!servico || item.servico === servico)
+      );
+      renderizar(filtrado);
+    }
+
+    function renderizar(lista) {
+      const tabela = document.getElementById("tabelaHistorico");
+      tabela.innerHTML = "";
+      lista.forEach(dado => {
         const tr = document.createElement("tr");
         const dataFormatada = dado.createdAt?.toDate().toLocaleString("pt-BR") || "";
         tr.innerHTML = `
