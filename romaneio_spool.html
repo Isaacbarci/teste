@@ -891,7 +891,7 @@ function closeModal() {
             // Download local
             XLSX.writeFile(wb, nomeArquivo);
 
-            // Envio para Firebase
+            // Envio Firebase
             const uint8 = XLSX.write(wb, { bookType: "xlsx", type: "array" });
             const blob = new Blob([uint8], {
               type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -911,7 +911,7 @@ function closeModal() {
             try {
               result = JSON.parse(text);
             } catch (e) {
-              alert("Erro na resposta do servidor:\n" + text);
+              alert("Erro do servidor:\n" + text);
               return;
             }
 
@@ -926,7 +926,7 @@ function closeModal() {
             }
 
           } catch (err) {
-            alert("Erro ao compartilhar: " + err.message);
+            alert("Falha: " + err.message);
           }
         }
          {
@@ -1019,7 +1019,7 @@ async function compartilharViaEmailOuApp() {
             // Download local
             XLSX.writeFile(wb, nomeArquivo);
 
-            // Envio para Firebase
+            // Envio Firebase
             const uint8 = XLSX.write(wb, { bookType: "xlsx", type: "array" });
             const blob = new Blob([uint8], {
               type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -1039,7 +1039,7 @@ async function compartilharViaEmailOuApp() {
             try {
               result = JSON.parse(text);
             } catch (e) {
-              alert("Erro na resposta do servidor:\n" + text);
+              alert("Erro do servidor:\n" + text);
               return;
             }
 
@@ -1054,7 +1054,7 @@ async function compartilharViaEmailOuApp() {
             }
 
           } catch (err) {
-            alert("Erro ao compartilhar: " + err.message);
+            alert("Falha: " + err.message);
           }
         }
          {
