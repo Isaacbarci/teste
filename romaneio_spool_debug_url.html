@@ -1,0 +1,106 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Romaneio Spool</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+  <h1>Romaneio de Spool</h1>
+  <select id="serviceList">
+    <option>ELDORADO</option>
+  </select>
+  <button onclick="abrirDownloadOptions()">Download Excel</button>
+
+  <div id="downloadOptionsModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0008;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:20px;text-align:center;">
+      <p>Escolha uma opção</p>
+      <button onclick="downloadExcel(); fecharDownloadOptions()">Download</button>
+      <button onclick="compartilharViaEmailOuApp(); fecharDownloadOptions()">Compartilhar</button>
+      <button onclick="fecharDownloadOptions()">Cancelar</button>
+    </div>
+  </div>
+
+  <script>
+    const data = [["Serviço", "Nome", "Qtd"], ["ELDORADO", "João", 5], ["ELDORADO", "Maria", 3]];
+    const servicoIndex = 0;
+
+    const sel = document.getElementById("serviceList");
+    const unicos = [...new Set(data.slice(1).map(row => row[servicoIndex]))];
+    unicos.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s;
+      opt.textContent = s;
+      sel.appendChild(opt);
+    });
+
+    function abrirDownloadOptions() {
+      document.getElementById("downloadOptionsModal").style.display = "flex";
+    }
+
+    function fecharDownloadOptions() {
+      document.getElementById("downloadOptionsModal").style.display = "none";
+    }
+
+    function downloadExcel() {
+      const currentServico = document.getElementById("serviceList").value;
+      const nomeArquivo = `Romaneio_Spool_${currentServico}.xlsx`;
+      const header = data[0];
+      const linhas = data.slice(1).filter(row => row[servicoIndex] === currentServico);
+      const dadosExport = [header, ...linhas];
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(dadosExport);
+      XLSX.utils.book_append_sheet(wb, ws, "Romaneio");
+      XLSX.writeFile(wb, nomeArquivo);
+    }
+
+    async function compartilharViaEmailOuApp() {
+      try {
+        const currentServico = document.getElementById("serviceList").value;
+        const nomeArquivo = `Romaneio_Spool_${currentServico}.xlsx`;
+        const header = data[0];
+        const linhas = data.slice(1).filter(row => row[servicoIndex] === currentServico);
+        const dadosExport = [header, ...linhas];
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(dadosExport);
+        XLSX.utils.book_append_sheet(wb, ws, "Romaneio");
+
+        const uint8 = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+        const blob = new Blob([uint8], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        });
+
+        const url = "https://us-central1-romaneio-palmont.cloudfunctions.net/uploadExcel";
+        alert("Chamando URL: " + url);
+
+        const resp = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          },
+          body: blob
+        });
+
+        const text = await resp.text();
+        let result;
+        try {
+          result = JSON.parse(text);
+        } catch (e) {
+          throw new Error("Resposta inesperada do servidor: " + text.substring(0, 100));
+        }
+
+        const assunto = encodeURIComponent(`Romaneio - ${currentServico}`);
+        const corpo = encodeURIComponent(`Segue o romaneio do serviço ${currentServico}: ${result.url}`);
+        const mailto = `mailto:?subject=${assunto}&body=${corpo}`;
+        window.open(mailto, "_blank");
+
+      } catch (err) {
+        alert("Erro ao compartilhar: " + err.message);
+      }
+    }
+  </script>
+</body>
+</html>
