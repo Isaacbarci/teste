@@ -105,6 +105,8 @@
             align-items: center;
         }
         .modal {
+    background-color: #000 !important;
+    color: #fff !important;
             background-color: #1e1e1e;
             color: #fff;
             padding: 25px;
@@ -187,6 +189,8 @@
         }
         @media (max-width: 768px) {
             .modal {
+    background-color: #000 !important;
+    color: #fff !important;
                 width: 95%;
                 max-width: none;
                 max-height: 90vh;
@@ -217,6 +221,24 @@
         }
     
 </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .swal2-popup {
+            background-color: #000 !important;
+            color: white !important;
+        }
+        .swal2-title, .swal2-content {
+            color: white !important;
+        }
+        .swal2-confirm {
+            background-color: #28a745 !important;
+        }
+        .swal2-cancel {
+            background-color: #dc3545 !important;
+        }
+    </style>
+        
 </head>
 <body>
     <h2>
@@ -243,7 +265,7 @@
     </div>
 
     <div id="confirmModalOverlay" class="modal-overlay" style="z-index: 2000;">
-        <div class="modal" style="text-align: center;">
+        <div class="modal" style="text-align: center; background-color: #000; color: white;">
             <p id="confirmModalMessage" style="font-size: 16px;">
                 Existem dados salvos para este serviço.<br>Deseja continuar o Romaneio existente?
             </p>
@@ -374,7 +396,7 @@
                 })
                 .catch(error => {
                     console.error("Erro ao carregar Excel:", error);
-                    alert("Não foi possível carregar o arquivo do diretório.");
+                    Swal.fire({text: "Não foi possível carregar o arquivo do diretório.", icon: "info", confirmButtonText: "OK"});
                 });
         }
 
@@ -383,13 +405,13 @@
             const tentativa = prompt("Digite a senha para continuar:");
 
             if (tentativa !== senhaCorreta) {
-                alert("Senha incorreta. Ação cancelada.");
+                Swal.fire({text: "Senha incorreta. Ação cancelada.", icon: "info", confirmButtonText: "OK"});
                 return;
             }
 
             const selectedServico = document.getElementById("serviceList").value;
             if (!selectedServico) {
-                alert("Selecione um serviço da lista para carregar.");
+                Swal.fire({text: "Selecione um serviço da lista para carregar.", icon: "info", confirmButtonText: "OK"});
                 return;
             }
 
@@ -478,7 +500,7 @@
             servicoIndex = headers.findIndex(header => header.trim().toLowerCase() === "serviço");
 
             if (servicoIndex === -1) {
-                alert("Coluna 'SERVIÇO' não encontrada no arquivo. Certifique-se de que existe uma coluna com este nome.");
+                Swal.fire({text: "Coluna 'SERVIÇO' não encontrada no arquivo. Certifique-se de que existe uma coluna com este nome.", icon: "info", confirmButtonText: "OK"});
                 return;
             }
 
@@ -578,10 +600,10 @@
                     tr.onclick = () => openEditModal(originalIndex);
                 } else if (!progFab) {
                     tr.style.backgroundColor = "rgba(255, 193, 7, 0.2)";
-                    tr.onclick = () => alert("SPOOL NÃO PROGRAMADO");
+                    tr.onclick = () => Swal.fire({text: "SPOOL NÃO PROGRAMADO", icon: "info", confirmButtonText: "OK"});
                 } else if (dataRomaneio) {
                     tr.style.backgroundColor = "rgba(255, 107, 107, 0.2)";
-                    tr.onclick = () => alert("SPOOL JÁ ROMANEADO");
+                    tr.onclick = () => Swal.fire({text: "SPOOL JÁ ROMANEADO", icon: "info", confirmButtonText: "OK"});
                 } else {
                     tr.onclick = () => openEditModal(originalIndex);
                 }
@@ -633,7 +655,7 @@
             const obsRomaneio = document.getElementById("OBSROMANEIO").value.trim();
 
             if (data[originalIndex][servicoIndex] !== selectedServico) {
-                alert("ERRO: O item não pertence ao serviço selecionado!");
+                Swal.fire({text: "ERRO: O item não pertence ao serviço selecionado!", icon: "info", confirmButtonText: "OK"});
                 closeModal();
                 return;
             }
@@ -728,13 +750,13 @@
 
 function downloadExcel() {
     if (data.length === 0) {
-        alert("Nenhum dado disponível para exportar.");
+        Swal.fire({text: "Nenhum dado disponível para exportar.", icon: "info", confirmButtonText: "OK"});
         return;
     }
 
     const selectedService = document.getElementById("serviceList").value;
     if (!selectedService) {
-        alert("Selecione um serviço para exportar.");
+        Swal.fire({text: "Selecione um serviço para exportar.", icon: "info", confirmButtonText: "OK"});
         return;
     }
 
@@ -746,7 +768,7 @@ function downloadExcel() {
         .filter(row => row[servicoIndex] === selectedService);
 
     if (filteredRows.length === 0) {
-        alert("Nenhum item editado para exportar.");
+        Swal.fire({text: "Nenhum item editado para exportar.", icon: "info", confirmButtonText: "OK"});
         return;
     }
 
