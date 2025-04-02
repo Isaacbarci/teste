@@ -716,65 +716,76 @@
             renderTable();
         }
 
-        function downloadExcel() {
-            if (data.length === 0) {
-                alert("Nenhum dado disponível para exportar.");
-                return;
+function downloadExcel() {
+    if (data.length === 0) {
+        alert("Nenhum dado disponível para exportar.");
+        return;
+    }
+
+    const selectedService = document.getElementById("serviceList").value;
+    if (!selectedService) {
+        alert("Selecione um serviço para exportar.");
+        return;
+    }
+
+    const headerRow = data[0];
+
+    // Filtra apenas os registros editados do serviço atual
+    const filteredRows = Array.from(editedRows)
+        .map(index => data[index])
+        .filter(row => row[servicoIndex] === selectedService);
+
+    if (filteredRows.length === 0) {
+        alert("Nenhum item editado para exportar.");
+        return;
+    }
+
+    const dataToExport = [headerRow, ...filteredRows];
+
+    const formattedData = dataToExport.map((row, rowIndex) => {
+        if (rowIndex === 0) return row; // Cabeçalho
+
+        return row.map((cell, colIndex) => {
+            let header = dataToExport[0][colIndex].trim().toLowerCase();
+
+            if (header === "data do romaneio") {
+                return formatDate(cell);
             }
 
-            const selectedService = document.getElementById("serviceList").value;
-            if (!selectedService) {
-                alert("Selecione um serviço para exportar.");
-                return;
+            if (header === "peso" || header === "área superf.") {
+                if (cell === "" || cell === null || cell === undefined) {
+                    return "";
+                }
+                const numericValue = parseFloat(cell.toString().replace(",", "."));
+                return isNaN(numericValue) ? "" : numericValue;
             }
 
-            const headerRow = data[0];
-            const filteredRows = data.slice(1).filter(row => row[servicoIndex] === selectedService);
-            const dataToExport = [headerRow, ...filteredRows];
+            return cell;
+        });
+    });
 
-            const formattedData = dataToExport.map((row, rowIndex) => {
-                if (rowIndex === 0) return row;
+    const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
 
-                return row.map((cell, colIndex) => {
-                    let header = dataToExport[0][colIndex].trim().toLowerCase();
+    const romaneiosIndex = headerRow.findIndex(
+        header => header.trim().toLowerCase() === "romaneios"
+    );
 
-                    if (header === "data do romaneio") {
-                        return formatDate(cell);
-                    }
+    const colWidths = formattedData[0].map((_, i) => {
+        const width = Math.max(...formattedData.map(row => (row[i] ? row[i].toString().length : 10))) + 2;
+        return {
+            wch: width,
+            hidden: i === romaneiosIndex
+        };
+    });
 
-                    if (header === "peso" || header === "área superf.") {
-                        if (cell === "" || cell === null || cell === undefined) {
-                            return "";
-                        }
-                        const numericValue = parseFloat(cell.toString().replace(",", "."));
-                        return isNaN(numericValue) ? "" : numericValue;
-                    }
+    worksheet["!cols"] = colWidths;
 
-                    return cell;
-                });
-            });
+    const nomeArquivo = `Romaneio_Editados_${selectedService.replace(/[\/\\?%*:|"<>]/g, '_')}.xlsx`;
+    XLSX.writeFile(workbook, nomeArquivo);
+}
 
-            const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
-
-            const romaneiosIndex = data[0].findIndex(
-                header => header.trim().toLowerCase() === "romaneios"
-            );
-
-            const colWidths = formattedData[0].map((_, i) => {
-                const width = Math.max(...formattedData.map(row => (row[i] ? row[i].toString().length : 10))) + 2;
-                return {
-                    wch: width,
-                    hidden: i === romaneiosIndex
-                };
-            });
-
-            worksheet["!cols"] = colWidths;
-
-            const nomeArquivo = `Romaneio_Spool_${selectedService.replace(/[\/\\?%*:|"<>]/g, '_')}.xlsx`;
-            XLSX.writeFile(workbook, nomeArquivo);
-        }
 
         // Funções de formatação de datas utilizando parseDateValue
         function formatDate(dateValue) {
