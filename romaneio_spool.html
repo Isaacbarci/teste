@@ -387,10 +387,36 @@
             };
         }
 
+    // dd/mm/yyyy
+    if (typeof value === "string" && value.includes("/")) {
+        const [d, m, y] = value.split("/");
+        return new Date(y, m - 1, d);
+    }
+
+    const parsed = new Date(value);
+    return isNaN(parsed.getTime()) ? null : parsed;
+}
+
+    // dd/mm/yyyy
+    if (typeof value === "string" && value.includes("/")) {
+        const [d, m, y] = value.split("/");
+        return new Date(y, m - 1, d);
+    }
+
+    const parsed = new Date(value);
+    return isNaN(parsed.getTime()) ? null : parsed;
+}
+            }
+
+            const date = new Date(dateString);
+            return isNaN(date.getTime()) ? null : date;
+        }
+
         
 function parseDateString(value) {
     if (!value) return null;
 
+    // Data serial (número do Excel)
     if (!isNaN(value) && typeof value !== "string") {
         const excelEpoch = new Date(1899, 11, 30);
         const dias = Math.floor(value);
@@ -398,11 +424,13 @@ function parseDateString(value) {
         return new Date(excelEpoch.getTime() + dias * 86400000 + msExtra);
     }
 
+    // yyyy-mm-dd (ISO)
     if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
         const [y, m, d] = value.split("-");
         return new Date(y, m - 1, d);
     }
 
+    // dd/mm/yyyy
     if (typeof value === "string" && value.includes("/")) {
         const [d, m, y] = value.split("/");
         return new Date(y, m - 1, d);
@@ -413,39 +441,7 @@ function parseDateString(value) {
 }
 
 
-    // yyyy-mm-dd (ISO)
-    if (typeof dateValue === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
-        const [y, m, d] = dateValue.split("-");
-        return new Date(y, m - 1, d);
-    }
-
-    // dd/mm/yyyy
-    if (typeof dateValue === "string" && dateValue.includes("/")) {
-        const parts = dateValue.split("/");
-        if (parts.length === 3) {
-            return new Date(parts[2], parts[1] - 1, parts[0]);
-        }
-    }
-
-    const parsed = new Date(dateValue);
-    return isNaN(parsed.getTime()) ? null : parsed;
-}-\d{2}-\d{2}$/.test(dateString)) {
-                const parts = dateString.split('-');
-                return new Date(parts[0], parts[1] - 1, parts[2]);
-            }
-
-            if (typeof dateString === 'string' && dateString.includes('/')) {
-                const parts = dateString.split('/');
-                if (parts.length === 3) {
-                    return new Date(parts[2], parts[1] - 1, parts[0]);
-                }
-            }
-
-            const date = new Date(dateString);
-            return isNaN(date.getTime()) ? null : date;
-        }
-
-        function formatDate(dateString) {
+function formatDate(dateString) {
             const date = parseDateString(dateString);
             if (!date) return "";
 
