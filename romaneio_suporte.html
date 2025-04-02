@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-<title>Romaneio de Suporte</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Romaneio de Suporte</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
     // Salva o nome do sistema (spool ou suporte) como o último aberto
     localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
 
@@ -14,7 +13,7 @@
     }
 
 </script>
-<script src="https://unpkg.com/html5-qrcode">
+    <script src="https://unpkg.com/html5-qrcode">
     // Salva o nome do sistema (spool ou suporte) como o último aberto
     localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
 
@@ -23,7 +22,7 @@
     }
 
 </script>
-<style>
+    <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -342,91 +341,115 @@ input[type=number] {
 </style>
 </head>
 <body>
-<h2 style="display: flex; align-items: center;">
-<img alt="Logo" src="image.png" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;"/>
-<span style="font-size: 23px;">ROMANEIO DE SUPORTE</span>
-</h2>
-<p style="font-size: 6px; color: white; margin-left: 17px; margin-top: -14px;">
+    <h2 style="display: flex; align-items: center;">
+        <img src="image.png" alt="Logo" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;">
+        <span style="font-size: 23px;">ROMANEIO DE SUPORTE</span>
+    </h2>
+    <p style="font-size: 6px; color: white; margin-left: 17px; margin-top: -14px;">
         Developed by Isaac Dutra
     </p>
-<div style="margin-left: 5px;">
-<select id="servicoSelect">
-<option value="">Selecione um serviço</option>
-</select>
-<button onclick="confirmLoadService()">Carregar Serviço</button>
-<input id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação" type="text"/>
-<button onclick="baixarECompartilhar()">Download Excel</button>
-<button onclick="startQrScanner()">Escanear QR Code</button>
+
+    <div style="margin-left: 5px;">
+        <select id="servicoSelect">
+            <option value="">Selecione um serviço</option>
+        </select>
+        <button onclick="confirmLoadService()">Carregar Serviço</button>
+        <input type="text" id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação">
+        <button onclick="downloadExcel()">Download Excel</button>
+        <button onclick="startQrScanner()">Escanear QR Code</button>
+
 <button onclick="voltarParaIndex()" title="Voltar para o Início">
-<svg fill="white" height="16" style="vertical-align: middle; margin-right: 5px;" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
-<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
-</svg>
+    <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24" fill="white" style="vertical-align: middle; margin-right: 5px;">
+        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+    </svg>
     Voltar
 </button>
+
+    </div>
+
+
+<div id="confirmModalOverlay" class="modal-overlay" style="z-index: 2000;">
+  <div class="modal" style="text-align: center;">
+    <p id="confirmModalMessage" style="font-size: 16px;">Existem dados salvos para este serviço.<br>Deseja continuar o Romaneio existente? </p>
+    <div class="modal-footer">
+      <button id="btnConfirmSim" class="save-btn">SIM</button>
+      <button id="btnConfirmNovo" style="background-color: white; color: black;" class="close-btn">NOVO ROMANEIO</button>
+
+    </div>
+  </div>
 </div>
-<div class="modal-overlay" id="confirmModalOverlay" style="z-index: 2000;">
-<div class="modal" style="text-align: center;">
-<p id="confirmModalMessage" style="font-size: 16px;">Existem dados salvos para este serviço.<br/>Deseja continuar o Romaneio existente? </p>
-<div class="modal-footer">
-<button class="save-btn" id="btnConfirmSim">SIM</button>
-<button class="close-btn" id="btnConfirmNovo" style="background-color: white; color: black;">NOVO ROMANEIO</button>
-</div>
-</div>
-</div>
-<div id="qr-container" style="display: none;">
-<div id="qr-reader" style="width:300px; margin-top:10px;"></div>
-<button class="close-btn" id="closeScannerBtn" onclick="stopQrScanner()" style="display: none;">Fechar Scanner</button>
-</div>
-<div class="table-container">
-<table id="dataTable"></table>
-</div>
-<div class="modal-overlay" id="modalOverlay">
-<div class="modal">
-<input id="editIndex" type="hidden"/>
-<label>Posição / TAG:
-                <input id="POSICAOTAG" readonly="" type="text"/>
+
+
+    
+    <div id="qr-container" style="display: none;">
+        <div id="qr-reader" style="width:300px; margin-top:10px;"></div>
+        <button class="close-btn" id="closeScannerBtn" style="display: none;" onclick="stopQrScanner()">Fechar Scanner</button>
+    </div>
+
+    <div class="table-container">
+        <table id="dataTable"></table>
+    </div>
+
+    <div id="modalOverlay" class="modal-overlay">
+        <div class="modal">
+            <input type="hidden" id="editIndex">
+            
+            <label>Posição / TAG:
+                <input type="text" id="POSICAOTAG" readonly>
+            </label>
+
+            <label>Identificação 1:
+                <input type="text" id="IDENTIFICACAO1" readonly>
+            </label>
+
+            <label>Identificação 2:
+                <input type="text" id="IDENTIFICACAO2" readonly>
+            </label>
+
+            <label>Observação:
+    <input type="text" id="OBSERVACAO" readonly>
 </label>
-<label>Identificação 1:
-                <input id="IDENTIFICACAO1" readonly="" type="text"/>
-</label>
-<label>Identificação 2:
-                <input id="IDENTIFICACAO2" readonly="" type="text"/>
-</label>
-<label>Observação:
-    <input id="OBSERVACAO" readonly="" type="text"/>
-</label>
-<label>Peso (kg):
-                <input id="PesoKg" readonly="" type="text"/>
-</label>
-<label>Data do Romaneio:
-                <input id="DATADOROMANEIO" type="date"/>
-</label>
-<div class="quantidade-container">
-<label>Qtd Enviada:
-                    <input class="input-quantidade" id="QTDENVIADA" type="number"/>
-<button id="okBtnKeyboard">
-<svg fill="#28a745" height="20" viewbox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
-<path d="M9 16.17l-3.88-3.88-1.42 1.41L9 19 20.3 7.71l-1.42-1.41z"></path>
-</svg>
-</button>
-</label>
-</div>
-<label>Obs Romaneio:
-                <input id="OBSROMANEIO" type="text"/>
-</label>
-<label>Qtde:
-                <input id="Qtde" readonly="" type="text"/>
-</label>
-<label>Saldo:
-                <input class="saldo-input" id="Saldo" readonly="" type="text"/>
-</label>
-<div class="modal-footer">
-<button class="save-btn" onclick="saveEdit()">Salvar</button>
-<button class="close-btn" onclick="closeModal()">Fechar</button>
-</div>
-</div>
-</div>
-<script>
+
+
+            <label>Peso (kg):
+                <input type="text" id="PesoKg" readonly>
+            </label>
+
+            <label>Data do Romaneio:
+                <input type="date" id="DATADOROMANEIO">
+            </label>
+
+            <div class="quantidade-container">
+                <label>Qtd Enviada:
+                    <input type="number" id="QTDENVIADA" class="input-quantidade">
+                    <button id="okBtnKeyboard">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#28a745">
+                            <path d="M9 16.17l-3.88-3.88-1.42 1.41L9 19 20.3 7.71l-1.42-1.41z"/>
+                        </svg>
+                    </button>
+                </label>
+            </div>
+      
+            <label>Obs Romaneio:
+                <input type="text" id="OBSROMANEIO">
+            </label>
+
+            <label>Qtde:
+                <input type="text" id="Qtde" readonly>
+            </label>
+
+            <label>Saldo:
+                <input type="text" id="Saldo" readonly class="saldo-input">
+            </label>
+
+            <div class="modal-footer">
+                <button class="save-btn" onclick="saveEdit()">Salvar</button>
+                <button class="close-btn" onclick="closeModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
         let data = [];
         let filteredData = [];
         let servicoIndex = 0;
@@ -793,18 +816,15 @@ function clearPreviousFileData() {
 
     const fragment = document.createDocumentFragment();
 
-    // Defina a ordem desejada
     const colunasExibidas = [
         "posição / tag",
         "identificação 1",
-        
         "data do romaneio",
         "qtd enviada",
         "prog. fab.",
         "qr"
     ];
 
-    // Cabeçalho
     const headerRow = document.createElement("tr");
     colunasExibidas.forEach(col => {
         const th = document.createElement("th");
@@ -813,8 +833,21 @@ function clearPreviousFileData() {
     });
     fragment.appendChild(headerRow);
 
-    // Linhas de dados
-    filteredData.slice(0, rowsPerPage).forEach((row, index) => {
+    const rowsComEdicao = [];
+    const rowsSemEdicao = [];
+
+    filteredData.forEach((row) => {
+        const originalIndex = data.indexOf(row);
+        if (editedRows.has(originalIndex)) {
+            rowsComEdicao.push(row);
+        } else {
+            rowsSemEdicao.push(row);
+        }
+    });
+
+    const rowsOrdenadas = [...rowsComEdicao, ...rowsSemEdicao];
+
+    rowsOrdenadas.slice(0, rowsPerPage).forEach((row) => {
         const originalIndex = data.indexOf(row);
         if (originalIndex === -1) return;
 
@@ -1212,273 +1245,5 @@ function closeModal() {
     }
 
 </script>
-<div id="downloadOptionsModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0008;align-items:center;justify-content:center;z-index:9999">
-<div style="background:#fff;padding:20px;border-radius:8px;text-align:center;">
-<p>O que deseja fazer?</p>
-<button onclick="downloadExcel(); fecharDownloadOptions()">Download</button>
-<button onclick="compartilharViaEmailOuApp(); fecharDownloadOptions()">Compartilhar</button>
-<button onclick="fecharDownloadOptions()">Cancelar</button>
-</div>
-</div>
-<script>
-
-        async function baixarECompartilhar() {
-          try {
-            const currentServico = document.getElementById("serviceList")?.value || document.getElementById("servicoSelect")?.value;
-            const nomeArquivo = `Romaneio_${currentServico}.xlsx`;
-            const header = data[0];
-            const linhas = data.slice(1).filter(row => row[0] === currentServico);
-            const dadosExport = [header, ...linhas];
-
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(dadosExport);
-            XLSX.utils.book_append_sheet(wb, ws, "Romaneio");
-
-            // Download local
-            XLSX.writeFile(wb, nomeArquivo);
-
-            // Envio Firebase
-            const uint8 = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-            const blob = new Blob([uint8], {
-              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            });
-
-            const url = "https://us-central1-romaneio-palmont.cloudfunctions.net/uploadExcel";
-            const resp = await fetch(url, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-              },
-              body: blob
-            });
-
-            const text = await resp.text();
-            let result;
-            try {
-              result = JSON.parse(text);
-            } catch (e) {
-              alert("Erro do servidor:\n" + text);
-              return;
-            }
-
-            if (navigator.share) {
-              await navigator.share({
-                title: "Romaneio - " + currentServico,
-                text: "Segue o link do romaneio:",
-                url: result.url
-              });
-            } else {
-              window.open(result.url, "_blank");
-            }
-
-          } catch (err) {
-            alert("Falha: " + err.message);
-          }
-        }
-         {
-  document.getElementById("downloadOptionsModal").style.display = "flex";
-}
-function fecharDownloadOptions() {
-  document.getElementById("downloadOptionsModal").style.display = "none";
-}
-</script><script>
-async function compartilharViaEmailOuApp() {
-    try {
-        if (typeof data === "undefined" || !Array.isArray(data)) {
-            alert("Erro: dados não carregados.");
-            return;
-        }
-
-        const currentServico = document.getElementById("servicoSelect").value;
-        if (!currentServico) {
-            alert("Selecione um serviço antes de compartilhar.");
-            return;
-        }
-
-        const nomeArquivo = `Romaneio_Suporte_${currentServico.replace(/[\/:*?"<>|]/g, "_")}.xlsx`;
-        const header = data[0];
-        const linhas = data.slice(1).filter(row => row[servicoIndex] === currentServico);
-        const dadosExport = [header, ...linhas];
-
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.aoa_to_sheet(dadosExport);
-        XLSX.utils.book_append_sheet(wb, ws, "Romaneio");
-
-        const blob = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-
-        
-const resp = await fetch("https://us-central1-romaneio-palmont.cloudfunctions.net/uploadExcel", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-  },
-  body: blob
-});
-        
-        const text = await resp.text();
-        let result;
-        try {
-          result = JSON.parse(text);
-        } catch (e) {
-          throw new Error("Resposta inesperada do servidor: " + text.substring(0, 100));
-        }
-        
-        if (!result.url) {
-            alert("Erro ao obter link.");
-            return;
-        }
-
-        const assunto = encodeURIComponent(`Romaneio - ${currentServico}`);
-        const corpo = encodeURIComponent(`Segue o romaneio exportado do serviço: ${currentServico}\n\n📎 Link: ${result.url}`);
-        const mailto = `mailto:?subject=${assunto}&body=${corpo}`;
-
-        if (navigator.share) {
-            navigator.share({
-                title: `Romaneio - ${currentServico}`,
-                text: `Segue o link do romaneio:\n${result.url}`,
-                url: result.url
-            }).catch(() => {
-                window.open(mailto, "_blank");
-            });
-        } else {
-            window.open(mailto, "_blank");
-        }
-    } catch (err) {
-        alert("Erro ao compartilhar: " + err.message);
-        alert("Falha ao compartilhar. Veja o console para detalhes.");
-    }
-}
-</script><script>
-
-        async function baixarECompartilhar() {
-          try {
-            const currentServico = document.getElementById("serviceList")?.value || document.getElementById("servicoSelect")?.value;
-            const nomeArquivo = `Romaneio_${currentServico}.xlsx`;
-            const header = data[0];
-            const linhas = data.slice(1).filter(row => row[0] === currentServico);
-            const dadosExport = [header, ...linhas];
-
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(dadosExport);
-            XLSX.utils.book_append_sheet(wb, ws, "Romaneio");
-
-            // Download local
-            XLSX.writeFile(wb, nomeArquivo);
-
-            // Envio Firebase
-            const uint8 = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-            const blob = new Blob([uint8], {
-              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            });
-
-            const url = "https://us-central1-romaneio-palmont.cloudfunctions.net/uploadExcel";
-            const resp = await fetch(url, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-              },
-              body: blob
-            });
-
-            const text = await resp.text();
-            let result;
-            try {
-              result = JSON.parse(text);
-            } catch (e) {
-              alert("Erro do servidor:\n" + text);
-              return;
-            }
-
-            if (navigator.share) {
-              await navigator.share({
-                title: "Romaneio - " + currentServico,
-                text: "Segue o link do romaneio:",
-                url: result.url
-              });
-            } else {
-              window.open(result.url, "_blank");
-            }
-
-          } catch (err) {
-            alert("Falha: " + err.message);
-          }
-        }
-         {
-  document.getElementById("downloadOptionsModal").style.display = "flex";
-}
-function fecharDownloadOptions() {
-  document.getElementById("downloadOptionsModal").style.display = "none";
-}
-</script><script>
-async function compartilharViaEmailOuApp() {
-    try {
-        if (typeof data === "undefined" || !Array.isArray(data)) {
-            alert("Erro: dados não carregados.");
-            return;
-        }
-
-        const currentServico = document.getElementById("servicoSelect").value;
-        if (!currentServico) {
-            alert("Selecione um serviço antes de compartilhar.");
-            return;
-        }
-
-        const nomeArquivo = `Romaneio_Suporte_${currentServico.replace(/[\\/:*?"<>|]/g, "_")}.xlsx`;
-        const header = data[0];
-        const linhas = data.slice(1).filter(row => row[servicoIndex] === currentServico);
-        const dadosExport = [header, ...linhas];
-
-const uint8 = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-const blob = new Blob([uint8], {
-  type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-});
-        
-        const ws = XLSX.utils.aoa_to_sheet(dadosExport);
-        XLSX.utils.book_append_sheet(wb, ws, "Romaneio");
-
-        const blob = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-
-        const resp = await fetch("https://us-central1-romaneio-palmont.cloudfunctions.net/uploadExcel", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            },
-            body: blob
-        });
-
-        
-        const text = await resp.text();
-        let result;
-        try {
-          result = JSON.parse(text);
-        } catch (e) {
-          throw new Error("Resposta inesperada do servidor: " + text.substring(0, 100));
-        }
-        
-        if (!result.url) {
-            alert("Erro ao obter link.");
-            return;
-        }
-
-        const assunto = encodeURIComponent(`Romaneio - ${currentServico}`);
-        const corpo = encodeURIComponent(`Segue o romaneio exportado do serviço: ${currentServico}\n\n📎 Link: ${result.url}`);
-        const mailto = `mailto:?subject=${assunto}&body=${corpo}`;
-
-        if (navigator.share) {
-            navigator.share({
-                title: `Romaneio - ${currentServico}`,
-                text: `Segue o link do romaneio:\n${result.url}`,
-                url: result.url
-            }).catch(() => {
-                window.open(mailto, "_blank");
-            });
-        } else {
-            window.open(mailto, "_blank");
-        }
-    } catch (err) {
-        alert("Erro ao compartilhar: " + err.message);
-        alert("Falha ao compartilhar.");
-    }
-}
-</script></body>
+</body>
 </html>
