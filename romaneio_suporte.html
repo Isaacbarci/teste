@@ -1212,7 +1212,6 @@ function closeModal() {
     }
 
 </script>
-
 <div id="downloadOptionsModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0008;align-items:center;justify-content:center;z-index:9999">
 <div style="background:#fff;padding:20px;border-radius:8px;text-align:center;">
 <p>O que deseja fazer?</p>
@@ -1285,6 +1284,72 @@ async function compartilharViaEmailOuApp() {
     } catch (err) {
         console.error("Erro ao compartilhar:", err);
         alert("Falha ao compartilhar. Veja o console para detalhes.");
+    }
+}
+</script><script>
+function abrirDownloadOptions() {
+  document.getElementById("downloadOptionsModal").style.display = "flex";
+}
+function fecharDownloadOptions() {
+  document.getElementById("downloadOptionsModal").style.display = "none";
+}
+</script><script>
+async function compartilharViaEmailOuApp() {
+    try {
+        if (typeof data === "undefined" || !Array.isArray(data)) {
+            alert("Erro: dados não carregados.");
+            return;
+        }
+
+        const currentServico = document.getElementById("servicoSelect").value;
+        if (!currentServico) {
+            alert("Selecione um serviço antes de compartilhar.");
+            return;
+        }
+
+        const nomeArquivo = `Romaneio_Suporte_${currentServico.replace(/[\\/:*?"<>|]/g, "_")}.xlsx`;
+        const header = data[0];
+        const linhas = data.slice(1).filter(row => row[servicoIndex] === currentServico);
+        const dadosExport = [header, ...linhas];
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(dadosExport);
+        XLSX.utils.book_append_sheet(wb, ws, "Romaneio");
+
+        const blob = XLSX.write(wb, { bookType: "xlsx", type: "blob" });
+
+        const resp = await fetch("https://us-central1-romaneio-palmont.cloudfunctions.net/uploadExcel", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            },
+            body: blob
+        });
+
+        const result = await resp.json();
+        if (!result.url) {
+            alert("Erro ao obter link.");
+            return;
+        }
+
+        const assunto = encodeURIComponent(`Romaneio - ${currentServico}`);
+        const corpo = encodeURIComponent(`Segue o romaneio exportado do serviço: ${currentServico}\n\n📎 Link: ${result.url}`);
+        const mailto = `mailto:?subject=${assunto}&body=${corpo}`;
+
+        if (navigator.share) {
+            navigator.share({
+                title: `Romaneio - ${currentServico}`,
+                text: `Segue o link do romaneio:\n${result.url}`,
+                url: result.url
+            }).catch(() => {
+                window.open(mailto, "_blank");
+            });
+        } else {
+            window.open(mailto, "_blank");
+        }
+    } catch (err) {
+        console.error("Erro ao compartilhar:", err);
+        alert("Falha ao compartilhar.");
     }
 }
 </script></body>
