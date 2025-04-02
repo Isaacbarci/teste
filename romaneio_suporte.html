@@ -1312,7 +1312,11 @@ async function compartilharViaEmailOuApp() {
         const linhas = data.slice(1).filter(row => row[servicoIndex] === currentServico);
         const dadosExport = [header, ...linhas];
 
-        const wb = XLSX.utils.book_new();
+const uint8 = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+const blob = new Blob([uint8], {
+  type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+});
+        
         const ws = XLSX.utils.aoa_to_sheet(dadosExport);
         XLSX.utils.book_append_sheet(wb, ws, "Romaneio");
 
