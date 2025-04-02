@@ -4,24 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Romaneio de Spool</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
-    // Salva o nome do sistema (spool ou suporte) como o último aberto
-    localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
-
-    function voltarParaIndex() {
-        window.location.href = "index.html";
-    }
-
-</script>
-    <script src="https://unpkg.com/html5-qrcode">
-    // Salva o nome do sistema (spool ou suporte) como o último aberto
-    localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
-
-    function voltarParaIndex() {
-        window.location.href = "index.html";
-    }
-
-</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -30,7 +14,6 @@
             background-color: #000;
             color: white;
         }
-
         h2 {
             color: white;
             padding: 20px;
@@ -38,7 +21,6 @@
             display: flex;
             align-items: center;
         }
-
         input[type="text"], button, select {
             margin: 5px;
             padding: 10px;
@@ -46,15 +28,12 @@
             border: 1px solid #ccc;
             font-size: 14px;
         }
-
         input[type="text"] {
             width: 300px;
         }
-
         #identificacaoFilter {
             width: 300px !important;
         }
-
         select {
             margin: 3px;
             padding: 3px;
@@ -64,7 +43,6 @@
             width: 205px;
             height: 25px;
         }
-
         button {
             background-color: #007BFF;
             color: white;
@@ -72,33 +50,26 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
-
         button:hover {
             background-color: #0056b3;
         }
-
         .close-btn {
             background-color: #dc3545;
         }
-
         .close-btn:hover {
             background-color: #c82333;
         }
-
         .save-btn {
             background-color: #28a745;
         }
-
         .save-btn:hover {
             background-color: #218838;
         }
-
         .table-container {
             width: 100%;
             overflow-x: auto;
             margin-top: 20px;
         }
-
         table {
             border-collapse: collapse;
             width: 100%;
@@ -107,7 +78,6 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             border: 2px solid black;
         }
-
         th, td {
             border: none;
             padding: 10px;
@@ -115,16 +85,13 @@
             text-align: left;
             white-space: nowrap;
         }
-
         th {
             background-color: #007BFF;
             color: white;
         }
-
         td {
             cursor: pointer;
         }
-
         .modal-overlay {
             display: none;
             position: fixed;
@@ -137,7 +104,6 @@
             justify-content: center;
             align-items: center;
         }
-
         .modal {
             background-color: #1e1e1e;
             color: #fff;
@@ -150,7 +116,6 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
             border: 1px solid #444;
         }
-
         .modal label {
             display: flex;
             flex-direction: column;
@@ -159,7 +124,6 @@
             color: #fff;
             font-size: 14px;
         }
-
         .modal input {
             width: 100%;
             padding: 10px;
@@ -171,7 +135,6 @@
             color: #fff;
             box-sizing: border-box;
         }
-
         .modal input[type="date"] {
             padding: 9px;
             background-color: #2c2c2c;
@@ -182,7 +145,6 @@
             position: relative;
             padding-right: 30px;
         }
-
         .modal input[type="date"]::after {
             content: "";
             position: absolute;
@@ -195,7 +157,6 @@
             background-repeat: no-repeat;
             pointer-events: none;
         }
-
         .modal input[type="date"]::-webkit-calendar-picker-indicator {
             opacity: 0;
             position: absolute;
@@ -204,7 +165,6 @@
             height: 100%;
             cursor: pointer;
         }
-
         .modal input[type="date"]::-moz-calendar-picker-indicator {
             opacity: 0;
             position: absolute;
@@ -213,31 +173,18 @@
             height: 100%;
             cursor: pointer;
         }
-
         .modal input[readonly] {
             background-color: #333;
             cursor: not-allowed;
         }
-
         .modal-footer {
             display: flex;
             gap: 10px;
             margin-top: 20px;
         }
-
-        .modal-footer button {
-            flex: 1;
-            padding: 10px;
-            font-size: 14px;
-            border-radius: 5px;
-            border: none;
-            cursor: pointer;
-        }
-
         .edited-row {
             background-color: darkgray !important;
         }
-
         @media (max-width: 768px) {
             .modal {
                 width: 95%;
@@ -245,26 +192,21 @@
                 max-height: 90vh;
                 padding: 20px;
             }
-
             .modal-footer {
                 flex-direction: column;
                 gap: 8px;
             }
-
             input[type="text"] {
                 width: calc(100% - 20px);
             }
         }
-    
         button[onclick*="voltarParaIndex()"] {
             background-color: #dc3545;
         }
-
         button[onclick*="voltarParaIndex()"]:hover {
             background-color: #c82333;
         }
-
-</style>
+    </style>
 </head>
 <body>
     <h2>
@@ -274,7 +216,6 @@
     <p style="font-size: 6px; color: white; margin-left: 17px; margin-top: -14px;">
         Developed by Isaac Dutra
     </p>
-
     <div style="margin-left: 5px;">
         <select id="serviceList">
             <option value="">Selecione um serviço</option>
@@ -283,19 +224,19 @@
         <input type="text" id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code">
         <button onclick="downloadExcel()">Download Excel</button>
         <button onclick="startQrScanner()">Escanear QR Code</button>
-
-<button onclick="voltarParaIndex()" title="Voltar para o Início">
-    <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24" fill="white" style="vertical-align: middle; margin-right: 5px;">
-        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-    </svg>
-    Voltar
-</button>
-
+        <button onclick="voltarParaIndex()" title="Voltar para o Início">
+            <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24" fill="white" style="vertical-align: middle; margin-right: 5px;">
+                <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+            </svg>
+            Voltar
+        </button>
     </div>
 
     <div id="confirmModalOverlay" class="modal-overlay" style="z-index: 2000;">
         <div class="modal" style="text-align: center;">
-            <p id="confirmModalMessage" style="font-size: 16px;">Existem dados salvos para este serviço.<br>Deseja continuar o Romaneio existente? </p>
+            <p id="confirmModalMessage" style="font-size: 16px;">
+                Existem dados salvos para este serviço.<br>Deseja continuar o Romaneio existente?
+            </p>
             <div class="modal-footer">
                 <button id="btnConfirmSim" class="save-btn">SIM</button>
                 <button id="btnConfirmNovo" style="background-color: white; color: black;" class="close-btn">NOVO ROMANEIO</button>
@@ -315,35 +256,27 @@
     <div id="modalOverlay" class="modal-overlay">
         <div class="modal">
             <input type="hidden" id="editIndex">
-
             <label>ISOMÉTRICO:
                 <input type="text" id="ISOMETRICO" readonly>
             </label>
-
             <label>SPOOL:
                 <input type="text" id="SPOOL" readonly>
             </label>
-
             <label>ÁREA:
                 <input type="text" id="AREA" readonly>
             </label>
-
             <label>PROG FAB:
                 <input type="text" id="PROGFAB" readonly>
             </label>
-
             <label>PESO:
                 <input type="text" id="PESO" readonly>
             </label>
-
             <label>Data do Romaneio:
                 <input type="date" id="DATADOROMANEIO">
             </label>
-
             <label>Obs Romaneio:
                 <input type="text" id="OBSROMANEIO">
             </label>
-
             <div class="modal-footer">
                 <button class="save-btn" onclick="saveEdit()">Salvar</button>
                 <button class="close-btn" onclick="closeModal()">Fechar</button>
@@ -387,82 +320,7 @@
             };
         }
 
-    // dd/mm/yyyy
-    if (typeof value === "string" && value.includes("/")) {
-        const [d, m, y] = value.split("/");
-        return new Date(y, m - 1, d);
-    }
-
-    const parsed = new Date(value);
-    return isNaN(parsed.getTime()) ? null : parsed;
-}
-
-    // dd/mm/yyyy
-    if (typeof value === "string" && value.includes("/")) {
-        const [d, m, y] = value.split("/");
-        return new Date(y, m - 1, d);
-    }
-
-    const parsed = new Date(value);
-    return isNaN(parsed.getTime()) ? null : parsed;
-}
-            }
-
-            const date = new Date(dateString);
-            return isNaN(date.getTime()) ? null : date;
-        }
-
-        
-function parseDateString(value) {
-    if (!value) return null;
-
-    // Data serial (número do Excel)
-    if (!isNaN(value) && typeof value !== "string") {
-        const excelEpoch = new Date(1899, 11, 30);
-        const dias = Math.floor(value);
-        const msExtra = (value - dias) * 86400000;
-        return new Date(excelEpoch.getTime() + dias * 86400000 + msExtra);
-    }
-
-    // yyyy-mm-dd (ISO)
-    if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-        const [y, m, d] = value.split("-");
-        return new Date(y, m - 1, d);
-    }
-
-    // dd/mm/yyyy
-    if (typeof value === "string" && value.includes("/")) {
-        const [d, m, y] = value.split("/");
-        return new Date(y, m - 1, d);
-    }
-
-    const parsed = new Date(value);
-    return isNaN(parsed.getTime()) ? null : parsed;
-}
-
-
-function formatDate(dateString) {
-            const date = parseDateString(dateString);
-            if (!date) return "";
-
-            const day = String(date.getDate()).padStart(2, "0");
-            const month = String(date.getMonth() + 1).padStart(2, "0");
-            const year = date.getFullYear();
-            return `${day}/${month}/${year}`;
-        }
-
-        function formatDateForInput(dateString) {
-            const date = parseDateString(dateString);
-            if (!date) return "";
-
-            const day = String(date.getDate()).padStart(2, "0");
-            const month = String(date.getMonth() + 1).padStart(2, "0");
-            const year = date.getFullYear();
-            return `${year}-${month}-${day}`;
-        }
-
-        document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
-
+        // Carrega o Excel com tratamento adequado para datas
         function loadServices() {
             fetch(currentFileName)
                 .then(response => {
@@ -472,7 +330,12 @@ function formatDate(dateString) {
                 .then(arrayBuffer => {
                     clearPreviousFileData();
 
-                    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                    // Lê o Excel forçando a interpretação das células de data
+                    const workbook = XLSX.read(arrayBuffer, {
+                        type: 'array',
+                        cellDates: true,
+                        dateNF: 'dd/mm/yyyy'
+                    });
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
                     const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
@@ -576,29 +439,27 @@ function formatDate(dateString) {
             renderTable();
         }
 
-        
-function loadSavedEdits() {
-    const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
-    const currentServico = document.getElementById("serviceList").value;
+        function loadSavedEdits() {
+            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
+            const currentServico = document.getElementById("serviceList").value;
 
-    if (!stored[currentFileName] || !stored[currentFileName][currentServico]) {
-        return;
-    }
+            if (!stored[currentFileName] || !stored[currentFileName][currentServico]) {
+                return;
+            }
 
-    const servicoEdits = stored[currentFileName][currentServico];
+            const servicoEdits = stored[currentFileName][currentServico];
 
-    Object.entries(servicoEdits).forEach(([idSpool, edit]) => {
-        const rowIndex = data.findIndex(row => row[columnIndexes["id_spool"]] == idSpool);
-        if (rowIndex !== -1 && data[rowIndex][servicoIndex] === currentServico) {
-            data[rowIndex][columnIndexes["data do romaneio"]] = edit.dataRomaneio || "";
-            data[rowIndex][columnIndexes["obs romaneio"]] = edit.obsRomaneio || "";
-            editedRows.add(rowIndex);
+            Object.entries(servicoEdits).forEach(([idSpool, edit]) => {
+                const rowIndex = data.findIndex(row => row[columnIndexes["id_spool"]] == idSpool);
+                if (rowIndex !== -1 && data[rowIndex][servicoIndex] === currentServico) {
+                    data[rowIndex][columnIndexes["data do romaneio"]] = edit.dataRomaneio || "";
+                    data[rowIndex][columnIndexes["obs romaneio"]] = edit.obsRomaneio || "";
+                    editedRows.add(rowIndex);
+                }
+            });
         }
-    });
-}
 
-
-function clearPreviousFileData() {
+        function clearPreviousFileData() {
             editedRows.clear();
         }
 
@@ -658,83 +519,82 @@ function clearPreviousFileData() {
         }
 
         function renderTable() {
-    const table = document.getElementById("dataTable");
-    table.innerHTML = "";
+            const table = document.getElementById("dataTable");
+            table.innerHTML = "";
 
-    if (!data.length) return;
+            if (!data.length) return;
 
-    const fragment = document.createDocumentFragment();
+            const fragment = document.createDocumentFragment();
 
-    const headerRow = document.createElement("tr");
-    ordemColunasExibidas.forEach(col => {
-        const th = document.createElement("th");
-        th.textContent = col.toUpperCase();
-        headerRow.appendChild(th);
-    });
-    fragment.appendChild(headerRow);
+            const headerRow = document.createElement("tr");
+            ordemColunasExibidas.forEach(col => {
+                const th = document.createElement("th");
+                th.textContent = col.toUpperCase();
+                headerRow.appendChild(th);
+            });
+            fragment.appendChild(headerRow);
 
-    // Organiza prioridade para itens editados
-    const rowsComEdicao = [];
-    const rowsSemEdicao = [];
+            // Organiza prioridade para itens editados
+            const rowsComEdicao = [];
+            const rowsSemEdicao = [];
 
-    filteredData.forEach((row) => {
-        const originalIndex = data.indexOf(row);
-        if (editedRows.has(originalIndex)) {
-            rowsComEdicao.push(row);
-        } else {
-            rowsSemEdicao.push(row);
+            filteredData.forEach((row) => {
+                const originalIndex = data.indexOf(row);
+                if (editedRows.has(originalIndex)) {
+                    rowsComEdicao.push(row);
+                } else {
+                    rowsSemEdicao.push(row);
+                }
+            });
+
+            const rowsOrdenadas = [...rowsComEdicao, ...rowsSemEdicao];
+
+            const filtroAtivo = document.getElementById("identificacaoFilter").value.trim() !== "";
+
+            rowsOrdenadas.slice(0, itemsPerPage).forEach((row) => {
+                const originalIndex = data.indexOf(row);
+                if (originalIndex === -1) return;
+
+                const progFab = (row[columnIndexes["prog fab"]] || "").trim();
+                const dataRomaneio = (row[columnIndexes["data do romaneio"]] || "").trim();
+                const isEditado = editedRows.has(originalIndex);
+
+                if (!filtroAtivo && !isEditado && (!progFab || dataRomaneio)) return;
+
+                const tr = document.createElement("tr");
+
+                if (isEditado) {
+                    tr.classList.add("edited-row");
+                    tr.onclick = () => openEditModal(originalIndex);
+                } else if (!progFab) {
+                    tr.style.backgroundColor = "rgba(255, 243, 205, 0.5)";
+                    tr.onclick = () => alert("SPOOL NÃO PROGRAMADO");
+                } else if (dataRomaneio) {
+                    tr.style.backgroundColor = "rgba(248, 215, 218, 0.5)";
+                    tr.onclick = () => alert("SPOOL JÁ ROMANEADO");
+                } else {
+                    tr.onclick = () => openEditModal(originalIndex);
+                }
+
+                ordemColunasExibidas.forEach(col => {
+                    const colIndex = columnIndexes[col.toLowerCase()];
+                    const td = document.createElement("td");
+                    let cellValue = row[colIndex] || "";
+
+                    if (col.toLowerCase() === "data do romaneio") {
+                        cellValue = formatDate(cellValue);
+                    }
+
+                    td.textContent = cellValue;
+                    tr.appendChild(td);
+                });
+
+                fragment.appendChild(tr);
+            });
+
+            table.appendChild(fragment);
+            document.querySelector(".table-container").scrollTop = 0;
         }
-    });
-
-    const rowsOrdenadas = [...rowsComEdicao, ...rowsSemEdicao];
-
-    const filtroAtivo = document.getElementById("identificacaoFilter").value.trim() !== "";
-
-    rowsOrdenadas.slice(0, itemsPerPage).forEach((row) => {
-        const originalIndex = data.indexOf(row);
-        if (originalIndex === -1) return;
-
-        const progFab = (row[columnIndexes["prog fab"]] || "").trim();
-        const dataRomaneio = (row[columnIndexes["data do romaneio"]] || "").trim();
-        const isEditado = editedRows.has(originalIndex);
-
-        // Oculta da lista principal se não estiver em filtro e for destaque
-        if (!filtroAtivo && !isEditado && (!progFab || dataRomaneio)) return;
-
-        const tr = document.createElement("tr");
-
-        if (isEditado) {
-            tr.classList.add("edited-row");
-            tr.onclick = () => openEditModal(originalIndex);
-        } else if (!progFab) {
-            tr.style.backgroundColor = "rgba(255, 243, 205, 0.5)";
-            tr.onclick = () => alert("SPOOL NÃO PROGRAMADO");
-        } else if (dataRomaneio) {
-            tr.style.backgroundColor = "rgba(248, 215, 218, 0.5)";
-            tr.onclick = () => alert("SPOOL JÁ ROMANEADO");
-        } else {
-            tr.onclick = () => openEditModal(originalIndex);
-        }
-
-        ordemColunasExibidas.forEach(col => {
-            const colIndex = columnIndexes[col.toLowerCase()];
-            const td = document.createElement("td");
-            let cellValue = row[colIndex] || "";
-
-            if (col.toLowerCase() === "data do romaneio") {
-                cellValue = formatDate(cellValue);
-            }
-
-            td.textContent = cellValue;
-            tr.appendChild(td);
-        });
-
-        fragment.appendChild(tr);
-    });
-
-    table.appendChild(fragment);
-    document.querySelector(".table-container").scrollTop = 0;
-}
 
         function openEditModal(index) {
             if (index < 0 || index >= data.length) return;
@@ -755,49 +615,47 @@ function clearPreviousFileData() {
             document.body.style.overflow = "hidden";
         }
 
-        
-function saveEdit() {
-    const originalIndex = parseInt(document.getElementById("editIndex").value);
-    const selectedServico = document.getElementById("serviceList").value;
+        function saveEdit() {
+            const originalIndex = parseInt(document.getElementById("editIndex").value);
+            const selectedServico = document.getElementById("serviceList").value;
 
-    const dataRomaneio = document.getElementById("DATADOROMANEIO").value.trim();
-    const obsRomaneio = document.getElementById("OBSROMANEIO").value.trim();
+            const dataRomaneio = document.getElementById("DATADOROMANEIO").value.trim();
+            const obsRomaneio = document.getElementById("OBSROMANEIO").value.trim();
 
-    if (data[originalIndex][servicoIndex] !== selectedServico) {
-        alert("ERRO: O item não pertence ao serviço selecionado!");
-        closeModal();
-        return;
-    }
+            if (data[originalIndex][servicoIndex] !== selectedServico) {
+                alert("ERRO: O item não pertence ao serviço selecionado!");
+                closeModal();
+                return;
+            }
 
-    data[originalIndex][columnIndexes["data do romaneio"]] = dataRomaneio;
-    data[originalIndex][columnIndexes["obs romaneio"]] = obsRomaneio;
+            data[originalIndex][columnIndexes["data do romaneio"]] = dataRomaneio;
+            data[originalIndex][columnIndexes["obs romaneio"]] = obsRomaneio;
 
-    const idSpool = data[originalIndex][columnIndexes["id_spool"]];
-    const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
+            const idSpool = data[originalIndex][columnIndexes["id_spool"]];
+            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
 
-    if (!stored[currentFileName]) stored[currentFileName] = {};
-    if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
+            if (!stored[currentFileName]) stored[currentFileName] = {};
+            if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
 
-    if (dataRomaneio || obsRomaneio) {
-        stored[currentFileName][selectedServico][idSpool] = {
-            dataRomaneio,
-            obsRomaneio
-        };
-        editedRows.add(originalIndex);
-    } else {
-        delete stored[currentFileName][selectedServico][idSpool];
-        editedRows.delete(originalIndex);
-    }
+            if (dataRomaneio || obsRomaneio) {
+                stored[currentFileName][selectedServico][idSpool] = {
+                    dataRomaneio,
+                    obsRomaneio
+                };
+                editedRows.add(originalIndex);
+            } else {
+                delete stored[currentFileName][selectedServico][idSpool];
+                editedRows.delete(originalIndex);
+            }
 
-    localStorage.setItem("spool_edicoes", JSON.stringify(stored));
-    localStorage.setItem("spool_ultimoServico", selectedServico);
+            localStorage.setItem("spool_edicoes", JSON.stringify(stored));
+            localStorage.setItem("spool_ultimoServico", selectedServico);
 
-    closeModal();
-    renderTable();
-}
+            closeModal();
+            renderTable();
+        }
 
-
-function closeModal() {
+        function closeModal() {
             document.getElementById("modalOverlay").style.display = "none";
             document.body.style.overflow = "";
         }
@@ -859,69 +717,122 @@ function closeModal() {
         }
 
         function downloadExcel() {
-    if (data.length === 0) {
-        alert("Nenhum dado disponível para exportar.");
-        return;
-    }
-
-    const selectedService = document.getElementById("serviceList").value;
-    if (!selectedService) {
-        alert("Selecione um serviço para exportar.");
-        return;
-    }
-
-    const headerRow = data[0];
-    const filteredRows = data.slice(1).filter(row => row[servicoIndex] === selectedService);
-    const dataToExport = [headerRow, ...filteredRows];
-
-    const formattedData = dataToExport.map((row, rowIndex) => {
-        if (rowIndex === 0) return row;
-
-        return row.map((cell, colIndex) => {
-            let header = dataToExport[0][colIndex].trim().toLowerCase();
-
-            if (header === "data do romaneio") {
-                return formatDate(cell);
+            if (data.length === 0) {
+                alert("Nenhum dado disponível para exportar.");
+                return;
             }
 
-            if (header === "peso" || header === "área superf.") {
-                if (cell === "" || cell === null || cell === undefined) {
-                    return "";
+            const selectedService = document.getElementById("serviceList").value;
+            if (!selectedService) {
+                alert("Selecione um serviço para exportar.");
+                return;
+            }
+
+            const headerRow = data[0];
+            const filteredRows = data.slice(1).filter(row => row[servicoIndex] === selectedService);
+            const dataToExport = [headerRow, ...filteredRows];
+
+            const formattedData = dataToExport.map((row, rowIndex) => {
+                if (rowIndex === 0) return row;
+
+                return row.map((cell, colIndex) => {
+                    let header = dataToExport[0][colIndex].trim().toLowerCase();
+
+                    if (header === "data do romaneio") {
+                        return formatDate(cell);
+                    }
+
+                    if (header === "peso" || header === "área superf.") {
+                        if (cell === "" || cell === null || cell === undefined) {
+                            return "";
+                        }
+                        const numericValue = parseFloat(cell.toString().replace(",", "."));
+                        return isNaN(numericValue) ? "" : numericValue;
+                    }
+
+                    return cell;
+                });
+            });
+
+            const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
+
+            const romaneiosIndex = data[0].findIndex(
+                header => header.trim().toLowerCase() === "romaneios"
+            );
+
+            const colWidths = formattedData[0].map((_, i) => {
+                const width = Math.max(...formattedData.map(row => (row[i] ? row[i].toString().length : 10))) + 2;
+                return {
+                    wch: width,
+                    hidden: i === romaneiosIndex
+                };
+            });
+
+            worksheet["!cols"] = colWidths;
+
+            const nomeArquivo = `Romaneio_Spool_${selectedService.replace(/[\/\\?%*:|"<>]/g, '_')}.xlsx`;
+            XLSX.writeFile(workbook, nomeArquivo);
+        }
+
+        // Funções de formatação de datas utilizando parseDateValue
+        function formatDate(dateValue) {
+            const date = parseDateValue(dateValue);
+            if (!date) return "";
+            const day = String(date.getDate()).padStart(2, "0");
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        function formatDateForInput(dateValue) {
+            const date = parseDateValue(dateValue);
+            if (!date) return "";
+            const day = String(date.getDate()).padStart(2, "0");
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const year = date.getFullYear();
+            return `${year}-${month}-${day}`;
+        }
+
+        // Função que interpreta o valor da data, seja ele um objeto Date, um número serial do Excel ou uma string
+        function parseDateValue(dateValue) {
+            if (!dateValue) return null;
+            
+            // Se já for objeto Date, retorne
+            if (dateValue instanceof Date) return dateValue;
+
+            // Se for número, trata como serial do Excel (sistema 1900)
+            if (!isNaN(dateValue)) {
+                const excelEpoch = new Date(1899, 11, 30);
+                const dias = Math.floor(dateValue);
+                const msExtra = (dateValue - dias) * 86400000;
+                return new Date(excelEpoch.getTime() + dias * 86400000 + msExtra);
+            }
+
+            // Se for string, tenta interpretar formatos ISO (yyyy-mm-dd) ou dd/mm/yyyy
+            if (typeof dateValue === "string") {
+                if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+                    const [y, m, d] = dateValue.split("-");
+                    return new Date(y, m - 1, d);
                 }
-                const numericValue = parseFloat(cell.toString().replace(",", "."));
-                return isNaN(numericValue) ? "" : numericValue;
+                if (dateValue.includes("/")) {
+                    const parts = dateValue.split("/");
+                    if (parts.length === 3) {
+                        return new Date(parts[2], parts[1] - 1, parts[0]);
+                    }
+                }
             }
 
-            return cell;
-        });
-    });
+            const parsed = new Date(dateValue);
+            return isNaN(parsed.getTime()) ? null : parsed;
+        }
 
-    const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
-
-    const romaneiosIndex = data[0].findIndex(
-        header => header.trim().toLowerCase() === "romaneios"
-    );
-
-    const colWidths = formattedData[0].map((_, i) => {
-        const width = Math.max(...formattedData.map(row => (row[i] ? row[i].toString().length : 10))) + 2;
-        return {
-            wch: width,
-            hidden: i === romaneiosIndex
-        };
-    });
-
-    worksheet["!cols"] = colWidths;
-
-    const nomeArquivo = `Romaneio_Spool_${selectedService.replace(/[\/\\?%*:|"<>]/g, '_')}.xlsx`;
-    XLSX.writeFile(workbook, nomeArquivo);
-}
-
+        document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
 
         document.addEventListener("DOMContentLoaded", () => {
             loadServices();
-        document.getElementById("serviceList").addEventListener("change", confirmLoadService);
+            document.getElementById("serviceList").addEventListener("change", confirmLoadService);
         });
 
         window.addEventListener('beforeunload', function() {
@@ -938,14 +849,12 @@ function closeModal() {
                     console.error('Erro ao registrar o Service Worker:', error);
                 });
         }
-    
-    // Salva o nome do sistema (spool ou suporte) como o último aberto
-    localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
 
-    function voltarParaIndex() {
-        window.location.href = "index.html";
-    }
+        localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
 
-</script>
+        function voltarParaIndex() {
+            window.location.href = "index.html";
+        }
+    </script>
 </body>
 </html>
