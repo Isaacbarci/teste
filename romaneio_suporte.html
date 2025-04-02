@@ -1245,5 +1245,40 @@ function closeModal() {
     }
 
 </script>
+
+    <script>
+    async function baixarExcelFirebase() {
+      try {
+        const tabela = document.querySelector("table");
+        const linhas = Array.from(tabela.querySelectorAll("tbody tr"));
+        const dados = linhas.map(linha => {
+          const colunas = linha.querySelectorAll("td");
+          return {
+            servico: colunas[0].innerText,
+            nome: colunas[1].innerText,
+            qtd: parseInt(colunas[2].innerText)
+          };
+        });
+
+        const servico = dados[0]?.servico || "SERVICO";
+
+        const resp = await fetch("https://us-central1-romaneio-palmont.cloudfunctions.net/gerarExcelRomaneio", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tipo: "suporte", servico, dados })
+        });
+
+        const result = await resp.json();
+        if (result.url) {
+          window.open(result.url, "_blank");
+        } else {
+          alert("Erro: resposta inválida do servidor");
+        }
+      } catch (e) {
+        alert("Erro ao enviar para Firebase: " + e.message);
+      }
+    }
+    </script>
+    
 </body>
 </html>
