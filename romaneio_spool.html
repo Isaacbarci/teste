@@ -664,14 +664,17 @@ function clearPreviousFileData() {
 
         const isEditado = editedRows.has(originalIndex);
 
+        const filtroAtivo = document.getElementById("identificacaoFilter").value.trim() !== "";
+        if (!filtroAtivo && !isEditado && (!progFab || dataRomaneio)) return;
+
         if (isEditado) {
             tr.classList.add("edited-row");
             tr.onclick = () => openEditModal(originalIndex);
         } else if (!progFab) {
-            tr.style.backgroundColor = "rgba(255, 243, 205, 0.2)";
+            tr.style.backgroundColor = "rgba(255, 243, 205, 0.5)";
             tr.onclick = () => alert("SPOOL NÃO PROGRAMADO");
         } else if (dataRomaneio) {
-            tr.style.backgroundColor = "rgba(248, 215, 218, 0.2)";
+            tr.style.backgroundColor = "rgba(248, 215, 218, 0.5)";
             tr.onclick = () => alert("SPOOL JÁ ROMANEADO");
         } else {
             tr.onclick = () => openEditModal(originalIndex);
@@ -683,8 +686,10 @@ function clearPreviousFileData() {
             let cellValue = row[colIndex] || "";
 
             if (col.toLowerCase() === "data do romaneio") {
+                cellValue = formatDate(cellValue); {
                 cellValue = formatDate(cellValue);
             }
+
 
             td.textContent = cellValue;
             tr.appendChild(td);
