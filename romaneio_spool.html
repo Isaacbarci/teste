@@ -914,7 +914,15 @@ async function compartilharViaEmailOuApp() {
             body: blob
         });
 
-        const result = await resp.json();
+        
+        const text = await resp.text();
+        let result;
+        try {
+          result = JSON.parse(text);
+        } catch (e) {
+          throw new Error("Resposta inesperada do servidor: " + text.substring(0, 100));
+        }
+        
         if (!result.url) {
             alert("Erro ao obter link.");
             return;
@@ -983,7 +991,15 @@ const resp = await fetch("https://us-central1-romaneio-palmont.cloudfunctions.ne
   },
   body: blob
 });
-        const result = await resp.json();
+        
+        const text = await resp.text();
+        let result;
+        try {
+          result = JSON.parse(text);
+        } catch (e) {
+          throw new Error("Resposta inesperada do servidor: " + text.substring(0, 100));
+        }
+        
         if (!result.url) {
             alert("Erro ao obter link.");
             return;
