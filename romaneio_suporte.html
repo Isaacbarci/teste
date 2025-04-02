@@ -1250,7 +1250,7 @@ async function compartilharViaEmailOuApp() {
         const ws = XLSX.utils.aoa_to_sheet(dadosExport);
         XLSX.utils.book_append_sheet(wb, ws, "Romaneio");
 
-        const blob = XLSX.write(wb, { bookType: "xlsx", type: "blob" });
+        const blob = XLSX.write(wb, { bookType: "xlsx", type: "array" });
 
         
 const resp = await fetch("https://us-central1-romaneio-palmont.cloudfunctions.net/uploadExcel", {
@@ -1282,7 +1282,7 @@ const resp = await fetch("https://us-central1-romaneio-palmont.cloudfunctions.ne
             window.open(mailto, "_blank");
         }
     } catch (err) {
-        console.error("Erro ao compartilhar:", err);
+        alert("Erro ao compartilhar: " + err.message);
         alert("Falha ao compartilhar. Veja o console para detalhes.");
     }
 }
@@ -1320,7 +1320,7 @@ const blob = new Blob([uint8], {
         const ws = XLSX.utils.aoa_to_sheet(dadosExport);
         XLSX.utils.book_append_sheet(wb, ws, "Romaneio");
 
-        const blob = XLSX.write(wb, { bookType: "xlsx", type: "blob" });
+        const blob = XLSX.write(wb, { bookType: "xlsx", type: "array" });
 
         const resp = await fetch("https://us-central1-romaneio-palmont.cloudfunctions.net/uploadExcel", {
             method: "POST",
@@ -1352,7 +1352,7 @@ const blob = new Blob([uint8], {
             window.open(mailto, "_blank");
         }
     } catch (err) {
-        console.error("Erro ao compartilhar:", err);
+        alert("Erro ao compartilhar: " + err.message);
         alert("Falha ao compartilhar.");
     }
 }
