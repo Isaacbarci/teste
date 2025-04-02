@@ -668,10 +668,10 @@ function clearPreviousFileData() {
             tr.classList.add("edited-row");
             tr.onclick = () => openEditModal(originalIndex);
         } else if (!progFab) {
-            tr.style.backgroundColor = "#fff3cd";
+            tr.style.backgroundColor = "rgba(255, 243, 205, 0.2)";
             tr.onclick = () => alert("SPOOL NÃO PROGRAMADO");
         } else if (dataRomaneio) {
-            tr.style.backgroundColor = "#f8d7da";
+            tr.style.backgroundColor = "rgba(248, 215, 218, 0.2)";
             tr.onclick = () => alert("SPOOL JÁ ROMANEADO");
         } else {
             tr.onclick = () => openEditModal(originalIndex);
