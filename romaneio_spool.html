@@ -638,7 +638,7 @@ function clearPreviousFileData() {
     });
     fragment.appendChild(headerRow);
 
-    // Ordenar com prioridade para editados
+    // Organiza prioridade para itens editados
     const rowsComEdicao = [];
     const rowsSemEdicao = [];
 
@@ -653,19 +653,20 @@ function clearPreviousFileData() {
 
     const rowsOrdenadas = [...rowsComEdicao, ...rowsSemEdicao];
 
+    const filtroAtivo = document.getElementById("identificacaoFilter").value.trim() !== "";
+
     rowsOrdenadas.slice(0, itemsPerPage).forEach((row) => {
         const originalIndex = data.indexOf(row);
         if (originalIndex === -1) return;
 
-        const tr = document.createElement("tr");
-
         const progFab = (row[columnIndexes["prog fab"]] || "").trim();
         const dataRomaneio = (row[columnIndexes["data do romaneio"]] || "").trim();
-
         const isEditado = editedRows.has(originalIndex);
 
-        const filtroAtivo = document.getElementById("identificacaoFilter").value.trim() !== "";
+        // Oculta da lista principal se não estiver em filtro e for destaque
         if (!filtroAtivo && !isEditado && (!progFab || dataRomaneio)) return;
+
+        const tr = document.createElement("tr");
 
         if (isEditado) {
             tr.classList.add("edited-row");
@@ -686,10 +687,8 @@ function clearPreviousFileData() {
             let cellValue = row[colIndex] || "";
 
             if (col.toLowerCase() === "data do romaneio") {
-                cellValue = formatDate(cellValue); {
                 cellValue = formatDate(cellValue);
             }
-
 
             td.textContent = cellValue;
             tr.appendChild(td);
@@ -699,8 +698,6 @@ function clearPreviousFileData() {
     });
 
     table.appendChild(fragment);
-
-    // Scroll visual para topo da tabela
     document.querySelector(".table-container").scrollTop = 0;
 }
 
