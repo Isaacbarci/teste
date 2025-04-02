@@ -387,33 +387,48 @@
             };
         }
 
-        function parseDateString(dateString) {
-    if (!dateString) return null;
+        function parseDateString(dateValue) {
+    if (!dateValue) return null;
 
-    // Trata números serial do Excel (ex: 45000)
-    if (!isNaN(dateString) && typeof dateString !== "string") {
-        const excelEpoch = new Date(Date.UTC(1899, 11, 30)); // Base do Excel
-        const dias = parseInt(dateString);
-        excelEpoch.setDate(excelEpoch.getDate() + dias);
-        return excelEpoch;
+    // Verifica se é uma data serial do Excel (número)
+    if (!isNaN(dateValue) && typeof dateValue !== "string") {
+        const excelEpoch = new Date(1899, 11, 30);
+        const dias = Math.floor(dateValue);
+        const msExtra = (dateValue - dias) * 86400000;
+        return new Date(excelEpoch.getTime() + dias * 86400000 + msExtra);
     }
 
-    // Trata formato yyyy-mm-dd
-    if (typeof dateString === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-        const [year, month, day] = dateString.split('-');
-        return new Date(year, month - 1, day);
+    // yyyy-mm-dd (ISO)
+    if (typeof dateValue === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+        const [y, m, d] = dateValue.split("-");
+        return new Date(y, m - 1, d);
     }
 
-    // Trata formato dd/mm/yyyy
-    if (typeof dateString === "string" && dateString.includes('/')) {
-        const [day, month, year] = dateString.split('/');
-        return new Date(year, month - 1, day);
+    // dd/mm/yyyy
+    if (typeof dateValue === "string" && dateValue.includes("/")) {
+        const parts = dateValue.split("/");
+        if (parts.length === 3) {
+            return new Date(parts[2], parts[1] - 1, parts[0]);
+        }
     }
 
-    // Último recurso
-    const parsed = new Date(dateString);
+    const parsed = new Date(dateValue);
     return isNaN(parsed.getTime()) ? null : parsed;
-}
+}-\d{2}-\d{2}$/.test(dateString)) {
+                const parts = dateString.split('-');
+                return new Date(parts[0], parts[1] - 1, parts[2]);
+            }
+
+            if (typeof dateString === 'string' && dateString.includes('/')) {
+                const parts = dateString.split('/');
+                if (parts.length === 3) {
+                    return new Date(parts[2], parts[1] - 1, parts[0]);
+                }
+            }
+
+            const date = new Date(dateString);
+            return isNaN(date.getTime()) ? null : date;
+        }
 
         function formatDate(dateString) {
             const date = parseDateString(dateString);
