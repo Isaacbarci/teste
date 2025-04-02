@@ -206,7 +206,17 @@
         button[onclick*="voltarParaIndex()"]:hover {
             background-color: #c82333;
         }
-    </style>
+    
+        .modal-footer button {
+            flex: 1;
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
+    
+</style>
 </head>
 <body>
     <h2>
@@ -567,10 +577,10 @@
                     tr.classList.add("edited-row");
                     tr.onclick = () => openEditModal(originalIndex);
                 } else if (!progFab) {
-                    tr.style.backgroundColor = "rgba(255, 243, 205, 0.5)";
+                    tr.style.backgroundColor = "rgba(255, 193, 7, 0.2)";
                     tr.onclick = () => alert("SPOOL NÃO PROGRAMADO");
                 } else if (dataRomaneio) {
-                    tr.style.backgroundColor = "rgba(248, 215, 218, 0.5)";
+                    tr.style.backgroundColor = "rgba(255, 107, 107, 0.2)";
                     tr.onclick = () => alert("SPOOL JÁ ROMANEADO");
                 } else {
                     tr.onclick = () => openEditModal(originalIndex);
