@@ -1,0 +1,65 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Histórico de Downloads</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f8f8f8; padding: 20px; }
+    h1 { color: #333; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
+    th { background: #eee; }
+    a.button { padding: 5px 10px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Histórico de Romaneios</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Serviço</th>
+        <th>Tipo</th>
+        <th>Data</th>
+        <th>Link</th>
+      </tr>
+    </thead>
+    <tbody id="tabelaHistorico"></tbody>
+  </table>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDGeF8d07YUKYpp3ZJJAKBr9R-JpgTXPbg",
+      authDomain: "romaneio-palmont.firebaseapp.com",
+      projectId: "romaneio-palmont",
+      storageBucket: "romaneio-palmont.appspot.com",
+      messagingSenderId: "378221539005",
+      appId: "1:378221539005:web:1dba5391f18fd057d35a56"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    async function carregarHistorico() {
+      const tabela = document.getElementById("tabelaHistorico");
+      const snap = await db.collection("romaneios").orderBy("createdAt", "desc").get();
+      snap.forEach(doc => {
+        const dado = doc.data();
+        const tr = document.createElement("tr");
+        const dataFormatada = dado.createdAt?.toDate().toLocaleString("pt-BR") || "";
+        tr.innerHTML = `
+          <td>${dado.servico || "-"}</td>
+          <td>${dado.tipo || "-"}</td>
+          <td>${dataFormatada}</td>
+          <td><a class="button" href="${dado.url}" target="_blank">Download</a></td>
+        `;
+        tabela.appendChild(tr);
+      });
+    }
+
+    carregarHistorico();
+  </script>
+</body>
+</html>
