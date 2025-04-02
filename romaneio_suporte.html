@@ -1213,9 +1213,9 @@ function closeModal() {
 
 </script>
 
-<div class="modal-overlay" id="downloadOptionsModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0008;align-items:center;justify-content:center;z-index:9999">
-<div class="modal" style="background:#fff;padding:20px;border-radius:8px;text-align:center;">
-<p style="font-size:16px;">O que deseja fazer?</p>
+<div id="downloadOptionsModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0008;align-items:center;justify-content:center;z-index:9999">
+<div style="background:#fff;padding:20px;border-radius:8px;text-align:center;">
+<p>O que deseja fazer?</p>
 <button onclick="downloadExcel(); fecharDownloadOptions()">Download</button>
 <button onclick="compartilharViaEmailOuApp(); fecharDownloadOptions()">Compartilhar</button>
 <button onclick="fecharDownloadOptions()">Cancelar</button>
@@ -1242,7 +1242,7 @@ async function compartilharViaEmailOuApp() {
             return;
         }
 
-        const nomeArquivo = `Romaneio_Suporte_${currentServico.replace(/[\\/:*?"<>|]/g, "_")}.xlsx`;
+        const nomeArquivo = `Romaneio_Suporte_${currentServico.replace(/[\/:*?"<>|]/g, "_")}.xlsx`;
         const header = data[0];
         const linhas = data.slice(1).filter(row => row[servicoIndex] === currentServico);
         const dadosExport = [header, ...linhas];
