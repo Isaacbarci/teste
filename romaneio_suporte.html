@@ -139,6 +139,8 @@
         }
         
         .modal {
+    background-color: #000 !important;
+    color: #fff !important;
             background-color: #1e1e1e;
             color: #fff;
             padding: 25px;
@@ -314,6 +316,8 @@ input[type=number] {
         
         @media (max-width: 768px) {
             .modal {
+    background-color: #000 !important;
+    color: #fff !important;
                 width: 95%;
                 max-width: none;
                 max-height: 90vh;
@@ -339,6 +343,24 @@ input[type=number] {
         }
 
 </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .swal2-popup {
+            background-color: #000 !important;
+            color: white !important;
+        }
+        .swal2-title, .swal2-content {
+            color: white !important;
+        }
+        .swal2-confirm {
+            background-color: #28a745 !important;
+        }
+        .swal2-cancel {
+            background-color: #dc3545 !important;
+        }
+    </style>
+        
 </head>
 <body>
     <h2 style="display: flex; align-items: center;">
@@ -369,7 +391,7 @@ input[type=number] {
 
 
 <div id="confirmModalOverlay" class="modal-overlay" style="z-index: 2000;">
-  <div class="modal" style="text-align: center;">
+  <div class="modal" style="text-align: center; background-color: #000; color: white;">
     <p id="confirmModalMessage" style="font-size: 16px;">Existem dados salvos para este serviço.<br>Deseja continuar o Romaneio existente? </p>
     <div class="modal-footer">
       <button id="btnConfirmSim" class="save-btn">SIM</button>
@@ -596,7 +618,7 @@ function configurarEventosQuantidade() {
                 })
                 .catch(error => {
                     console.error("Erro ao carregar Excel:", error);
-                    alert("Não foi possível carregar o arquivo do diretório.");
+                    Swal.fire({text: "Não foi possível carregar o arquivo do diretório.", icon: "info", confirmButtonText: "OK"});
                 });
         }
 
@@ -605,13 +627,13 @@ function configurarEventosQuantidade() {
     const tentativa = prompt("Digite a senha para continuar:");
 
     if (tentativa !== senhaCorreta) {
-        alert("Senha incorreta. Ação cancelada.");
+        Swal.fire({text: "Senha incorreta. Ação cancelada.", icon: "info", confirmButtonText: "OK"});
         return;
     }
 
     const selectedServico = document.getElementById("servicoSelect").value;
     if (!selectedServico) {
-        alert("Selecione um serviço da lista para carregar.");
+        Swal.fire({text: "Selecione um serviço da lista para carregar.", icon: "info", confirmButtonText: "OK"});
         return;
     }
 
@@ -736,7 +758,7 @@ function clearPreviousFileData() {
             servicoIndex = headers.findIndex(header => header.trim().toLowerCase() === "serviço");
 
             if (servicoIndex === -1) {
-                alert("Coluna 'SERVIÇO' não encontrada no arquivo. Certifique-se de que existe uma coluna com este nome.");
+                Swal.fire({text: "Coluna 'SERVIÇO' não encontrada no arquivo. Certifique-se de que existe uma coluna com este nome.", icon: "info", confirmButtonText: "OK"});
                 return;
             }
 
@@ -934,19 +956,19 @@ function saveEdit() {
     const obsRomaneio = document.getElementById("OBSROMANEIO").value.trim();
 
     if (dataRomaneio && !qtdEnviada) {
-        alert("Informe a Quantidade Enviada antes de salvar.");
+        Swal.fire({text: "Informe a Quantidade Enviada antes de salvar.", icon: "info", confirmButtonText: "OK"});
         document.getElementById("QTDENVIADA").focus();
         return;
     }
 
     if (qtdEnviada && !dataRomaneio) {
-        alert("Informe a Data do Romaneio antes de salvar.");
+        Swal.fire({text: "Informe a Data do Romaneio antes de salvar.", icon: "info", confirmButtonText: "OK"});
         document.getElementById("DATADOROMANEIO").focus();
         return;
     }
 
     if (data[originalIndex][servicoIndex] !== selectedServico) {
-        alert("ERRO: O item não pertence ao serviço selecionado!");
+        Swal.fire({text: "ERRO: O item não pertence ao serviço selecionado!", icon: "info", confirmButtonText: "OK"});
         closeModal();
         return;
     }
@@ -1034,7 +1056,7 @@ function closeModal() {
 
         function downloadExcel() {
             if (!data.length) {
-                alert("Nenhum dado carregado para exportar.");
+                Swal.fire({text: "Nenhum dado carregado para exportar.", icon: "info", confirmButtonText: "OK"});
                 return;
             }
 
