@@ -1,0 +1,34 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Teste CORS Firebase</title>
+</head>
+<body>
+  <h2>Testar CORS - Firebase Excel</h2>
+  <button onclick="testarFirebase()">Testar Agora</button>
+
+  <script>
+    async function testarFirebase() {
+      const dados = [
+        { cliente: "XPTO", motorista: "João", placa: "ABC1234", qtd: 10, material: "Cano", servico: "ELDORADO" }
+      ];
+
+      try {
+        const resp = await fetch("https://us-central1-romaneio-palmont.cloudfunctions.net/gerarExcelRomaneio", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tipo: "spool", servico: "ELDORADO", dados })
+        });
+
+        const res = await resp.json();
+        alert("✅ Link gerado:\n" + res.url);
+        window.open(res.url, "_blank");
+      } catch (err) {
+        alert("❌ Erro: " + err.message);
+      }
+    }
+  </script>
+</body>
+</html>
