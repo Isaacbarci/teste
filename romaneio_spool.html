@@ -824,7 +824,7 @@ function closeModal() {
         }
 
         function downloadExcel() {
-    if (!data.length) {
+    if (!data || !data.length) {
         alert("Nenhum dado carregado para exportar.");
         return;
     }
@@ -835,33 +835,37 @@ function closeModal() {
         return;
     }
 
-    let editedOnly = Array.from(editedRows).filter(index => {
-        return data[index][servicoIndex] === currentServico;
+    const headers = data[0];
+    const exportData = [headers];
+
+    editedRows.forEach(index => {
+        if (data[index][servicoIndex] === currentServico) {
+            const row = [...data[index]];
+
+            // Corrigir formatação da data
+            const dataRomaneioIndex = columnIndexes["data do romaneio"];
+            if (dataRomaneioIndex !== undefined) {
+                let value = row[dataRomaneioIndex];
+                if (value && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+                    const [ano, mes, dia] = value.split("-");
+                    row[dataRomaneioIndex] = `${dia}/${mes}/${ano}`;
+                } else if (value && /^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+                    row[dataRomaneioIndex] = value;
+                }
+            }
+
+            exportData.push(row);
+        }
     });
 
-    if (editedOnly.length === 0) {
+    if (exportData.length === 1) {
         alert("Nenhum item editado para exportar.");
         return;
     }
 
-    const headers = data[0];
-    const exportData = [headers];
-
-    editedOnly.forEach(index => {
-        const row = [...data[index]];
-
-        const dataRomaneioIndex = columnIndexes["data do romaneio"];
-        if (dataRomaneioIndex !== undefined) {
-            row[dataRomaneioIndex] = formatDate(row[dataRomaneioIndex]);
-        }
-
-        exportData.push(row);
-    });
-
     const worksheet = XLSX.utils.aoa_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Romaneio");
-
     XLSX.writeFile(workbook, "Romaneio_Editados.xlsx");
 }
 }
