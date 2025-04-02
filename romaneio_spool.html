@@ -387,37 +387,37 @@
             };
         }
 
-        function parseDateString(dateValue) {
-    if (!dateValue) return null;
+        
+function parseDateString(value) {
+    if (!value) return null;
 
-    // Verifica se é uma data serial do Excel (número)
-    if (!isNaN(dateValue) && typeof dateValue !== "string") {
+    // Data serial (número do Excel)
+    if (!isNaN(value) && typeof value !== "string") {
         const excelEpoch = new Date(1899, 11, 30);
-        const dias = Math.floor(dateValue);
-        const msExtra = (dateValue - dias) * 86400000;
+        const dias = Math.floor(value);
+        const msExtra = (value - dias) * 86400000;
         return new Date(excelEpoch.getTime() + dias * 86400000 + msExtra);
     }
 
     // yyyy-mm-dd (ISO)
-    if (typeof dateValue === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
-        const [y, m, d] = dateValue.split("-");
+    if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        const [y, m, d] = value.split("-");
         return new Date(y, m - 1, d);
     }
 
     // dd/mm/yyyy
-    if (typeof dateValue === "string" && dateValue.includes("/")) {
-        const parts = dateValue.split("/");
-        if (parts.length === 3) {
-            return new Date(parts[2], parts[1] - 1, parts[0]);
-        }
+    if (typeof value === "string" && value.includes("/")) {
+        const [d, m, y] = value.split("/");
+        return new Date(y, m - 1, d);
     }
 
-    const parsed = new Date(dateValue);
+    const parsed = new Date(value);
     return isNaN(parsed.getTime()) ? null : parsed;
-}-\d{2}-\d{2}$/.test(dateString)) {
-                const parts = dateString.split('-');
-                return new Date(parts[0], parts[1] - 1, parts[2]);
-            }
+}
+
+
+    // yyyy-mm-dd (ISO)
+    if (typeof dateValue === "string" && /^\d{4}
 
             if (typeof dateString === 'string' && dateString.includes('/')) {
                 const parts = dateString.split('/');
