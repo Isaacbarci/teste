@@ -1,0 +1,45 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Teste Firebase Excel + CORS</title>
+  <style>
+    body { background: #111; color: white; font-family: Arial; padding: 40px; text-align: center; }
+    button { padding: 10px 20px; font-size: 16px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Testar Geração de Excel Firebase</h1>
+  <button onclick="gerar()">Testar Agora</button>
+
+  <script>
+    async function gerar() {
+      const dados = [
+        { cliente: "Palmont", motorista: "João", placa: "ABC-1234", qtd: 10, material: "Cano", servico: "RAIZEN" }
+      ];
+
+      try {
+        const resp = await fetch("https://us-central1-romaneio-palmont.cloudfunctions.net/gerarExcelRomaneio", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            tipo: "spool",
+            servico: "RAIZEN",
+            dados: dados
+          })
+        });
+
+        if (!resp.ok) throw new Error("Erro HTTP: " + resp.status);
+        const res = await resp.json();
+        alert("✅ Excel gerado!\nAbrindo link...");
+        window.open(res.url, "_blank");
+      } catch (err) {
+        alert("❌ Erro: " + err.message);
+      }
+    }
+  </script>
+</body>
+</html>
