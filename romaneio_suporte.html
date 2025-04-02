@@ -353,7 +353,8 @@ input[type=number] {
         <select id="servicoSelect">
             <option value="">Selecione um serviço</option>
         </select>
-        <button onclick="confirmLoadService()">Carregar Serviço</button>
+        <input id="nomeInput" placeholder="Digite seu nome para baixar" style="padding:10px;margin:10px;width:90%;font-size:16px;" />
+<button onclick="confirmLoadService()">Carregar Serviço</button>
         <input type="text" id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação">
         <button onclick="downloadExcel()">Download Excel</button>
         <button onclick="startQrScanner()">Escanear QR Code</button>
@@ -1280,5 +1281,76 @@ function closeModal() {
     }
     </script>
     
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDGeF8d07YUKYpp3ZJJAKBr9R-JpgTXPbg",
+    authDomain: "romaneio-palmont.firebaseapp.com",
+    projectId: "romaneio-palmont",
+    storageBucket: "romaneio-palmont.appspot.com",
+    messagingSenderId: "378221539005",
+    appId: "1:378221539005:web:1dba5391f18fd057d35a56"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  async function baixarECompartilharFirebase() {
+    const nome = document.getElementById("nomeInput").value.trim();
+    if (!nome) {
+      alert("Por favor, preencha seu nome.");
+      return;
+    }
+
+    const tabela = document.querySelector("table");
+    const linhas = Array.from(tabela.querySelectorAll("tbody tr"));
+    const dados = linhas.map(linha => {
+      const colunas = linha.querySelectorAll("td");
+      return {
+        
+        
+        
+        qtd: parseInt(colunas[2].innerText),
+        
+        servico: colunas[0].innerText,
+        nome: colunas[1].innerText
+      };
+    });
+
+    const servico = dados[0]?.servico || "Suporte";
+    const resp = await fetch("https://us-central1-romaneio-palmont.cloudfunctions.net/gerarExcelRomaneio", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tipo: "suporte",
+        servico,
+        dados
+      })
+    });
+
+    const result = await resp.json();
+    if (!result.url) return alert("Erro ao gerar arquivo.");
+
+    await db.collection("romaneios").add({
+      nome,
+      tipo: "suporte",
+      servico,
+      url: result.url,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    if (navigator.share) {
+      await navigator.share({
+        title: "Romaneio",
+        text: "Compartilhar romaneio gerado",
+        url: result.url
+      });
+    } else {
+      window.open(result.url, "_blank");
+    }
+  }
+</script>
+
 </body>
 </html>
