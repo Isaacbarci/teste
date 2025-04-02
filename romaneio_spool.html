@@ -824,63 +824,46 @@ function closeModal() {
         }
 
         function downloadExcel() {
-    if (data.length === 0) {
-        alert("Nenhum dado disponível para exportar.");
+    if (!data.length) {
+        alert("Nenhum dado carregado para exportar.");
         return;
     }
 
-    const selectedService = document.getElementById("serviceList").value;
-    if (!selectedService) {
-        alert("Selecione um serviço para exportar.");
+    const currentServico = document.getElementById("servicoSelect").value;
+    if (!currentServico) {
+        alert("Selecione um serviço antes de exportar.");
         return;
     }
 
-    const headerRow = data[0];
-    const filteredRows = data.slice(1).filter(row => row[servicoIndex] === selectedService);
-    const dataToExport = [headerRow, ...filteredRows];
-
-    const formattedData = dataToExport.map((row, rowIndex) => {
-        if (rowIndex === 0) return row;
-
-        return row.map((cell, colIndex) => {
-            let header = dataToExport[0][colIndex].trim().toLowerCase();
-
-            if (header === "data do romaneio") {
-                return formatDate(cell);
-            }
-
-            if (header === "peso" || header === "área superf.") {
-                if (cell === "" || cell === null || cell === undefined) {
-                    return "";
-                }
-                const numericValue = parseFloat(cell.toString().replace(",", "."));
-                return isNaN(numericValue) ? "" : numericValue;
-            }
-
-            return cell;
-        });
+    let editedOnly = Array.from(editedRows).filter(index => {
+        return data[index][servicoIndex] === currentServico;
     });
 
-    const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
+    if (editedOnly.length === 0) {
+        alert("Nenhum item editado para exportar.");
+        return;
+    }
+
+    const headers = data[0];
+    const exportData = [headers];
+
+    editedOnly.forEach(index => {
+        const row = [...data[index]];
+
+        const dataRomaneioIndex = columnIndexes["data do romaneio"];
+        if (dataRomaneioIndex !== undefined) {
+            row[dataRomaneioIndex] = formatDate(row[dataRomaneioIndex]);
+        }
+
+        exportData.push(row);
+    });
+
+    const worksheet = XLSX.utils.aoa_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Romaneio");
 
-    const romaneiosIndex = data[0].findIndex(
-        header => header.trim().toLowerCase() === "romaneios"
-    );
-
-    const colWidths = formattedData[0].map((_, i) => {
-        const width = Math.max(...formattedData.map(row => (row[i] ? row[i].toString().length : 10))) + 2;
-        return {
-            wch: width,
-            hidden: i === romaneiosIndex
-        };
-    });
-
-    worksheet["!cols"] = colWidths;
-
-    const nomeArquivo = `Romaneio_Spool_${selectedService.replace(/[\/\\?%*:|"<>]/g, '_')}.xlsx`;
-    XLSX.writeFile(workbook, nomeArquivo);
+    XLSX.writeFile(workbook, "Romaneio_Editados.xlsx");
+}
 }
 
 
