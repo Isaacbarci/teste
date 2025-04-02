@@ -970,7 +970,10 @@ async function compartilharViaEmailOuApp() {
         const ws = XLSX.utils.aoa_to_sheet(dadosExport);
         XLSX.utils.book_append_sheet(wb, ws, "Romaneio");
 
-        const blob = XLSX.write(wb, { bookType: "xlsx", type: "blob" });
+        const uint8 = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+const blob = new Blob([uint8], {
+  type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+});
 
         const resp = await fetch("https://us-central1-romaneio-palmont.cloudfunctions.net/uploadExcel", {
             method: "POST",
