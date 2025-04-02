@@ -821,12 +821,14 @@ function closeModal() {
     const exportRows = [headerRow];
 
     editedRows.forEach(index => {
-        const row = [...data[index]];
-        const dataRomaneioIndex = columnIndexes["data do romaneio"];
-        if (dataRomaneioIndex !== undefined) {
-            row[dataRomaneioIndex] = formatDate(row[dataRomaneioIndex]);
+        if (data[index][servicoIndex] === selectedService) {
+            const row = [...data[index]];
+            const dataRomaneioIndex = columnIndexes["data do romaneio"];
+            if (dataRomaneioIndex !== undefined) {
+                row[dataRomaneioIndex] = formatDate(row[dataRomaneioIndex]);
+            }
+            exportRows.push(row);
         }
-        exportRows.push(row);
     });
 
     if (exportRows.length === 1) {
