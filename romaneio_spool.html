@@ -406,27 +406,14 @@
             return isNaN(date.getTime()) ? null : date;
         }
 
-        function formatDate(value) {
-    if (!value) return "";
+        function formatDate(dateString) {
+            const date = parseDateString(dateString);
+            if (!date) return "";
 
-    if (Object.prototype.toString.call(value) === "[object Date]") {
-        const dia = String(value.getDate()).padStart(2, '0');
-        const mes = String(value.getMonth() + 1).padStart(2, '0');
-        const ano = value.getFullYear();
-        return `${dia}/${mes}/${ano}`;
-    }
-
-    if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-        const [ano, mes, dia] = value.split("-");
-        return `${dia}/${mes}/${ano}`;
-    }
-
-    if (typeof value === "string" && /^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
-        return value;
-    }
-
-    return value;
-}/${month}/${year}`;
+            const day = String(date.getDate()).padStart(2, "0");
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
         }
 
         function formatDateForInput(dateString) {
@@ -651,6 +638,7 @@ function clearPreviousFileData() {
     });
     fragment.appendChild(headerRow);
 
+    // Organiza prioridade para itens editados
     const rowsComEdicao = [];
     const rowsSemEdicao = [];
 
@@ -675,6 +663,7 @@ function clearPreviousFileData() {
         const dataRomaneio = (row[columnIndexes["data do romaneio"]] || "").trim();
         const isEditado = editedRows.has(originalIndex);
 
+        // Oculta da lista principal se não estiver em filtro e for destaque
         if (!filtroAtivo && !isEditado && (!progFab || dataRomaneio)) return;
 
         const tr = document.createElement("tr");
@@ -835,7 +824,7 @@ function closeModal() {
         }
 
         function downloadExcel() {
-    if (!data.length) {
+    if (data.length === 0) {
         alert("Nenhum dado disponível para exportar.");
         return;
     }
@@ -847,31 +836,51 @@ function closeModal() {
     }
 
     const headerRow = data[0];
-    const exportRows = [headerRow];
+    const filteredRows = data.slice(1).filter(row => row[servicoIndex] === selectedService);
+    const dataToExport = [headerRow, ...filteredRows];
 
-    editedRows.forEach(index => {
-        if (data[index][servicoIndex] === selectedService) {
-            const row = [...data[index]];
-            const dataRomaneioIndex = columnIndexes["data do romaneio"];
-            if (dataRomaneioIndex !== undefined) {
-                row[dataRomaneioIndex] = formatDate(row[dataRomaneioIndex]);
+    const formattedData = dataToExport.map((row, rowIndex) => {
+        if (rowIndex === 0) return row;
+
+        return row.map((cell, colIndex) => {
+            let header = dataToExport[0][colIndex].trim().toLowerCase();
+
+            if (header === "data do romaneio") {
+                return formatDate(cell);
             }
-            exportRows.push(row);
-        }
+
+            if (header === "peso" || header === "área superf.") {
+                if (cell === "" || cell === null || cell === undefined) {
+                    return "";
+                }
+                const numericValue = parseFloat(cell.toString().replace(",", "."));
+                return isNaN(numericValue) ? "" : numericValue;
+            }
+
+            return cell;
+        });
     });
 
-    if (exportRows.length === 1) {
-        alert("Nenhuma edição para exportar.");
-        return;
-    }
-
-    const worksheet = XLSX.utils.aoa_to_sheet(exportRows);
+    const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
 
-    const nomeArquivo = `Romaneio_Spool_Editados_${selectedService.replace(/[\/\?%*:|"<>]/g, '_')}.xlsx`;
+    const romaneiosIndex = data[0].findIndex(
+        header => header.trim().toLowerCase() === "romaneios"
+    );
+
+    const colWidths = formattedData[0].map((_, i) => {
+        const width = Math.max(...formattedData.map(row => (row[i] ? row[i].toString().length : 10))) + 2;
+        return {
+            wch: width,
+            hidden: i === romaneiosIndex
+        };
+    });
+
+    worksheet["!cols"] = colWidths;
+
+    const nomeArquivo = `Romaneio_Spool_${selectedService.replace(/[\/\\?%*:|"<>]/g, '_')}.xlsx`;
     XLSX.writeFile(workbook, nomeArquivo);
-}
 }
 
 
