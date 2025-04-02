@@ -1,0 +1,131 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Histórico de Romaneios</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <style>
+    body { font-family: Arial; background: #f8f8f8; padding: 20px; }
+    h1 { color: #333; }
+    select, input, button { padding: 8px; margin: 5px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 10px; border: 1px solid #ccc; }
+    th { background: #eee; }
+    a.button { padding: 5px 10px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Histórico de Romaneios</h1>
+
+  <div>
+    <label>Tipo:</label>
+    <select id="filtroTipo">
+      <option value="">Todos</option>
+      <option value="spool">Spool</option>
+      <option value="suporte">Suporte</option>
+    </select>
+
+    <label>Serviço:</label>
+    <select id="filtroServico">
+      <option value="">Todos</option>
+    </select>
+
+    <label>Nome:</label>
+    <input type="text" id="filtroNome" placeholder="Digite um nome" />
+
+    <label>De:</label>
+    <input type="date" id="dataInicio" />
+    <label>Até:</label>
+    <input type="date" id="dataFim" />
+
+    <button onclick="filtrar()">Filtrar</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Tipo</th>
+        <th>Serviço</th>
+        <th>Data</th>
+        <th>Download</th>
+      </tr>
+    </thead>
+    <tbody id="tabela"></tbody>
+  </table>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDGeF8d07YUKYpp3ZJJAKBr9R-JpgTXPbg",
+      authDomain: "romaneio-palmont.firebaseapp.com",
+      projectId: "romaneio-palmont",
+      storageBucket: "romaneio-palmont.appspot.com",
+      messagingSenderId: "378221539005",
+      appId: "1:378221539005:web:1dba5391f18fd057d35a56"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    let dados = [];
+
+    async function carregar() {
+      const snap = await db.collection("romaneios").orderBy("createdAt", "desc").get();
+      dados = snap.docs.map(doc => ({ id: doc.id, ...doc.data(), data: doc.data().createdAt?.toDate() }));
+      preencherServicos();
+      renderizar(dados);
+    }
+
+    function preencherServicos() {
+      const lista = [...new Set(dados.map(d => d.servico).filter(Boolean))];
+      const select = document.getElementById("filtroServico");
+      select.innerHTML = "<option value=''>Todos</option>";
+      lista.forEach(s => {
+        const op = document.createElement("option");
+        op.value = s;
+        op.textContent = s;
+        select.appendChild(op);
+      });
+    }
+
+    function filtrar() {
+      const tipo = document.getElementById("filtroTipo").value;
+      const servico = document.getElementById("filtroServico").value;
+      const nome = document.getElementById("filtroNome").value.toLowerCase();
+      const inicio = document.getElementById("dataInicio").valueAsDate;
+      const fim = document.getElementById("dataFim").valueAsDate;
+
+      const filtrado = dados.filter(d => {
+        const dt = d.data || new Date(0);
+        return (!tipo || d.tipo === tipo)
+          && (!servico || d.servico === servico)
+          && (!nome || (d.nome || "").toLowerCase().includes(nome))
+          && (!inicio || dt >= inicio)
+          && (!fim || dt <= new Date(fim.getTime() + 86400000));
+      });
+
+      renderizar(filtrado);
+    }
+
+    function renderizar(lista) {
+      const tabela = document.getElementById("tabela");
+      tabela.innerHTML = "";
+      lista.forEach(d => {
+        const tr = document.createElement("tr");
+        const dt = d.data ? d.data.toLocaleString("pt-BR") : "-";
+        tr.innerHTML = `
+          <td>${d.nome || "-"}</td>
+          <td>${d.tipo || "-"}</td>
+          <td>${d.servico || "-"}</td>
+          <td>${dt}</td>
+          <td><a class="button" href="${d.url}" target="_blank">Download</a></td>
+        `;
+        tabela.appendChild(tr);
+      });
+    }
+
+    carregar();
+  </script>
+</body>
+</html>
