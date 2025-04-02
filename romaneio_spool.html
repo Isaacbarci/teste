@@ -1,25 +1,3 @@
-function formatDate(value) {
-    if (!value) return "";
-
-    if (Object.prototype.toString.call(value) === "[object Date]") {
-        const dia = String(value.getDate()).padStart(2, '0');
-        const mes = String(value.getMonth() + 1).padStart(2, '0');
-        const ano = value.getFullYear();
-        return `${dia}/${mes}/${ano}`;
-    }
-
-    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-        const [ano, mes, dia] = value.split("-");
-        return `${dia}/${mes}/${ano}`;
-    }
-
-    if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
-        return value;
-    }
-
-    return value;
-}
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -428,14 +406,27 @@ function formatDate(value) {
             return isNaN(date.getTime()) ? null : date;
         }
 
-        function formatDate(dateString) {
-            const date = parseDateString(dateString);
-            if (!date) return "";
+        function formatDate(value) {
+    if (!value) return "";
 
-            const day = String(date.getDate()).padStart(2, "0");
-            const month = String(date.getMonth() + 1).padStart(2, "0");
-            const year = date.getFullYear();
-            return `${day}/${month}/${year}`;
+    if (Object.prototype.toString.call(value) === "[object Date]") {
+        const dia = String(value.getDate()).padStart(2, '0');
+        const mes = String(value.getMonth() + 1).padStart(2, '0');
+        const ano = value.getFullYear();
+        return `${dia}/${mes}/${ano}`;
+    }
+
+    if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        const [ano, mes, dia] = value.split("-");
+        return `${dia}/${mes}/${ano}`;
+    }
+
+    if (typeof value === "string" && /^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+        return value;
+    }
+
+    return value;
+}/${month}/${year}`;
         }
 
         function formatDateForInput(dateString) {
@@ -645,83 +636,52 @@ function clearPreviousFileData() {
         }
 
         function renderTable() {
-    const table = document.getElementById("dataTable");
-    table.innerHTML = "";
+            const table = document.getElementById("dataTable");
+            table.innerHTML = "";
 
-    if (!data.length) return;
+            if (!data.length) return;
 
-    const fragment = document.createDocumentFragment();
+            const fragment = document.createDocumentFragment();
 
-    const headerRow = document.createElement("tr");
-    ordemColunasExibidas.forEach(col => {
-        const th = document.createElement("th");
-        th.textContent = col.toUpperCase();
-        headerRow.appendChild(th);
-    });
-    fragment.appendChild(headerRow);
+            // Cabeçalho
+            const headerRow = document.createElement("tr");
+            ordemColunasExibidas.forEach(col => {
+                const th = document.createElement("th");
+                th.textContent = col.toUpperCase();
+                headerRow.appendChild(th);
+            });
+            fragment.appendChild(headerRow);
 
-    // Organiza prioridade para itens editados
-    const rowsComEdicao = [];
-    const rowsSemEdicao = [];
+            // Linhas de dados
+            filteredData.slice(0, itemsPerPage).forEach((row, index) => {
+                const originalIndex = data.indexOf(row);
+                if (originalIndex === -1) return;
 
-    filteredData.forEach((row) => {
-        const originalIndex = data.indexOf(row);
-        if (editedRows.has(originalIndex)) {
-            rowsComEdicao.push(row);
-        } else {
-            rowsSemEdicao.push(row);
+                const tr = document.createElement("tr");
+                tr.onclick = () => openEditModal(originalIndex);
+
+                ordemColunasExibidas.forEach(col => {
+                    const colIndex = columnIndexes[col.toLowerCase()];
+                    const td = document.createElement("td");
+                    let cellValue = row[colIndex] || "";
+
+                    if (col.toLowerCase() === "data do romaneio") {
+                        cellValue = formatDate(cellValue);
+                    }
+
+                    td.textContent = cellValue;
+                    tr.appendChild(td);
+                });
+
+                if (editedRows.has(originalIndex)) {
+                    tr.classList.add("edited-row");
+                }
+
+                fragment.appendChild(tr);
+            });
+
+            table.appendChild(fragment);
         }
-    });
-
-    const rowsOrdenadas = [...rowsComEdicao, ...rowsSemEdicao];
-
-    const filtroAtivo = document.getElementById("identificacaoFilter").value.trim() !== "";
-
-    rowsOrdenadas.slice(0, itemsPerPage).forEach((row) => {
-        const originalIndex = data.indexOf(row);
-        if (originalIndex === -1) return;
-
-        const progFab = (row[columnIndexes["prog fab"]] || "").trim();
-        const dataRomaneio = (row[columnIndexes["data do romaneio"]] || "").trim();
-        const isEditado = editedRows.has(originalIndex);
-
-        // Oculta da lista principal se não estiver em filtro e for destaque
-        if (!filtroAtivo && !isEditado && (!progFab || dataRomaneio)) return;
-
-        const tr = document.createElement("tr");
-
-        if (isEditado) {
-            tr.classList.add("edited-row");
-            tr.onclick = () => openEditModal(originalIndex);
-        } else if (!progFab) {
-            tr.style.backgroundColor = "rgba(255, 243, 205, 0.5)";
-            tr.onclick = () => alert("SPOOL NÃO PROGRAMADO");
-        } else if (dataRomaneio) {
-            tr.style.backgroundColor = "rgba(248, 215, 218, 0.5)";
-            tr.onclick = () => alert("SPOOL JÁ ROMANEADO");
-        } else {
-            tr.onclick = () => openEditModal(originalIndex);
-        }
-
-        ordemColunasExibidas.forEach(col => {
-            const colIndex = columnIndexes[col.toLowerCase()];
-            const td = document.createElement("td");
-            let cellValue = row[colIndex] || "";
-
-            if (col.toLowerCase() === "data do romaneio") {
-                cellValue = formatDate(cellValue);
-            }
-
-            td.textContent = cellValue;
-            tr.appendChild(td);
-        });
-
-        fragment.appendChild(tr);
-    });
-
-    table.appendChild(fragment);
-    document.querySelector(".table-container").scrollTop = 0;
-}
 
         function openEditModal(index) {
             if (index < 0 || index >= data.length) return;
@@ -846,49 +806,40 @@ function closeModal() {
         }
 
         function downloadExcel() {
-    if (!data || !data.length) {
-        alert("Nenhum dado carregado para exportar.");
+    if (!data.length) {
+        alert("Nenhum dado disponível para exportar.");
         return;
     }
 
-    const currentServico = document.getElementById("servicoSelect").value;
-    if (!currentServico) {
-        alert("Selecione um serviço antes de exportar.");
+    const selectedService = document.getElementById("serviceList").value;
+    if (!selectedService) {
+        alert("Selecione um serviço para exportar.");
         return;
     }
 
-    const headers = data[0];
-    const exportData = [headers];
+    const headerRow = data[0];
+    const exportRows = [headerRow];
 
     editedRows.forEach(index => {
-        if (data[index][servicoIndex] === currentServico) {
-            const row = [...data[index]];
-
-            // Corrigir formatação da data
-            const dataRomaneioIndex = columnIndexes["data do romaneio"];
-            if (dataRomaneioIndex !== undefined) {
-                let value = row[dataRomaneioIndex];
-                if (value && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-                    const [ano, mes, dia] = value.split("-");
-                    row[dataRomaneioIndex] = `${dia}/${mes}/${ano}`;
-                } else if (value && /^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
-                    row[dataRomaneioIndex] = value;
-                }
-            }
-
-            exportData.push(row);
+        const row = [...data[index]];
+        const dataRomaneioIndex = columnIndexes["data do romaneio"];
+        if (dataRomaneioIndex !== undefined) {
+            row[dataRomaneioIndex] = formatDate(row[dataRomaneioIndex]);
         }
+        exportRows.push(row);
     });
 
-    if (exportData.length === 1) {
-        alert("Nenhum item editado para exportar.");
+    if (exportRows.length === 1) {
+        alert("Nenhuma edição para exportar.");
         return;
     }
 
-    const worksheet = XLSX.utils.aoa_to_sheet(exportData);
+    const worksheet = XLSX.utils.aoa_to_sheet(exportRows);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Romaneio");
-    XLSX.writeFile(workbook, "Romaneio_Editados.xlsx");
+    XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
+
+    const nomeArquivo = `Romaneio_Spool_Editados_${selectedService.replace(/[\/\?%*:|"<>]/g, '_')}.xlsx`;
+    XLSX.writeFile(workbook, nomeArquivo);
 }
 }
 
