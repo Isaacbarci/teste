@@ -353,8 +353,7 @@ input[type=number] {
         <select id="servicoSelect">
             <option value="">Selecione um serviço</option>
         </select>
-        <input id="nomeInput" placeholder="Digite seu nome para baixar" style="padding:10px;margin:10px;width:90%;font-size:16px;" />
-<button onclick="confirmLoadService()">Carregar Serviço</button>
+        <button onclick="confirmLoadService()">Carregar Serviço</button>
         <input type="text" id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação">
         <button onclick="downloadExcel()">Download Excel</button>
         <button onclick="startQrScanner()">Escanear QR Code</button>
@@ -1281,7 +1280,7 @@ function closeModal() {
     }
     </script>
     
-
+<button id="btnCompartilhar" onclick="compartilharArquivo()" style="display:none;margin-top:10px;">Compartilhar arquivo</button>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 <script>
@@ -1296,10 +1295,12 @@ function closeModal() {
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
+  let linkGerado = "";
+
   async function baixarECompartilharFirebase() {
-    const nome = document.getElementById("nomeInput").value.trim();
-    if (!nome) {
-      alert("Por favor, preencha seu nome.");
+    const nome = prompt("Digite seu nome para confirmar o download:");
+    if (!nome || nome.trim() === "") {
+      alert("Nome é obrigatório para continuar.");
       return;
     }
 
@@ -1313,41 +1314,49 @@ function closeModal() {
         
         qtd: parseInt(colunas[2].innerText),
         
-        servico: colunas[0].innerText,
-        nome: colunas[1].innerText
+        servico: colunas[0].innerText
       };
     });
 
     const servico = dados[0]?.servico || "Suporte";
+
     const resp = await fetch("https://us-central1-romaneio-palmont.cloudfunctions.net/gerarExcelRomaneio", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        tipo: "suporte",
-        servico,
-        dados
-      })
+      body: JSON.stringify({ tipo: "suporte", servico, dados })
     });
 
     const result = await resp.json();
     if (!result.url) return alert("Erro ao gerar arquivo.");
 
+    linkGerado = result.url;
+
     await db.collection("romaneios").add({
       nome,
       tipo: "suporte",
       servico,
-      url: result.url,
+      url: linkGerado,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
 
+    const a = document.createElement("a");
+    a.href = linkGerado;
+    a.download = "Romaneio_suporte.xlsx";
+    a.click();
+
+    document.getElementById("btnCompartilhar").style.display = "inline-block";
+  }
+
+  async function compartilharArquivo() {
+    if (!linkGerado) return alert("Nenhum link disponível.");
     if (navigator.share) {
       await navigator.share({
         title: "Romaneio",
         text: "Compartilhar romaneio gerado",
-        url: result.url
+        url: linkGerado
       });
     } else {
-      window.open(result.url, "_blank");
+      alert("Seu dispositivo não suporta compartilhamento automático.");
     }
   }
 </script>
