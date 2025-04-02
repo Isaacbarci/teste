@@ -388,6 +388,7 @@
         }
 
         
+
 function parseDateString(value) {
     if (!value) return null;
 
@@ -398,6 +399,23 @@ function parseDateString(value) {
         const msExtra = (value - dias) * 86400000;
         return new Date(excelEpoch.getTime() + dias * 86400000 + msExtra);
     }
+
+    // yyyy-mm-dd (ISO)
+    if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        const [y, m, d] = value.split("-");
+        return new Date(y, m - 1, d);
+    }
+
+    // dd/mm/yyyy
+    if (typeof value === "string" && value.includes("/")) {
+        const [d, m, y] = value.split("/");
+        return new Date(y, m - 1, d);
+    }
+
+    const parsed = new Date(value);
+    return isNaN(parsed.getTime()) ? null : parsed;
+}
+
 
     // yyyy-mm-dd (ISO)
     if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
