@@ -6,11 +6,53 @@
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Suporte</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
-window.onload = () => iniciarApp();
+// ========== IndexedDB Helpers ==========
+function abrirIndexedDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open("RomaneioDB", 1);
+        request.onupgradeneeded = function(event) {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains("edicoes")) {
+                db.createObjectStore("edicoes", { keyPath: "id" });
+            }
+        };
+        request.onsuccess = function(event) {
+            resolve(event.target.result);
+        };
+        request.onerror = function(event) {
+            reject(event.target.error);
+        };
+    });
+}
+
+async function salvarEdicaoIndexedDB(id, data) {
+    const db = await abrirIndexedDB();
+    const tx = db.transaction("edicoes", "readwrite");
+    const store = tx.objectStore("edicoes");
+    await store.put({ id, ...data });
+}
+
+async function carregarEdicaoIndexedDB(id) {
+    const db = await abrirIndexedDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction("edicoes", "readonly");
+        const store = tx.objectStore("edicoes");
+        const request = store.get(id);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function excluirEdicaoIndexedDB(id) {
+    const db = await abrirIndexedDB();
+    const tx = db.transaction("edicoes", "readwrite");
+    const store = tx.objectStore("edicoes");
+    await store.delete(id);
+}
+
+
 </script>
-<script src="https://unpkg.com/html5-qrcode">
-window.onload = () => iniciarApp();
-</script>
+<script src="https://unpkg.com/html5-qrcode"></script>
 <style>
         body {
             font-family: Arial, sans-serif;
@@ -411,8 +453,6 @@ window.onload = () => iniciarApp();
 </div>
 </div>
 <script>
-async function iniciarApp() {
-
         let data = [];
         let filteredData = [];
         let servicoIndex = 0;
@@ -567,7 +607,7 @@ async function iniciarApp() {
                     mapColumnIndexes();
                     populateServicoOptions();
 
-                    const suporte_ultimoServico = await lerDoIndexedDB("suporte_ultimoServico");
+                    const suporte_ultimoServico = localStorage.getItem("suporte_ultimoServico");
                     const servicoSelect = document.getElementById("servicoSelect");
 
                     if (suporte_ultimoServico && Array.from(servicoSelect.options).some(o => o.value === suporte_ultimoServico)) {
@@ -599,7 +639,7 @@ async function iniciarApp() {
                 return;
             }
 
-            const stored = JSON.parse(await lerDoIndexedDB("suporte_edicoes") || "{}");
+            const stored = JSON.parse(localStorage.getItem("suporte_edicoes") || "{}");
             const temEdicoesSalvas = stored[currentFileName] && stored[currentFileName][selectedServico] && Object.keys(stored[currentFileName][selectedServico]).length > 0;
 
             if (temEdicoesSalvas) {
@@ -622,7 +662,7 @@ async function iniciarApp() {
 
                 novoBtn.onclick = () => {
                     delete stored[currentFileName][selectedServico];
-                    await salvarNoIndexedDB("suporte_edicoes", stored);
+                    localStorage.setItem("suporte_edicoes", JSON.stringify(stored));
                     fecharModal();
                     renderSelectedServico(false);
                 };
@@ -641,22 +681,22 @@ async function iniciarApp() {
 
             if (!manterEdicoes) {
                 editedRows.clear();
-                const stored = JSON.parse(await lerDoIndexedDB("suporte_edicoes") || "{}");
+                const stored = JSON.parse(localStorage.getItem("suporte_edicoes") || "{}");
                 if (stored[currentFileName] && stored[currentFileName][selectedServico]) {
                     delete stored[currentFileName][selectedServico];
-                    await salvarNoIndexedDB("suporte_edicoes", stored);
+                    localStorage.setItem("suporte_edicoes", JSON.stringify(stored));
                 }
             } else {
                 loadSavedEdits();
             }
 
-            await salvarNoIndexedDB("suporte_ultimoServico", selectedServico);
+            localStorage.setItem("suporte_ultimoServico", selectedServico);
             document.getElementById("dataTable").innerHTML = "";
             renderTable();
         }
 
-        async function loadSavedEdits() {
-            const stored = JSON.parse(await lerDoIndexedDB("suporte_edicoes") || "{}");
+        function loadSavedEdits() {
+            const stored = JSON.parse(localStorage.getItem("suporte_edicoes") || "{}");
             const currentServico = document.getElementById("servicoSelect").value;
 
             if (!stored[currentFileName] || !stored[currentFileName][currentServico]) {
@@ -759,7 +799,7 @@ async function iniciarApp() {
                 servicoSelect.appendChild(option);
             });
 
-            const suporte_ultimoServico = await lerDoIndexedDB("suporte_ultimoServico");
+            const suporte_ultimoServico = localStorage.getItem("suporte_ultimoServico");
             if (suporte_ultimoServico && servicosOrdenados.includes(suporte_ultimoServico)) {
                 servicoSelect.value = suporte_ultimoServico;
             }
@@ -930,7 +970,7 @@ async function iniciarApp() {
             data[originalIndex][columnIndexes["obs romaneio"]] = obsRomaneio;
 
             const id = data[originalIndex][columnIndexes["id"]];
-            const stored = JSON.parse(await lerDoIndexedDB("suporte_edicoes") || "{}");
+            const stored = JSON.parse(localStorage.getItem("suporte_edicoes") || "{}");
 
             if (!stored[currentFileName]) stored[currentFileName] = {};
             if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
@@ -947,8 +987,8 @@ async function iniciarApp() {
                 editedRows.delete(originalIndex);
             }
 
-            await salvarNoIndexedDB("suporte_edicoes", stored);
-            await salvarNoIndexedDB("suporte_ultimoServico", selectedServico);
+            localStorage.setItem("suporte_edicoes", JSON.stringify(stored));
+            localStorage.setItem("suporte_ultimoServico", selectedServico);
 
             closeModal();
             renderTable();
@@ -1206,8 +1246,8 @@ async function iniciarApp() {
         });
 
         window.addEventListener('beforeunload', function() {
-            const stored = JSON.parse(await lerDoIndexedDB("suporte_edicoes") || "{}");
-            await salvarNoIndexedDB("suporte_edicoes", stored);
+            const stored = JSON.parse(localStorage.getItem("suporte_edicoes") || "{}");
+            localStorage.setItem("suporte_edicoes", JSON.stringify(stored));
         });
 
         if ('serviceWorker' in navigator) {
@@ -1221,58 +1261,11 @@ async function iniciarApp() {
         }
     
         // Salva o nome do sistema (spool ou suporte) como o último aberto
-        await salvarNoIndexedDB("suporte_sistemaAberto", "suporte");
+        localStorage.setItem("suporte_sistemaAberto", "suporte");
 
         function voltarParaIndex() {
             window.location.href = "index.html";
         }
-    
-}
-
-iniciarApp();
-
-window.onload = () => iniciarApp();
-</script>
-<script>
-    function abrirIndexedDB() {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open("romaneioDB", 1);
-            request.onupgradeneeded = function(event) {
-                const db = event.target.result;
-                if (!db.objectStoreNames.contains("dados")) {
-                    db.createObjectStore("dados", { keyPath: "chave" });
-                }
-            };
-            request.onsuccess = function(event) {
-                resolve(event.target.result);
-            };
-            request.onerror = function() {
-                reject("Erro ao abrir IndexedDB");
-            };
-        });
-    }
-
-    async function salvarNoIndexedDB(chave, valor) {
-        const db = await abrirIndexedDB();
-        const tx = db.transaction("dados", "readwrite");
-        const store = tx.objectStore("dados");
-        await store.put({ chave, valor });
-        return new Promise((resolve) => {
-            tx.oncomplete = () => resolve(true);
-        });
-    }
-
-    async function lerDoIndexedDB(chave) {
-        const db = await abrirIndexedDB();
-        const tx = db.transaction("dados", "readonly");
-        const store = tx.objectStore("dados");
-        return new Promise((resolve) => {
-            const req = store.get(chave);
-            req.onsuccess = () => resolve(req.result?.valor || null);
-        });
-    }
-
-window.onload = () => iniciarApp();
-</script>
+    </script>
 </body>
 </html>

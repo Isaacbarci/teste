@@ -6,11 +6,53 @@
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Spool</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
-window.onload = () => iniciarApp();
+// ========== IndexedDB Helpers ==========
+function abrirIndexedDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open("RomaneioDB", 1);
+        request.onupgradeneeded = function(event) {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains("edicoes")) {
+                db.createObjectStore("edicoes", { keyPath: "id" });
+            }
+        };
+        request.onsuccess = function(event) {
+            resolve(event.target.result);
+        };
+        request.onerror = function(event) {
+            reject(event.target.error);
+        };
+    });
+}
+
+async function salvarEdicaoIndexedDB(id, data) {
+    const db = await abrirIndexedDB();
+    const tx = db.transaction("edicoes", "readwrite");
+    const store = tx.objectStore("edicoes");
+    await store.put({ id, ...data });
+}
+
+async function carregarEdicaoIndexedDB(id) {
+    const db = await abrirIndexedDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction("edicoes", "readonly");
+        const store = tx.objectStore("edicoes");
+        const request = store.get(id);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function excluirEdicaoIndexedDB(id) {
+    const db = await abrirIndexedDB();
+    const tx = db.transaction("edicoes", "readwrite");
+    const store = tx.objectStore("edicoes");
+    await store.delete(id);
+}
+
+
 </script>
-<script src="https://unpkg.com/html5-qrcode">
-window.onload = () => iniciarApp();
-</script>
+<script src="https://unpkg.com/html5-qrcode"></script>
 <style>
         body {
             font-family: Arial, sans-serif;
@@ -294,9 +336,7 @@ window.onload = () => iniciarApp();
 </div>
 </div>
 </div>
-<script>
-async function iniciarApp() {
-let data = [];
+<script>let data = [];
         let filteredData = [];
         let columnIndexes = {};
         let editedRows = new Set();
@@ -362,7 +402,7 @@ let data = [];
                     mapColumnIndexes();
                     populateServicoOptions();
 
-                    const spool_ultimoServico = await lerDoIndexedDB("spool_ultimoServico");
+                    const spool_ultimoServico = localStorage.getItem("spool_ultimoServico");
                     const servicoSelect = document.getElementById("serviceList");
 
                     if (spool_ultimoServico && Array.from(servicoSelect.options).some(o => o.value === spool_ultimoServico)) {
@@ -394,7 +434,7 @@ let data = [];
                 return;
             }
 
-            const stored = JSON.parse(await lerDoIndexedDB("spool_edicoes") || "{}");
+            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
             const temEdicoesSalvas = stored[currentFileName] && stored[currentFileName][selectedServico] && Object.keys(stored[currentFileName][selectedServico]).length > 0;
 
             if (temEdicoesSalvas) {
@@ -417,7 +457,7 @@ let data = [];
 
                 novoBtn.onclick = () => {
                     delete stored[currentFileName][selectedServico];
-                    await salvarNoIndexedDB("spool_edicoes", stored);
+                    localStorage.setItem("spool_edicoes", JSON.stringify(stored));
                     fecharModal();
                     renderSelectedServico(false);
                 };
@@ -436,22 +476,22 @@ let data = [];
 
             if (!manterEdicoes) {
                 editedRows.clear();
-                const stored = JSON.parse(await lerDoIndexedDB("spool_edicoes") || "{}");
+                const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
                 if (stored[currentFileName] && stored[currentFileName][selectedServico]) {
                     delete stored[currentFileName][selectedServico];
-                    await salvarNoIndexedDB("spool_edicoes", stored);
+                    localStorage.setItem("spool_edicoes", JSON.stringify(stored));
                 }
             } else {
                 loadSavedEdits();
             }
 
-            await salvarNoIndexedDB("spool_ultimoServico", selectedServico);
+            localStorage.setItem("spool_ultimoServico", selectedServico);
             document.getElementById("dataTable").innerHTML = "";
             renderTable();
         }
 
-        async function loadSavedEdits() {
-            const stored = JSON.parse(await lerDoIndexedDB("spool_edicoes") || "{}");
+        function loadSavedEdits() {
+            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
             const currentServico = document.getElementById("serviceList").value;
 
             if (!stored[currentFileName] || !stored[currentFileName][currentServico]) {
@@ -523,7 +563,7 @@ let data = [];
                 servicoSelect.appendChild(option);
             });
 
-            const spool_ultimoServico = await lerDoIndexedDB("spool_ultimoServico");
+            const spool_ultimoServico = localStorage.getItem("spool_ultimoServico");
             if (spool_ultimoServico && servicosOrdenados.includes(spool_ultimoServico)) {
                 servicoSelect.value = spool_ultimoServico;
             }
@@ -643,7 +683,7 @@ let data = [];
             data[originalIndex][columnIndexes["obs romaneio"]] = obsRomaneio;
 
             const idSpool = data[originalIndex][columnIndexes["id_spool"]];
-            const stored = JSON.parse(await lerDoIndexedDB("spool_edicoes") || "{}");
+            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
 
             if (!stored[currentFileName]) stored[currentFileName] = {};
             if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
@@ -659,8 +699,8 @@ let data = [];
                 editedRows.delete(originalIndex);
             }
 
-            await salvarNoIndexedDB("spool_edicoes", stored);
-            await salvarNoIndexedDB("spool_ultimoServico", selectedServico);
+            localStorage.setItem("spool_edicoes", JSON.stringify(stored));
+            localStorage.setItem("spool_ultimoServico", selectedServico);
 
             closeModal();
             renderTable();
@@ -858,8 +898,8 @@ function downloadExcel() {
         });
 
         window.addEventListener('beforeunload', function() {
-            const stored = JSON.parse(await lerDoIndexedDB("spool_edicoes") || "{}");
-            await salvarNoIndexedDB("spool_edicoes", stored);
+            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
+            localStorage.setItem("spool_edicoes", JSON.stringify(stored));
         });
 
         if ('serviceWorker' in navigator) {
@@ -872,57 +912,10 @@ function downloadExcel() {
                 });
         }
 
-        await salvarNoIndexedDB("spool_sistemaAberto", "spool");
+        localStorage.setItem("spool_sistemaAberto", "spool");
 
         function voltarParaIndex() {
             window.location.href = "index.html";
-        }
-}
-
-iniciarApp();
-
-window.onload = () => iniciarApp();
-</script>
-<script>
-    function abrirIndexedDB() {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open("romaneioDB", 1);
-            request.onupgradeneeded = function(event) {
-                const db = event.target.result;
-                if (!db.objectStoreNames.contains("dados")) {
-                    db.createObjectStore("dados", { keyPath: "chave" });
-                }
-            };
-            request.onsuccess = function(event) {
-                resolve(event.target.result);
-            };
-            request.onerror = function() {
-                reject("Erro ao abrir IndexedDB");
-            };
-        });
-    }
-
-    async function salvarNoIndexedDB(chave, valor) {
-        const db = await abrirIndexedDB();
-        const tx = db.transaction("dados", "readwrite");
-        const store = tx.objectStore("dados");
-        await store.put({ chave, valor });
-        return new Promise((resolve) => {
-            tx.oncomplete = () => resolve(true);
-        });
-    }
-
-    async function lerDoIndexedDB(chave) {
-        const db = await abrirIndexedDB();
-        const tx = db.transaction("dados", "readonly");
-        const store = tx.objectStore("dados");
-        return new Promise((resolve) => {
-            const req = store.get(chave);
-            req.onsuccess = () => resolve(req.result?.valor || null);
-        });
-    }
-
-window.onload = () => iniciarApp();
-</script>
+        }</script>
 </body>
 </html>
