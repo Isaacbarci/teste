@@ -5,53 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Spool</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
-// ========== IndexedDB Helpers ==========
-function abrirIndexedDB() {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open("RomaneioDB", 1);
-        request.onupgradeneeded = function(event) {
-            const db = event.target.result;
-            if (!db.objectStoreNames.contains("edicoes")) {
-                db.createObjectStore("edicoes", { keyPath: "id" });
-            }
-        };
-        request.onsuccess = function(event) {
-            resolve(event.target.result);
-        };
-        request.onerror = function(event) {
-            reject(event.target.error);
-        };
-    });
-}
-
-async function salvarEdicaoIndexedDB(id, data) {
-    const db = await abrirIndexedDB();
-    const tx = db.transaction("edicoes", "readwrite");
-    const store = tx.objectStore("edicoes");
-    await store.put({ id, ...data });
-}
-
-async function carregarEdicaoIndexedDB(id) {
-    const db = await abrirIndexedDB();
-    return new Promise((resolve, reject) => {
-        const tx = db.transaction("edicoes", "readonly");
-        const store = tx.objectStore("edicoes");
-        const request = store.get(id);
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-    });
-}
-
-async function excluirEdicaoIndexedDB(id) {
-    const db = await abrirIndexedDB();
-    const tx = db.transaction("edicoes", "readwrite");
-    const store = tx.objectStore("edicoes");
-    await store.delete(id);
-}
-
-
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode"></script>
 <style>
         body {
@@ -264,7 +218,53 @@ async function excluirEdicaoIndexedDB(id) {
         }
     
 </style>
-</head>
+<script>
+// ========== IndexedDB Helpers ==========
+function abrirIndexedDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open("RomaneioDB", 1);
+        request.onupgradeneeded = function(event) {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains("edicoes")) {
+                db.createObjectStore("edicoes", { keyPath: "id" });
+            }
+        };
+        request.onsuccess = function(event) {
+            resolve(event.target.result);
+        };
+        request.onerror = function(event) {
+            reject(event.target.error);
+        };
+    });
+}
+
+async function salvarEdicaoIndexedDB(id, data) {
+    const db = await abrirIndexedDB();
+    const tx = db.transaction("edicoes", "readwrite");
+    const store = tx.objectStore("edicoes");
+    await store.put({ id, ...data });
+}
+
+async function carregarEdicaoIndexedDB(id) {
+    const db = await abrirIndexedDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction("edicoes", "readonly");
+        const store = tx.objectStore("edicoes");
+        const request = store.get(id);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function excluirEdicaoIndexedDB(id) {
+    const db = await abrirIndexedDB();
+    const tx = db.transaction("edicoes", "readwrite");
+    const store = tx.objectStore("edicoes");
+    await store.delete(id);
+}
+
+
+</script></head>
 <body>
 <h2>
 <img alt="Logo" src="image.png" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;"/>
@@ -370,9 +370,10 @@ async function excluirEdicaoIndexedDB(id) {
                 timeout = setTimeout(() => func.apply(this, args), wait);
             };
         }
+} catch(e) { console.error('Erro ao carregar edições:', e); }
 
         // Carrega o Excel com tratamento adequado para datas
-        function loadServices() {
+        async function loadServices() {
             fetch(currentFileName)
                 .then(response => {
                     if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
@@ -400,9 +401,9 @@ async function excluirEdicaoIndexedDB(id) {
 
                     findColumnIndexes();
                     mapColumnIndexes();
-                    populateServicoOptions();
+                    await populateServicoOptions();
 
-                    const spool_ultimoServico = localStorage.getItem("spool_ultimoServico");
+                    const spool_ultimoServico = await carregarEdicaoIndexedDB("spool_ultimoServico")?.valor;
                     const servicoSelect = document.getElementById("serviceList");
 
                     if (spool_ultimoServico && Array.from(servicoSelect.options).some(o => o.value === spool_ultimoServico)) {
@@ -419,7 +420,7 @@ async function excluirEdicaoIndexedDB(id) {
                 });
         }
 
-        function confirmLoadService() {
+        async function confirmLoadService() {
             const senhaCorreta = "1234";
             const tentativa = prompt("Digite a senha para continuar:");
 
@@ -434,7 +435,7 @@ async function excluirEdicaoIndexedDB(id) {
                 return;
             }
 
-            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
+            const stored = await (async () => { try { const r = await carregarEdicaoIndexedDB("spool_edicoes"); return JSON.parse(r?.valor || "{}"); } catch(e) { console.error(e); return {}; } })();
             const temEdicoesSalvas = stored[currentFileName] && stored[currentFileName][selectedServico] && Object.keys(stored[currentFileName][selectedServico]).length > 0;
 
             if (temEdicoesSalvas) {
@@ -457,7 +458,7 @@ async function excluirEdicaoIndexedDB(id) {
 
                 novoBtn.onclick = () => {
                     delete stored[currentFileName][selectedServico];
-                    localStorage.setItem("spool_edicoes", JSON.stringify(stored));
+                    salvarEdicaoIndexedDB("spool_edicoes", { id: "spool_edicoes", valor: JSON.stringify(stored) });
                     fecharModal();
                     renderSelectedServico(false);
                 };
@@ -466,7 +467,7 @@ async function excluirEdicaoIndexedDB(id) {
             }
         }
 
-        function renderSelectedServico(manterEdicoes = false) {
+        async function renderSelectedServico(manterEdicoes = false) {
             const selectedServico = document.getElementById("serviceList").value;
 
             if (window.originalData) {
@@ -476,22 +477,23 @@ async function excluirEdicaoIndexedDB(id) {
 
             if (!manterEdicoes) {
                 editedRows.clear();
-                const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
+                const stored = await (async () => { try { const r = await carregarEdicaoIndexedDB("spool_edicoes"); return JSON.parse(r?.valor || "{}"); } catch(e) { console.error(e); return {}; } })();
                 if (stored[currentFileName] && stored[currentFileName][selectedServico]) {
                     delete stored[currentFileName][selectedServico];
-                    localStorage.setItem("spool_edicoes", JSON.stringify(stored));
+                    salvarEdicaoIndexedDB("spool_edicoes", { id: "spool_edicoes", valor: JSON.stringify(stored) });
                 }
             } else {
                 loadSavedEdits();
             }
 
-            localStorage.setItem("spool_ultimoServico", selectedServico);
+            salvarEdicaoIndexedDB("spool_ultimoServico", { id: "spool_ultimoServico", valor: selectedServico });
             document.getElementById("dataTable").innerHTML = "";
             renderTable();
         }
 
-        function loadSavedEdits() {
-            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
+        async function loadSavedEdits() {
+try {
+            const stored = await (async () => { try { const r = await carregarEdicaoIndexedDB("spool_edicoes"); return JSON.parse(r?.valor || "{}"); } catch(e) { console.error(e); return {}; } })();
             const currentServico = document.getElementById("serviceList").value;
 
             if (!stored[currentFileName] || !stored[currentFileName][currentServico]) {
@@ -563,7 +565,7 @@ async function excluirEdicaoIndexedDB(id) {
                 servicoSelect.appendChild(option);
             });
 
-            const spool_ultimoServico = localStorage.getItem("spool_ultimoServico");
+            const spool_ultimoServico = await carregarEdicaoIndexedDB("spool_ultimoServico")?.valor;
             if (spool_ultimoServico && servicosOrdenados.includes(spool_ultimoServico)) {
                 servicoSelect.value = spool_ultimoServico;
             }
@@ -666,7 +668,8 @@ async function excluirEdicaoIndexedDB(id) {
             document.body.style.overflow = "hidden";
         }
 
-        function saveEdit() {
+        async function saveEdit() {
+try {
             const originalIndex = parseInt(document.getElementById("editIndex").value);
             const selectedServico = document.getElementById("serviceList").value;
 
@@ -683,7 +686,7 @@ async function excluirEdicaoIndexedDB(id) {
             data[originalIndex][columnIndexes["obs romaneio"]] = obsRomaneio;
 
             const idSpool = data[originalIndex][columnIndexes["id_spool"]];
-            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
+            const stored = await (async () => { try { const r = await carregarEdicaoIndexedDB("spool_edicoes"); return JSON.parse(r?.valor || "{}"); } catch(e) { console.error(e); return {}; } })();
 
             if (!stored[currentFileName]) stored[currentFileName] = {};
             if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
@@ -699,11 +702,12 @@ async function excluirEdicaoIndexedDB(id) {
                 editedRows.delete(originalIndex);
             }
 
-            localStorage.setItem("spool_edicoes", JSON.stringify(stored));
-            localStorage.setItem("spool_ultimoServico", selectedServico);
+            salvarEdicaoIndexedDB("spool_edicoes", { id: "spool_edicoes", valor: JSON.stringify(stored) });
+            salvarEdicaoIndexedDB("spool_ultimoServico", { id: "spool_ultimoServico", valor: selectedServico });
 
             closeModal();
             renderTable();
+} catch(e) { console.error('Erro ao salvar edição:', e); alert('Erro ao salvar edição'); }
         }
 
         function closeModal() {
@@ -898,8 +902,8 @@ function downloadExcel() {
         });
 
         window.addEventListener('beforeunload', function() {
-            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
-            localStorage.setItem("spool_edicoes", JSON.stringify(stored));
+            const stored = await (async () => { try { const r = await carregarEdicaoIndexedDB("spool_edicoes"); return JSON.parse(r?.valor || "{}"); } catch(e) { console.error(e); return {}; } })();
+            salvarEdicaoIndexedDB("spool_edicoes", { id: "spool_edicoes", valor: JSON.stringify(stored) });
         });
 
         if ('serviceWorker' in navigator) {
