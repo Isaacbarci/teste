@@ -792,7 +792,7 @@ function downloadExcel() {
 
     worksheet["!cols"] = colWidths;
 
-    const nomeArquivo = `Romaneio_Editados_${selectedService.replace(/[\/\\?%*:|"<>]/g, '_')}.xlsx`;
+    const nomeArquivo = `Romaneio_${selectedService.replace(/[\/\\?%*:|"<>]/g, '_')}.xlsx`;
     XLSX.writeFile(workbook, nomeArquivo);
 }
 
