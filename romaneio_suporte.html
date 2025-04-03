@@ -9,8 +9,8 @@
     localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
 
     function voltarParaIndex() {
-        window.location.href = "index.html";
-    }
+    window.location.href = "index.html";
+}
 
 </script>
     <script src="https://unpkg.com/html5-qrcode">
@@ -18,8 +18,8 @@
     localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
 
     function voltarParaIndex() {
-        window.location.href = "index.html";
-    }
+    window.location.href = "index.html";
+}
 
 </script>
     <style>
@@ -339,6 +339,36 @@ input[type=number] {
         }
 
 </style>
+<script></script>
+<script>localStorage.setItem("ultimoSistemaAberto", "suporte");</script>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDGeF8d07YUKYpp3ZJJAKBr9R-JpgTXPbg",
+    authDomain: "romaneio-palmont.firebaseapp.com",
+    projectId: "romaneio-palmont"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
+
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDGeF8d07YUKYpp3ZJJAKBr9R-JpgTXPbg",
+    authDomain: "romaneio-palmont.firebaseapp.com",
+    projectId: "romaneio-palmont"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
+
 </head>
 <body>
     <h2 style="display: flex; align-items: center;">
@@ -355,7 +385,7 @@ input[type=number] {
         </select>
         <button onclick="confirmLoadService()">Carregar Serviço</button>
         <input type="text" id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação">
-        <button onclick="downloadExcel()">Download Excel</button>
+        <button onclick="baixarECompartilharFirebase()">Download Excel</button>
         <button onclick="startQrScanner()">Escanear QR Code</button>
 
 <button onclick="voltarParaIndex()" title="Voltar para o Início">
@@ -669,7 +699,7 @@ function configurarEventosQuantidade() {
                 loadSavedEdits();
             }
 
-            localStorage.setItem("suporte_ultimoServico", selectedServico);
+            
             document.getElementById("dataTable").innerHTML = "";
             renderTable();
         }
@@ -974,7 +1004,7 @@ function saveEdit() {
     }
 
     localStorage.setItem("suporte_edicoes", JSON.stringify(stored));
-    localStorage.setItem("suporte_ultimoServico", selectedServico);
+    
 
     closeModal();
     renderTable();
@@ -1032,7 +1062,7 @@ function closeModal() {
             }
         }
 
-        function downloadExcel() {
+        function baixarECompartilharFirebase() {
             if (!data.length) {
                 alert("Nenhum dado carregado para exportar.");
                 return;
@@ -1241,8 +1271,8 @@ function closeModal() {
     localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
 
     function voltarParaIndex() {
-        window.location.href = "index.html";
-    }
+    window.location.href = "index.html";
+}
 
 </script>
 
@@ -1292,7 +1322,7 @@ function closeModal() {
     messagingSenderId: "378221539005",
     appId: "1:378221539005:web:1dba5391f18fd057d35a56"
   };
-  firebase.initializeApp(firebaseConfig);
+  
   const db = firebase.firestore();
 
   let linkGerado = "";
@@ -1336,7 +1366,7 @@ function closeModal() {
       tipo: "suporte",
       servico,
       url: linkGerado,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      createdAt: firebase.firestore.FieldValue.serverTimestamp().catch(error => console.error("Erro ao salvar no Firebase:", error))
     });
 
     const a = document.createElement("a");
@@ -1373,74 +1403,4 @@ function closeModal() {
     messagingSenderId: "378221539005",
     appId: "1:378221539005:web:1dba5391f18fd057d35a56"
   };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-
-  let linkGerado = "";
-
-  async function baixarECompartilharFirebase() {
-    const nome = prompt("Digite seu nome para confirmar o download:");
-    if (!nome || nome.trim() === "") {
-      alert("Nome é obrigatório para continuar.");
-      return;
-    }
-
-    const tabela = document.querySelector("table");
-    const linhas = Array.from(tabela.querySelectorAll("tbody tr"));
-    const dados = linhas.map(linha => {
-      const colunas = linha.querySelectorAll("td");
-      return {
-        
-        
-        
-        qtd: parseInt(colunas[2].innerText),
-        
-        servico: colunas[0].innerText
-      };
-    });
-
-    const servico = dados[0]?.servico || "Suporte";
-
-    const resp = await fetch("https://us-central1-romaneio-palmont.cloudfunctions.net/gerarExcelRomaneio", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tipo: "suporte", servico, dados })
-    });
-
-    const result = await resp.json();
-    if (!result.url) return alert("Erro ao gerar arquivo.");
-
-    linkGerado = result.url;
-
-    await db.collection("romaneios").add({
-      nome,
-      tipo: "suporte",
-      servico,
-      url: linkGerado,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    const a = document.createElement("a");
-    a.href = linkGerado;
-    a.download = "Romaneio_suporte.xlsx";
-    a.click();
-
-    document.getElementById("btnCompartilhar").style.display = "inline-block";
-  }
-
-  async function compartilharArquivo() {
-    if (!linkGerado) return alert("Nenhum link disponível.");
-    if (navigator.share) {
-      await navigator.share({
-        title: "Romaneio",
-        text: "Compartilhar romaneio gerado",
-        url: linkGerado
-      });
-    } else {
-      alert("Seu dispositivo não suporta compartilhamento automático.");
-    }
-  }
-</script>
-
-</body>
-</html>
+  

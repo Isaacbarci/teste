@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Histórico de Downloads</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyDGeF8d07YUKYpp3ZJJAKBr9R-JpgTXPbg",
+        authDomain: "romaneio-palmont.firebaseapp.com",
+        projectId: "romaneio-palmont"
+      };
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+
+      window.onload = async () => {
+        const tabela = document.getElementById("tabela");
+        const snapshot = await db.collection("downloads").orderBy("dataHora", "desc").get();
+        snapshot.forEach(doc => {
+          const d = doc.data();
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${d.nome}</td>
+            <td>${d.sistema}</td>
+            <td>${d.servico}</td>
+            <td>${new Date(d.dataHora).toLocaleString()}</td>
+            <td><a href="${d.link}" target="_blank">${d.arquivo}</a></td>
+          `;
+          tabela.appendChild(tr);
+        });
+      }
+    </script>
+</head>
+<body style="font-family: Arial; background: #111; color: #fff;">
+    <h2>Histórico de Downloads</h2>
+    <table border="1" cellpadding="8" cellspacing="0" style="width:100%; color: white;">
+        <thead style="background:#333;">
+            <tr>
+                <th>Nome</th>
+                <th>Sistema</th>
+                <th>Serviço</th>
+                <th>Data/Hora</th>
+                <th>Arquivo</th>
+            </tr>
+        </thead>
+        <tbody id="tabela"></tbody>
+    </table>
+</body>
+</html>
