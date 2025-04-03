@@ -361,7 +361,7 @@
                     mapColumnIndexes();
                     populateServicoOptions();
 
-                    const spool_ultimoServico = localStorage.getItem("spool_ultimoServico");
+                    const spool_ultimoServico = await lerDoIndexedDB("spool_ultimoServico");
                     const servicoSelect = document.getElementById("serviceList");
 
                     if (spool_ultimoServico && Array.from(servicoSelect.options).some(o => o.value === spool_ultimoServico)) {
@@ -393,7 +393,7 @@
                 return;
             }
 
-            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
+            const stored = JSON.parse(await lerDoIndexedDB("spool_edicoes") || "{}");
             const temEdicoesSalvas = stored[currentFileName] && stored[currentFileName][selectedServico] && Object.keys(stored[currentFileName][selectedServico]).length > 0;
 
             if (temEdicoesSalvas) {
@@ -416,7 +416,7 @@
 
                 novoBtn.onclick = () => {
                     delete stored[currentFileName][selectedServico];
-                    localStorage.setItem("spool_edicoes", JSON.stringify(stored));
+                    await salvarNoIndexedDB("spool_edicoes", stored);
                     fecharModal();
                     renderSelectedServico(false);
                 };
@@ -435,22 +435,22 @@
 
             if (!manterEdicoes) {
                 editedRows.clear();
-                const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
+                const stored = JSON.parse(await lerDoIndexedDB("spool_edicoes") || "{}");
                 if (stored[currentFileName] && stored[currentFileName][selectedServico]) {
                     delete stored[currentFileName][selectedServico];
-                    localStorage.setItem("spool_edicoes", JSON.stringify(stored));
+                    await salvarNoIndexedDB("spool_edicoes", stored);
                 }
             } else {
                 loadSavedEdits();
             }
 
-            localStorage.setItem("spool_ultimoServico", selectedServico);
+            await salvarNoIndexedDB("spool_ultimoServico", selectedServico);
             document.getElementById("dataTable").innerHTML = "";
             renderTable();
         }
 
         function loadSavedEdits() {
-            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
+            const stored = JSON.parse(await lerDoIndexedDB("spool_edicoes") || "{}");
             const currentServico = document.getElementById("serviceList").value;
 
             if (!stored[currentFileName] || !stored[currentFileName][currentServico]) {
@@ -522,7 +522,7 @@
                 servicoSelect.appendChild(option);
             });
 
-            const spool_ultimoServico = localStorage.getItem("spool_ultimoServico");
+            const spool_ultimoServico = await lerDoIndexedDB("spool_ultimoServico");
             if (spool_ultimoServico && servicosOrdenados.includes(spool_ultimoServico)) {
                 servicoSelect.value = spool_ultimoServico;
             }
@@ -642,7 +642,7 @@
             data[originalIndex][columnIndexes["obs romaneio"]] = obsRomaneio;
 
             const idSpool = data[originalIndex][columnIndexes["id_spool"]];
-            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
+            const stored = JSON.parse(await lerDoIndexedDB("spool_edicoes") || "{}");
 
             if (!stored[currentFileName]) stored[currentFileName] = {};
             if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
@@ -658,8 +658,8 @@
                 editedRows.delete(originalIndex);
             }
 
-            localStorage.setItem("spool_edicoes", JSON.stringify(stored));
-            localStorage.setItem("spool_ultimoServico", selectedServico);
+            await salvarNoIndexedDB("spool_edicoes", stored);
+            await salvarNoIndexedDB("spool_ultimoServico", selectedServico);
 
             closeModal();
             renderTable();
@@ -857,8 +857,8 @@ function downloadExcel() {
         });
 
         window.addEventListener('beforeunload', function() {
-            const stored = JSON.parse(localStorage.getItem("spool_edicoes") || "{}");
-            localStorage.setItem("spool_edicoes", JSON.stringify(stored));
+            const stored = JSON.parse(await lerDoIndexedDB("spool_edicoes") || "{}");
+            await salvarNoIndexedDB("spool_edicoes", stored);
         });
 
         if ('serviceWorker' in navigator) {
@@ -871,10 +871,51 @@ function downloadExcel() {
                 });
         }
 
-        localStorage.setItem("spool_sistemaAberto", "spool");
+        await salvarNoIndexedDB("spool_sistemaAberto", "spool");
 
         function voltarParaIndex() {
             window.location.href = "index.html";
         }</script>
+
+<script>
+    function abrirIndexedDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open("romaneioDB", 1);
+            request.onupgradeneeded = function(event) {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains("dados")) {
+                    db.createObjectStore("dados", { keyPath: "chave" });
+                }
+            };
+            request.onsuccess = function(event) {
+                resolve(event.target.result);
+            };
+            request.onerror = function() {
+                reject("Erro ao abrir IndexedDB");
+            };
+        });
+    }
+
+    async function salvarNoIndexedDB(chave, valor) {
+        const db = await abrirIndexedDB();
+        const tx = db.transaction("dados", "readwrite");
+        const store = tx.objectStore("dados");
+        await store.put({ chave, valor });
+        return new Promise((resolve) => {
+            tx.oncomplete = () => resolve(true);
+        });
+    }
+
+    async function lerDoIndexedDB(chave) {
+        const db = await abrirIndexedDB();
+        const tx = db.transaction("dados", "readonly");
+        const store = tx.objectStore("dados");
+        return new Promise((resolve) => {
+            const req = store.get(chave);
+            req.onsuccess = () => resolve(req.result?.valor || null);
+        });
+    }
+</script>
+
 </body>
 </html>

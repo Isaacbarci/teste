@@ -578,7 +578,7 @@
                     mapColumnIndexes();
                     populateServicoOptions();
 
-                    const suporte_ultimoServico = localStorage.getItem("suporte_ultimoServico");
+                    const suporte_ultimoServico = await lerDoIndexedDB("suporte_ultimoServico");
                     const servicoSelect = document.getElementById("servicoSelect");
 
                     if (suporte_ultimoServico && Array.from(servicoSelect.options).some(o => o.value === suporte_ultimoServico)) {
@@ -610,7 +610,7 @@
                 return;
             }
 
-            const stored = JSON.parse(localStorage.getItem("suporte_edicoes") || "{}");
+            const stored = JSON.parse(await lerDoIndexedDB("suporte_edicoes") || "{}");
             const temEdicoesSalvas = stored[currentFileName] && stored[currentFileName][selectedServico] && Object.keys(stored[currentFileName][selectedServico]).length > 0;
 
             if (temEdicoesSalvas) {
@@ -633,7 +633,7 @@
 
                 novoBtn.onclick = () => {
                     delete stored[currentFileName][selectedServico];
-                    localStorage.setItem("suporte_edicoes", JSON.stringify(stored));
+                    await salvarNoIndexedDB("suporte_edicoes", stored);
                     fecharModal();
                     renderSelectedServico(false);
                 };
@@ -652,22 +652,22 @@
 
             if (!manterEdicoes) {
                 editedRows.clear();
-                const stored = JSON.parse(localStorage.getItem("suporte_edicoes") || "{}");
+                const stored = JSON.parse(await lerDoIndexedDB("suporte_edicoes") || "{}");
                 if (stored[currentFileName] && stored[currentFileName][selectedServico]) {
                     delete stored[currentFileName][selectedServico];
-                    localStorage.setItem("suporte_edicoes", JSON.stringify(stored));
+                    await salvarNoIndexedDB("suporte_edicoes", stored);
                 }
             } else {
                 loadSavedEdits();
             }
 
-            localStorage.setItem("suporte_ultimoServico", selectedServico);
+            await salvarNoIndexedDB("suporte_ultimoServico", selectedServico);
             document.getElementById("dataTable").innerHTML = "";
             renderTable();
         }
 
         function loadSavedEdits() {
-            const stored = JSON.parse(localStorage.getItem("suporte_edicoes") || "{}");
+            const stored = JSON.parse(await lerDoIndexedDB("suporte_edicoes") || "{}");
             const currentServico = document.getElementById("servicoSelect").value;
 
             if (!stored[currentFileName] || !stored[currentFileName][currentServico]) {
@@ -770,7 +770,7 @@
                 servicoSelect.appendChild(option);
             });
 
-            const suporte_ultimoServico = localStorage.getItem("suporte_ultimoServico");
+            const suporte_ultimoServico = await lerDoIndexedDB("suporte_ultimoServico");
             if (suporte_ultimoServico && servicosOrdenados.includes(suporte_ultimoServico)) {
                 servicoSelect.value = suporte_ultimoServico;
             }
@@ -941,7 +941,7 @@
             data[originalIndex][columnIndexes["obs romaneio"]] = obsRomaneio;
 
             const id = data[originalIndex][columnIndexes["id"]];
-            const stored = JSON.parse(localStorage.getItem("suporte_edicoes") || "{}");
+            const stored = JSON.parse(await lerDoIndexedDB("suporte_edicoes") || "{}");
 
             if (!stored[currentFileName]) stored[currentFileName] = {};
             if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
@@ -958,8 +958,8 @@
                 editedRows.delete(originalIndex);
             }
 
-            localStorage.setItem("suporte_edicoes", JSON.stringify(stored));
-            localStorage.setItem("suporte_ultimoServico", selectedServico);
+            await salvarNoIndexedDB("suporte_edicoes", stored);
+            await salvarNoIndexedDB("suporte_ultimoServico", selectedServico);
 
             closeModal();
             renderTable();
@@ -1217,8 +1217,8 @@
         });
 
         window.addEventListener('beforeunload', function() {
-            const stored = JSON.parse(localStorage.getItem("suporte_edicoes") || "{}");
-            localStorage.setItem("suporte_edicoes", JSON.stringify(stored));
+            const stored = JSON.parse(await lerDoIndexedDB("suporte_edicoes") || "{}");
+            await salvarNoIndexedDB("suporte_edicoes", stored);
         });
 
         if ('serviceWorker' in navigator) {
@@ -1232,11 +1232,52 @@
         }
     
         // Salva o nome do sistema (spool ou suporte) como o último aberto
-        localStorage.setItem("suporte_sistemaAberto", "suporte");
+        await salvarNoIndexedDB("suporte_sistemaAberto", "suporte");
 
         function voltarParaIndex() {
             window.location.href = "index.html";
         }
     </script>
+
+<script>
+    function abrirIndexedDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open("romaneioDB", 1);
+            request.onupgradeneeded = function(event) {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains("dados")) {
+                    db.createObjectStore("dados", { keyPath: "chave" });
+                }
+            };
+            request.onsuccess = function(event) {
+                resolve(event.target.result);
+            };
+            request.onerror = function() {
+                reject("Erro ao abrir IndexedDB");
+            };
+        });
+    }
+
+    async function salvarNoIndexedDB(chave, valor) {
+        const db = await abrirIndexedDB();
+        const tx = db.transaction("dados", "readwrite");
+        const store = tx.objectStore("dados");
+        await store.put({ chave, valor });
+        return new Promise((resolve) => {
+            tx.oncomplete = () => resolve(true);
+        });
+    }
+
+    async function lerDoIndexedDB(chave) {
+        const db = await abrirIndexedDB();
+        const tx = db.transaction("dados", "readonly");
+        const store = tx.objectStore("dados");
+        return new Promise((resolve) => {
+            const req = store.get(chave);
+            req.onsuccess = () => resolve(req.result?.valor || null);
+        });
+    }
+</script>
+
 </body>
 </html>
