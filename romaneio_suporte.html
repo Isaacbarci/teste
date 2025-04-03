@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<script>
+const chaveSessao = "romaneio_suporte_ativo";
+if (localStorage.getItem(chaveSessao) === "true") {
+    window.close();
+}
+localStorage.setItem(chaveSessao, "true");
+window.addEventListener("beforeunload", () => {
+    localStorage.removeItem(chaveSessao);
+});
+</script>
+
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Suporte</title>
