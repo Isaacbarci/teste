@@ -5,8 +5,12 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Spool</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
-<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
+window.onload = () => iniciarApp();
+</script>
+<script src="https://unpkg.com/html5-qrcode">
+window.onload = () => iniciarApp();
+</script>
 <style>
         body {
             font-family: Arial, sans-serif;
@@ -876,6 +880,8 @@ function downloadExcel() {
 }
 
 iniciarApp();
+
+window.onload = () => iniciarApp();
 </script>
 <script>
     function abrirIndexedDB() {
@@ -915,6 +921,8 @@ iniciarApp();
             req.onsuccess = () => resolve(req.result?.valor || null);
         });
     }
+
+window.onload = () => iniciarApp();
 </script>
 </body>
 </html>
