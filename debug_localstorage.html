@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Debug LocalStorage</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    button {
+      margin: 5px;
+      padding: 8px 16px;
+      font-size: 14px;
+    }
+    pre {
+      margin-top: 20px;
+      background: #f7f7f7;
+      padding: 15px;
+      border: 1px solid #ccc;
+      max-height: 70vh;
+      overflow: auto;
+    }
+  </style>
+</head>
+<body>
+  <h2>Debug do LocalStorage</h2>
+
+  <button onclick="mostrarLocalStorageTudo()">Ver Tudo</button>
+  <button onclick="mostrarLocalStorageSpool()">Ver Spool</button>
+  <button onclick="mostrarLocalStorageSuporte()">Ver Suporte</button>
+
+  <pre id="saida">Clique em um dos botões acima para ver os dados.</pre>
+
+  <script>
+    function mostrar(dados) {
+        document.getElementById("saida").textContent = JSON.stringify(dados, null, 2);
+    }
+
+    function mostrarLocalStorageTudo() {
+        const dados = {
+            spool: {},
+            suporte: {},
+            geral: {}
+        };
+        for (const chave in localStorage) {
+            const valor = localStorage.getItem(chave);
+            if (chave.startsWith("spool_")) {
+                dados.spool[chave] = valor;
+            } else if (chave.startsWith("suporte_")) {
+                dados.suporte[chave] = valor;
+            } else {
+                dados.geral[chave] = valor;
+            }
+        }
+        mostrar(dados);
+    }
+
+    function mostrarLocalStorageSpool() {
+        const dados = {};
+        for (const chave in localStorage) {
+            if (chave.startsWith("spool_")) {
+                dados[chave] = localStorage.getItem(chave);
+            }
+        }
+        mostrar(dados);
+    }
+
+    function mostrarLocalStorageSuporte() {
+        const dados = {};
+        for (const chave in localStorage) {
+            if (chave.startsWith("suporte_")) {
+                dados[chave] = localStorage.getItem(chave);
+            }
+        }
+        mostrar(dados);
+    }
+  </script>
+</body>
+</html>
