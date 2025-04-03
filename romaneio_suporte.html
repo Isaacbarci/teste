@@ -366,7 +366,8 @@ async function excluirEdicaoIndexedDB(id) {
 }
 
 
-</script></head>
+
+document.addEventListener('DOMContentLoaded', () => { loadServices(); });</script></head>
 <body>
 <h2 style="display: flex; align-items: center;">
 <img alt="Logo" src="image.png" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;"/>
@@ -579,7 +580,7 @@ async function excluirEdicaoIndexedDB(id) {
                 timeout = setTimeout(() => func.apply(this, args), wait);
             };
         }
-} catch(e) { console.error('Erro ao carregar edições:', e); }
+
 
         document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
 
