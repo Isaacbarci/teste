@@ -946,5 +946,87 @@
             }
         }
     </script>
+<button id="btnCompartilhar" onclick="compartilharArquivo()" style="display:none;margin-top:10px;">Compartilhar arquivo</button>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDGeF8d07YUKYpp3ZJJAKBr9R-JpgTXPbg",
+    authDomain: "romaneio-palmont.firebaseapp.com",
+    projectId: "romaneio-palmont",
+    storageBucket: "romaneio-palmont.appspot.com",
+    messagingSenderId: "378221539005",
+    appId: "1:378221539005:web:1dba5391f18fd057d35a56"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  let linkGerado = "";
+
+  async function baixarECompartilharFirebase() {
+    const nome = prompt("Digite seu nome para continuar:");
+    if (!nome || nome.trim() === "") {
+      alert("Nome é obrigatório.");
+      return;
+    }
+
+    const tabela = document.querySelector("table");
+    const linhas = Array.from(tabela.querySelectorAll("tbody tr"));
+    const dados = linhas.map(linha => {
+      const colunas = linha.querySelectorAll("td");
+      return {
+        cliente: colunas[0].innerText,
+        motorista: colunas[1].innerText,
+        placa: colunas[2].innerText,
+        qtd: parseInt(colunas[3].innerText),
+        material: colunas[4].innerText,
+        servico: colunas[5].innerText
+      };
+    });
+    const servico = dados[0]?.servico || "Spool";
+
+    const resp = await fetch("https://us-central1-romaneio-palmont.cloudfunctions.net/gerarExcelRomaneio", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tipo: "spool", servico, dados })
+    });
+
+    const result = await resp.json();
+    if (!result.url) {
+      console.error("Erro: Resposta sem URL");
+      return alert("Erro ao gerar arquivo.");
+    }
+
+    linkGerado = result.url;
+
+    await db.collection("romaneios").add({
+      nome,
+      tipo: "spool",
+      servico,
+      url: linkGerado,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    const a = document.createElement("a");
+    a.href = linkGerado;
+    a.download = "Romaneio_spool.xlsx";
+    a.click();
+
+    document.getElementById("btnCompartilhar").style.display = "inline-block";
+  }
+
+  async function compartilharArquivo() {
+    if (!linkGerado) return alert("Nenhum link disponível.");
+    if (navigator.share) {
+      await navigator.share({
+        title: "Romaneio",
+        text: "Compartilhar romaneio gerado",
+        url: linkGerado
+      });
+    } else {
+      alert("Seu dispositivo não suporta compartilhamento automático.");
+    }
+  }
+</script>
+
 </body>
 </html>
