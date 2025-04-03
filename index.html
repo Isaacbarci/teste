@@ -4,6 +4,21 @@
     <meta charset="UTF-8">
     <title>Selecionar Romaneio</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <script>
+        const chaveIndex = "romaneio_index_ativo";
+
+        if (localStorage.getItem(chaveIndex) === "true") {
+            window.close();
+        }
+
+        localStorage.setItem(chaveIndex, "true");
+
+        window.addEventListener("beforeunload", () => {
+            localStorage.removeItem(chaveIndex);
+        });
+    </script>
+
     <style>
         body {
             background-color: #000;
