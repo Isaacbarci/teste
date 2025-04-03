@@ -4,24 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Romaneio de Suporte</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
-    // Salva o nome do sistema (spool ou suporte) como o último aberto
-    localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
-
-    function voltarParaIndex() {
-    window.location.href = "index.html";
-}
-
-</script>
-    <script src="https://unpkg.com/html5-qrcode">
-    // Salva o nome do sistema (spool ou suporte) como o último aberto
-    localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
-
-    function voltarParaIndex() {
-    window.location.href = "index.html";
-}
-
-</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -260,24 +244,24 @@
         }
 
         #okBtnKeyboard {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    width: 36px;
-    height: 36px;
-    display: none;
-}
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            width: 36px;
+            height: 36px;
+            display: none;
+        }
 
-#okBtnKeyboard svg {
-    width: 36px;
-    height: 40px;
-    fill: white;
-}
+        #okBtnKeyboard svg {
+            width: 36px;
+            height: 40px;
+            fill: white;
+        }
 
         .input-quantidade {
             transition: background-color 0.3s;
@@ -298,19 +282,16 @@
             position: relative;
         }
 
-/* Remove setas do input type="number" no Chrome, Safari, Edge, Opera */
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
+        /* Remove setas do input type="number" */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
 
-/* Remove setas no Firefox */
-input[type=number] {
-    -moz-appearance: textfield;
-}
-
-        
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
         
         @media (max-width: 768px) {
             .modal {
@@ -337,38 +318,7 @@ input[type=number] {
         button[onclick*="voltarParaIndex()"]:hover {
             background-color: #c82333;
         }
-
-</style>
-<script></script>
-<script>localStorage.setItem("ultimoSistemaAberto", "suporte");</script>
-
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyDGeF8d07YUKYpp3ZJJAKBr9R-JpgTXPbg",
-    authDomain: "romaneio-palmont.firebaseapp.com",
-    projectId: "romaneio-palmont"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-</script>
-
-
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyDGeF8d07YUKYpp3ZJJAKBr9R-JpgTXPbg",
-    authDomain: "romaneio-palmont.firebaseapp.com",
-    projectId: "romaneio-palmont"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-</script>
-
+    </style>
 </head>
 <body>
     <h2 style="display: flex; align-items: center;">
@@ -385,31 +335,26 @@ input[type=number] {
         </select>
         <button onclick="confirmLoadService()">Carregar Serviço</button>
         <input type="text" id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação">
-        <button onclick="baixarECompartilharFirebase()">Download Excel</button>
+        <button onclick="downloadExcel()">Download Excel</button>
         <button onclick="startQrScanner()">Escanear QR Code</button>
 
-<button onclick="voltarParaIndex()" title="Voltar para o Início">
-    <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24" fill="white" style="vertical-align: middle; margin-right: 5px;">
-        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-    </svg>
-    Voltar
-</button>
-
+        <button onclick="voltarParaIndex()" title="Voltar para o Início">
+            <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24" fill="white" style="vertical-align: middle; margin-right: 5px;">
+                <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+            </svg>
+            Voltar
+        </button>
     </div>
 
-
-<div id="confirmModalOverlay" class="modal-overlay" style="z-index: 2000;">
-  <div class="modal" style="text-align: center;">
-    <p id="confirmModalMessage" style="font-size: 16px;">Existem dados salvos para este serviço.<br>Deseja continuar o Romaneio existente? </p>
-    <div class="modal-footer">
-      <button id="btnConfirmSim" class="save-btn">SIM</button>
-      <button id="btnConfirmNovo" style="background-color: white; color: black;" class="close-btn">NOVO ROMANEIO</button>
-
+    <div id="confirmModalOverlay" class="modal-overlay" style="z-index: 2000;">
+        <div class="modal" style="text-align: center;">
+            <p id="confirmModalMessage" style="font-size: 16px;">Existem dados salvos para este serviço.<br>Deseja continuar o Romaneio existente? </p>
+            <div class="modal-footer">
+                <button id="btnConfirmSim" class="save-btn">SIM</button>
+                <button id="btnConfirmNovo" style="background-color: white; color: black;" class="close-btn">NOVO ROMANEIO</button>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
-
-
     
     <div id="qr-container" style="display: none;">
         <div id="qr-reader" style="width:300px; margin-top:10px;"></div>
@@ -437,9 +382,8 @@ input[type=number] {
             </label>
 
             <label>Observação:
-    <input type="text" id="OBSERVACAO" readonly>
-</label>
-
+                <input type="text" id="OBSERVACAO" readonly>
+            </label>
 
             <label>Peso (kg):
                 <input type="text" id="PesoKg" readonly>
@@ -490,7 +434,7 @@ input[type=number] {
         const rowsPerPage = 300;
         let services = new Set();
         let alertaConfirmado = false;
-let eventosConfigurados = false;
+        let currentEventListeners = {};
 
         const hiddenColumns = [
             "desenho suporte", "informações", "isométrico", "peso (kg)", "cond. pintura",
@@ -501,27 +445,76 @@ let eventosConfigurados = false;
             "identificação 2", "area m²", "peso", "peso enviado", "área enviada", "peso total", "área m² total"
         ];
 
-        
-        
-function configurarEventosQuantidade() {
-    const qtdInput = document.getElementById("QTDENVIADA");
-    const okBtn = document.getElementById("okBtnKeyboard");
+        function configurarEventosQuantidade() {
+            const qtdInput = document.getElementById("QTDENVIADA");
+            const okBtn = document.getElementById("okBtnKeyboard");
 
-    alertaConfirmado = false;
-    qtdInput.classList.remove('valido', 'invalido');
+            // Remove listeners antigos se existirem
+            if (currentEventListeners.input) {
+                qtdInput.removeEventListener('input', currentEventListeners.input);
+            }
+            if (currentEventListeners.focus) {
+                qtdInput.removeEventListener('focus', currentEventListeners.focus);
+            }
+            if (currentEventListeners.blur) {
+                qtdInput.removeEventListener('blur', currentEventListeners.blur);
+            }
+            if (currentEventListeners.click) {
+                okBtn.removeEventListener('click', currentEventListeners.click);
+            }
 
-    if (eventosConfigurados) return;
+            // Reset estado
+            alertaConfirmado = false;
+            qtdInput.classList.remove('valido', 'invalido');
+            okBtn.style.display = 'none';
 
-    function atualizarEstado() {
-        const saldo = parseFloat(document.getElementById("Saldo").value || 0);
-        const valor = parseFloat(qtdInput.value || 0);
+            function atualizarEstado() {
+                const saldo = parseFloat(document.getElementById("Saldo").value || 0);
+                const valor = parseFloat(qtdInput.value || 0);
 
-        qtdInput.classList.remove('valido', 'invalido');
+                qtdInput.classList.remove('valido', 'invalido');
 
-        if (qtdInput.value !== "") {
-            if (valor > saldo) {
-                qtdInput.classList.add('invalido');
-                if (!alertaConfirmado) {
+                if (qtdInput.value !== "") {
+                    if (valor > saldo) {
+                        qtdInput.classList.add('invalido');
+                        if (!alertaConfirmado) {
+                            const confirmacao = confirm("ATENÇÃO: Quantidade maior que o saldo!\nDeseja continuar mesmo assim?");
+                            if (!confirmacao) {
+                                qtdInput.value = "";
+                                qtdInput.focus();
+                                return;
+                            }
+                            alertaConfirmado = true;
+                        }
+                    } else {
+                        qtdInput.classList.add('valido');
+                        alertaConfirmado = false;
+                    }
+                }
+            }
+
+            function handleFocus() {
+                okBtn.style.display = 'block';
+            }
+
+            function handleBlur(e) {
+                if (e.relatedTarget === okBtn) return;
+                const saldo = parseFloat(document.getElementById("Saldo").value || 0);
+                const valor = parseFloat(qtdInput.value || 0);
+
+                if (valor > saldo && !alertaConfirmado) {
+                    e.preventDefault();
+                    qtdInput.focus();
+                } else {
+                    okBtn.style.display = 'none';
+                }
+            }
+
+            function handleOkClick() {
+                const saldo = parseFloat(document.getElementById("Saldo").value || 0);
+                const valor = parseFloat(qtdInput.value || 0);
+
+                if (valor > saldo && !alertaConfirmado) {
                     const confirmacao = confirm("ATENÇÃO: Quantidade maior que o saldo!\nDeseja continuar mesmo assim?");
                     if (!confirmacao) {
                         qtdInput.value = "";
@@ -530,53 +523,25 @@ function configurarEventosQuantidade() {
                     }
                     alertaConfirmado = true;
                 }
-            } else {
-                qtdInput.classList.add('valido');
-                alertaConfirmado = false;
+
+                okBtn.style.display = 'none';
+                qtdInput.blur();
             }
+
+            // Armazena referências aos listeners atuais
+            currentEventListeners = {
+                input: atualizarEstado,
+                focus: handleFocus,
+                blur: handleBlur,
+                click: handleOkClick
+            };
+
+            // Adiciona novos listeners
+            qtdInput.addEventListener('input', atualizarEstado);
+            qtdInput.addEventListener('focus', handleFocus);
+            qtdInput.addEventListener('blur', handleBlur);
+            okBtn.addEventListener('click', handleOkClick);
         }
-    }
-
-    qtdInput.addEventListener('input', atualizarEstado);
-
-    qtdInput.addEventListener('focus', function () {
-        okBtn.style.display = 'block';
-    });
-
-    qtdInput.addEventListener('blur', function (e) {
-        if (e.relatedTarget === okBtn) return;
-        const saldo = parseFloat(document.getElementById("Saldo").value || 0);
-        const valor = parseFloat(qtdInput.value || 0);
-
-        if (valor > saldo && !alertaConfirmado) {
-            e.preventDefault();
-            qtdInput.focus();
-        } else {
-            okBtn.style.display = 'none';
-        }
-    });
-
-    okBtn.addEventListener('click', function () {
-        const saldo = parseFloat(document.getElementById("Saldo").value || 0);
-        const valor = parseFloat(qtdInput.value || 0);
-
-        if (valor > saldo && !alertaConfirmado) {
-            const confirmacao = confirm("ATENÇÃO: Quantidade maior que o saldo!\nDeseja continuar mesmo assim?");
-            if (!confirmacao) {
-                qtdInput.value = "";
-                qtdInput.focus();
-                return;
-            }
-            alertaConfirmado = true;
-        }
-
-        okBtn.style.display = 'none';
-        qtdInput.blur();
-    });
-
-    eventosConfigurados = true;
-
-}
        
         function debounce(func, wait) {
             let timeout;
@@ -631,54 +596,51 @@ function configurarEventosQuantidade() {
         }
 
         function confirmLoadService() {
-    const senhaCorreta = "1234";
-    const tentativa = prompt("Digite a senha para continuar:");
+            const senhaCorreta = "1234";
+            const tentativa = prompt("Digite a senha para continuar:");
 
-    if (tentativa !== senhaCorreta) {
-        alert("Senha incorreta. Ação cancelada.");
-        return;
-    }
+            if (tentativa !== senhaCorreta) {
+                alert("Senha incorreta. Ação cancelada.");
+                return;
+            }
 
-    const selectedServico = document.getElementById("servicoSelect").value;
-    if (!selectedServico) {
-        alert("Selecione um serviço da lista para carregar.");
-        return;
-    }
+            const selectedServico = document.getElementById("servicoSelect").value;
+            if (!selectedServico) {
+                alert("Selecione um serviço da lista para carregar.");
+                return;
+            }
 
-    const stored = JSON.parse(localStorage.getItem("suporte_edicoes") || "{}");
-    const temEdicoesSalvas = stored[currentFileName] && stored[currentFileName][selectedServico] && Object.keys(stored[currentFileName][selectedServico]).length > 0;
+            const stored = JSON.parse(localStorage.getItem("suporte_edicoes") || "{}");
+            const temEdicoesSalvas = stored[currentFileName] && stored[currentFileName][selectedServico] && Object.keys(stored[currentFileName][selectedServico]).length > 0;
 
-    if (temEdicoesSalvas) {
-        // Abre modal personalizado
-        const overlay = document.getElementById("confirmModalOverlay");
-        overlay.style.display = "flex";
+            if (temEdicoesSalvas) {
+                const overlay = document.getElementById("confirmModalOverlay");
+                overlay.style.display = "flex";
 
-        const simBtn = document.getElementById("btnConfirmSim");
-        const novoBtn = document.getElementById("btnConfirmNovo");
+                const simBtn = document.getElementById("btnConfirmSim");
+                const novoBtn = document.getElementById("btnConfirmNovo");
 
-        const fecharModal = () => {
-            overlay.style.display = "none";
-            simBtn.onclick = null;
-            novoBtn.onclick = null;
-        };
+                const fecharModal = () => {
+                    overlay.style.display = "none";
+                    simBtn.onclick = null;
+                    novoBtn.onclick = null;
+                };
 
-        simBtn.onclick = () => {
-            fecharModal();
-            renderSelectedServico(true); // mantém edições
-        };
+                simBtn.onclick = () => {
+                    fecharModal();
+                    renderSelectedServico(true);
+                };
 
-        novoBtn.onclick = () => {
-            delete stored[currentFileName][selectedServico];
-            localStorage.setItem("suporte_edicoes", JSON.stringify(stored));
-            fecharModal();
-            renderSelectedServico(false); // limpa e carrega do zero
-        };
-
-    } else {
-        renderSelectedServico(false); // sem edições, carrega normalmente
-    }
-}
-
+                novoBtn.onclick = () => {
+                    delete stored[currentFileName][selectedServico];
+                    localStorage.setItem("suporte_edicoes", JSON.stringify(stored));
+                    fecharModal();
+                    renderSelectedServico(false);
+                };
+            } else {
+                renderSelectedServico(false);
+            }
+        }
 
         function renderSelectedServico(manterEdicoes = false) {
             const selectedServico = document.getElementById("servicoSelect").value;
@@ -699,35 +661,33 @@ function configurarEventosQuantidade() {
                 loadSavedEdits();
             }
 
-            
+            localStorage.setItem("suporte_ultimoServico", selectedServico);
             document.getElementById("dataTable").innerHTML = "";
             renderTable();
         }
 
-        
-function loadSavedEdits() {
-    const stored = JSON.parse(localStorage.getItem("suporte_edicoes") || "{}");
-    const currentServico = document.getElementById("servicoSelect").value;
+        function loadSavedEdits() {
+            const stored = JSON.parse(localStorage.getItem("suporte_edicoes") || "{}");
+            const currentServico = document.getElementById("servicoSelect").value;
 
-    if (!stored[currentFileName] || !stored[currentFileName][currentServico]) {
-        return;
-    }
+            if (!stored[currentFileName] || !stored[currentFileName][currentServico]) {
+                return;
+            }
 
-    const servicoEdits = stored[currentFileName][currentServico];
+            const servicoEdits = stored[currentFileName][currentServico];
 
-    Object.entries(servicoEdits).forEach(([id, edit]) => {
-        const rowIndex = data.findIndex(row => row[columnIndexes["id"]] == id);
-        if (rowIndex !== -1 && data[rowIndex][servicoIndex] === currentServico) {
-            data[rowIndex][columnIndexes["data do romaneio"]] = edit.dataRomaneio || "";
-            data[rowIndex][columnIndexes["qtd enviada"]] = edit.qtdEnviada || "";
-            data[rowIndex][columnIndexes["obs romaneio"]] = edit.obsRomaneio || "";
-            editedRows.add(rowIndex);
+            Object.entries(servicoEdits).forEach(([id, edit]) => {
+                const rowIndex = data.findIndex(row => row[columnIndexes["id"]] == id);
+                if (rowIndex !== -1 && data[rowIndex][servicoIndex] === currentServico) {
+                    data[rowIndex][columnIndexes["data do romaneio"]] = edit.dataRomaneio || "";
+                    data[rowIndex][columnIndexes["qtd enviada"]] = edit.qtdEnviada || "";
+                    data[rowIndex][columnIndexes["obs romaneio"]] = edit.obsRomaneio || "";
+                    editedRows.add(rowIndex);
+                }
+            });
         }
-    });
-}
 
-
-function clearPreviousFileData() {
+        function clearPreviousFileData() {
             editedRows.clear();
         }
 
@@ -817,96 +777,94 @@ function clearPreviousFileData() {
         }
 
         function applyFilter() {
-    const filterValue = document.getElementById("identificacaoFilter").value.trim().toLowerCase();
-    const currentServico = document.getElementById("servicoSelect").value;
+            const filterValue = document.getElementById("identificacaoFilter").value.trim().toLowerCase();
+            const currentServico = document.getElementById("servicoSelect").value;
 
-    const colIdentificacao1 = columnIndexes["identificação 1"];
-    const colQR = columnIndexes["qr"];
+            const colIdentificacao1 = columnIndexes["identificação 1"];
+            const colQR = columnIndexes["qr"];
 
-    filteredData = data.slice(1).filter(row => {
-        if (currentServico && row[servicoIndex] !== currentServico) {
-            return false;
+            filteredData = data.slice(1).filter(row => {
+                if (currentServico && row[servicoIndex] !== currentServico) {
+                    return false;
+                }
+
+                const identificacao1 = String(row[colIdentificacao1] || "").toLowerCase();
+                const qr = String(row[colQR] || "").toLowerCase();
+
+                return identificacao1.includes(filterValue) || qr.includes(filterValue);
+            });
+
+            renderTable();
         }
-
-        const identificacao1 = String(row[colIdentificacao1] || "").toLowerCase();
-        const qr = String(row[colQR] || "").toLowerCase();
-
-        return identificacao1.includes(filterValue) || qr.includes(filterValue);
-    });
-
-    renderTable();
-}
-
 
         function renderTable() {
-    const table = document.getElementById("dataTable");
-    table.innerHTML = "";
+            const table = document.getElementById("dataTable");
+            table.innerHTML = "";
 
-    if (!data.length) return;
+            if (!data.length) return;
 
-    const fragment = document.createDocumentFragment();
+            const fragment = document.createDocumentFragment();
 
-    const colunasExibidas = [
-        "posição / tag",
-        "identificação 1",
-        "data do romaneio",
-        "qtd enviada",
-        "prog. fab.",
-        "qr"
-    ];
+            const colunasExibidas = [
+                "posição / tag",
+                "identificação 1",
+                "data do romaneio",
+                "qtd enviada",
+                "prog. fab.",
+                "qr"
+            ];
 
-    const headerRow = document.createElement("tr");
-    colunasExibidas.forEach(col => {
-        const th = document.createElement("th");
-        th.textContent = col.toUpperCase();
-        headerRow.appendChild(th);
-    });
-    fragment.appendChild(headerRow);
+            const headerRow = document.createElement("tr");
+            colunasExibidas.forEach(col => {
+                const th = document.createElement("th");
+                th.textContent = col.toUpperCase();
+                headerRow.appendChild(th);
+            });
+            fragment.appendChild(headerRow);
 
-    const rowsComEdicao = [];
-    const rowsSemEdicao = [];
+            const rowsComEdicao = [];
+            const rowsSemEdicao = [];
 
-    filteredData.forEach((row) => {
-        const originalIndex = data.indexOf(row);
-        if (editedRows.has(originalIndex)) {
-            rowsComEdicao.push(row);
-        } else {
-            rowsSemEdicao.push(row);
+            filteredData.forEach((row) => {
+                const originalIndex = data.indexOf(row);
+                if (editedRows.has(originalIndex)) {
+                    rowsComEdicao.push(row);
+                } else {
+                    rowsSemEdicao.push(row);
+                }
+            });
+
+            const rowsOrdenadas = [...rowsComEdicao, ...rowsSemEdicao];
+
+            rowsOrdenadas.slice(0, rowsPerPage).forEach((row) => {
+                const originalIndex = data.indexOf(row);
+                if (originalIndex === -1) return;
+
+                const tr = document.createElement("tr");
+                tr.onclick = () => openEditModal(originalIndex);
+
+                colunasExibidas.forEach(col => {
+                    const colIndex = columnIndexes[col];
+                    const td = document.createElement("td");
+                    let cellValue = row[colIndex] || "";
+
+                    if (col === "data do romaneio") {
+                        cellValue = formatDate(cellValue);
+                    }
+
+                    td.textContent = cellValue;
+                    tr.appendChild(td);
+                });
+
+                if (editedRows.has(originalIndex)) {
+                    tr.classList.add("edited-row");
+                }
+
+                fragment.appendChild(tr);
+            });
+
+            table.appendChild(fragment);
         }
-    });
-
-    const rowsOrdenadas = [...rowsComEdicao, ...rowsSemEdicao];
-
-    rowsOrdenadas.slice(0, rowsPerPage).forEach((row) => {
-        const originalIndex = data.indexOf(row);
-        if (originalIndex === -1) return;
-
-        const tr = document.createElement("tr");
-        tr.onclick = () => openEditModal(originalIndex);
-
-        colunasExibidas.forEach(col => {
-            const colIndex = columnIndexes[col];
-            const td = document.createElement("td");
-            let cellValue = row[colIndex] || "";
-
-            if (col === "data do romaneio") {
-                cellValue = formatDate(cellValue);
-            }
-
-            td.textContent = cellValue;
-            tr.appendChild(td);
-        });
-
-        if (editedRows.has(originalIndex)) {
-            tr.classList.add("edited-row");
-        }
-
-        fragment.appendChild(tr);
-    });
-
-    table.appendChild(fragment);
-}
-
 
         function openEditModal(index) {
             if (index < 0 || index >= data.length) return;
@@ -930,99 +888,105 @@ function clearPreviousFileData() {
             saldoInput.value = saldo;
             
             saldoInput.className = "saldo-input";
-            if (saldo <= 0) {
+            if (saldo < 0) {
                 saldoInput.classList.add("saldo-negativo");
             } else {
                 saldoInput.classList.add("saldo-positivo");
+            }
 
-}
+            const observacaoInput = document.getElementById("OBSERVACAO");
+            const valorObs = data[index][columnIndexes["observação"]] || "";
+            observacaoInput.value = valorObs;
 
-           const observacaoInput = document.getElementById("OBSERVACAO");
-    const valorObs = data[index][columnIndexes["observação"]] || "";
-    observacaoInput.value = valorObs;
+            const corFundo = (valorObs && valorObs.trim().toUpperCase() !== "N/A" && valorObs.trim().toUpperCase() !== "NA")
+                ? "rgba(255, 193, 7, 0.2)" 
+                : "#2c2c2c";
 
-    const corFundo = (valorObs && valorObs.trim().toUpperCase() !== "N/A" && valorObs.trim().toUpperCase() !== "NA")
-        ? "rgba(255, 193, 7, 0.2)" 
-        : "#2c2c2c";
+            observacaoInput.style.backgroundColor = corFundo;  
 
-    observacaoInput.style.backgroundColor = corFundo;  
-
-
-                        configurarEventosQuantidade();
+            configurarEventosQuantidade();
 
             document.getElementById("modalOverlay").style.display = "flex";
             document.body.style.overflow = "hidden";
         }
 
-        
-function saveEdit() {
-    const originalIndex = parseInt(document.getElementById("editIndex").value);
-    const selectedServico = document.getElementById("servicoSelect").value;
+        function saveEdit() {
+            const originalIndex = parseInt(document.getElementById("editIndex").value);
+            const selectedServico = document.getElementById("servicoSelect").value;
 
-    const dataRomaneio = document.getElementById("DATADOROMANEIO").value.trim();
-    const qtdEnviada = document.getElementById("QTDENVIADA").value.trim();
-    const obsRomaneio = document.getElementById("OBSROMANEIO").value.trim();
+            const dataRomaneio = document.getElementById("DATADOROMANEIO").value.trim();
+            const qtdEnviada = document.getElementById("QTDENVIADA").value.trim();
+            const obsRomaneio = document.getElementById("OBSROMANEIO").value.trim();
 
-    if (dataRomaneio && !qtdEnviada) {
-        alert("Informe a Quantidade Enviada antes de salvar.");
-        document.getElementById("QTDENVIADA").focus();
-        return;
-    }
+            if (dataRomaneio && !qtdEnviada) {
+                alert("Informe a Quantidade Enviada antes de salvar.");
+                document.getElementById("QTDENVIADA").focus();
+                return;
+            }
 
-    if (qtdEnviada && !dataRomaneio) {
-        alert("Informe a Data do Romaneio antes de salvar.");
-        document.getElementById("DATADOROMANEIO").focus();
-        return;
-    }
+            if (qtdEnviada && !dataRomaneio) {
+                alert("Informe a Data do Romaneio antes de salvar.");
+                document.getElementById("DATADOROMANEIO").focus();
+                return;
+            }
 
-    if (data[originalIndex][servicoIndex] !== selectedServico) {
-        alert("ERRO: O item não pertence ao serviço selecionado!");
-        closeModal();
-        return;
-    }
+            if (data[originalIndex][servicoIndex] !== selectedServico) {
+                alert("ERRO: O item não pertence ao serviço selecionado!");
+                closeModal();
+                return;
+            }
 
-    data[originalIndex][columnIndexes["data do romaneio"]] = dataRomaneio;
-    data[originalIndex][columnIndexes["qtd enviada"]] = qtdEnviada;
-    data[originalIndex][columnIndexes["obs romaneio"]] = obsRomaneio;
+            data[originalIndex][columnIndexes["data do romaneio"]] = dataRomaneio;
+            data[originalIndex][columnIndexes["qtd enviada"]] = qtdEnviada;
+            data[originalIndex][columnIndexes["obs romaneio"]] = obsRomaneio;
 
-    const id = data[originalIndex][columnIndexes["id"]];
-    const stored = JSON.parse(localStorage.getItem("suporte_edicoes") || "{}");
+            const id = data[originalIndex][columnIndexes["id"]];
+            const stored = JSON.parse(localStorage.getItem("suporte_edicoes") || "{}");
 
-    if (!stored[currentFileName]) stored[currentFileName] = {};
-    if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
+            if (!stored[currentFileName]) stored[currentFileName] = {};
+            if (!stored[currentFileName][selectedServico]) stored[currentFileName][selectedServico] = {};
 
-    if (dataRomaneio || qtdEnviada || obsRomaneio) {
-        stored[currentFileName][selectedServico][id] = {
-            dataRomaneio,
-            qtdEnviada,
-            obsRomaneio
-        };
-        editedRows.add(originalIndex);
-    } else {
-        delete stored[currentFileName][selectedServico][id];
-        editedRows.delete(originalIndex);
-    }
+            if (dataRomaneio || qtdEnviada || obsRomaneio) {
+                stored[currentFileName][selectedServico][id] = {
+                    dataRomaneio,
+                    qtdEnviada,
+                    obsRomaneio
+                };
+                editedRows.add(originalIndex);
+            } else {
+                delete stored[currentFileName][selectedServico][id];
+                editedRows.delete(originalIndex);
+            }
 
-    localStorage.setItem("suporte_edicoes", JSON.stringify(stored));
-    
+            localStorage.setItem("suporte_edicoes", JSON.stringify(stored));
+            localStorage.setItem("suporte_ultimoServico", selectedServico);
 
-    closeModal();
-    renderTable();
-}
+            closeModal();
+            renderTable();
+        }
 
-
-function closeModal() {
+        function closeModal() {
             const qtdInput = document.getElementById("QTDENVIADA");
             const okBtn = document.getElementById("okBtnKeyboard");
             
+            // Remove todos os listeners
+            if (currentEventListeners.input) {
+                qtdInput.removeEventListener('input', currentEventListeners.input);
+            }
+            if (currentEventListeners.focus) {
+                qtdInput.removeEventListener('focus', currentEventListeners.focus);
+            }
+            if (currentEventListeners.blur) {
+                qtdInput.removeEventListener('blur', currentEventListeners.blur);
+            }
+            if (currentEventListeners.click) {
+                okBtn.removeEventListener('click', currentEventListeners.click);
+            }
+            
+            // Reset UI
             qtdInput.classList.remove('valido', 'invalido');
             okBtn.style.display = 'none';
             
-            qtdInput.oninput = null;
-            qtdInput.onfocus = null;
-            qtdInput.onblur = null;
-            okBtn.onclick = null;
-
             document.getElementById("modalOverlay").style.display = "none";
             document.body.style.overflow = "";
         }
@@ -1062,7 +1026,7 @@ function closeModal() {
             }
         }
 
-        function baixarECompartilharFirebase() {
+        function downloadExcel() {
             if (!data.length) {
                 alert("Nenhum dado carregado para exportar.");
                 return;
@@ -1249,7 +1213,7 @@ function closeModal() {
 
         document.addEventListener("DOMContentLoaded", () => {
             loadServices();
-        document.getElementById("servicoSelect").addEventListener("change", confirmLoadService);
+            document.getElementById("servicoSelect").addEventListener("change", confirmLoadService);
         });
 
         window.addEventListener('beforeunload', function() {
@@ -1267,140 +1231,12 @@ function closeModal() {
                 });
         }
     
-    // Salva o nome do sistema (spool ou suporte) como o último aberto
-    localStorage.setItem("ultimoSistemaAberto", location.pathname.includes("spool") ? "spool" : "suporte");
+        // Salva o nome do sistema (spool ou suporte) como o último aberto
+        localStorage.setItem("suporte_sistemaAberto", "suporte");
 
-    function voltarParaIndex() {
-    window.location.href = "index.html";
-}
-
-</script>
-
-    <script>
-    async function baixarExcelFirebase() {
-      try {
-        const tabela = document.querySelector("table");
-        const linhas = Array.from(tabela.querySelectorAll("tbody tr"));
-        const dados = linhas.map(linha => {
-          const colunas = linha.querySelectorAll("td");
-          return {
-            servico: colunas[0].innerText,
-            nome: colunas[1].innerText,
-            qtd: parseInt(colunas[2].innerText)
-          };
-        });
-
-        const servico = dados[0]?.servico || "SERVICO";
-
-        const resp = await fetch("https://us-central1-romaneio-palmont.cloudfunctions.net/gerarExcelRomaneio", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tipo: "suporte", servico, dados })
-        });
-
-        const result = await resp.json();
-        if (result.url) {
-          window.open(result.url, "_blank");
-        } else {
-          alert("Erro: resposta inválida do servidor");
+        function voltarParaIndex() {
+            window.location.href = "index.html";
         }
-      } catch (e) {
-        alert("Erro ao enviar para Firebase: " + e.message);
-      }
-    }
     </script>
-    
-<button id="btnCompartilhar" onclick="compartilharArquivo()" style="display:none;margin-top:10px;">Compartilhar arquivo</button>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyDGeF8d07YUKYpp3ZJJAKBr9R-JpgTXPbg",
-    authDomain: "romaneio-palmont.firebaseapp.com",
-    projectId: "romaneio-palmont",
-    storageBucket: "romaneio-palmont.appspot.com",
-    messagingSenderId: "378221539005",
-    appId: "1:378221539005:web:1dba5391f18fd057d35a56"
-  };
-  
-  const db = firebase.firestore();
-
-  let linkGerado = "";
-
-  async function baixarECompartilharFirebase() {
-    const nome = prompt("Digite seu nome para confirmar o download:");
-    if (!nome || nome.trim() === "") {
-      alert("Nome é obrigatório para continuar.");
-      return;
-    }
-
-    const tabela = document.querySelector("table");
-    const linhas = Array.from(tabela.querySelectorAll("tbody tr"));
-    const dados = linhas.map(linha => {
-      const colunas = linha.querySelectorAll("td");
-      return {
-        
-        
-        
-        qtd: parseInt(colunas[2].innerText),
-        
-        servico: colunas[0].innerText
-      };
-    });
-
-    const servico = dados[0]?.servico || "Suporte";
-
-    const resp = await fetch("https://us-central1-romaneio-palmont.cloudfunctions.net/gerarExcelRomaneio", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tipo: "suporte", servico, dados })
-    });
-
-    const result = await resp.json();
-    if (!result.url) return alert("Erro ao gerar arquivo.");
-
-    linkGerado = result.url;
-
-    await db.collection("romaneios").add({
-      nome,
-      tipo: "suporte",
-      servico,
-      url: linkGerado,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp().catch(error => console.error("Erro ao salvar no Firebase:", error))
-    });
-
-    const a = document.createElement("a");
-    a.href = linkGerado;
-    a.download = "Romaneio_suporte.xlsx";
-    a.click();
-
-    document.getElementById("btnCompartilhar").style.display = "inline-block";
-  }
-
-  async function compartilharArquivo() {
-    if (!linkGerado) return alert("Nenhum link disponível.");
-    if (navigator.share) {
-      await navigator.share({
-        title: "Romaneio",
-        text: "Compartilhar romaneio gerado",
-        url: linkGerado
-      });
-    } else {
-      alert("Seu dispositivo não suporta compartilhamento automático.");
-    }
-  }
-</script>
-
-<button id="btnCompartilhar" onclick="compartilharArquivo()" style="display:none;margin-top:10px;">Compartilhar arquivo</button>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyDGeF8d07YUKYpp3ZJJAKBr9R-JpgTXPbg",
-    authDomain: "romaneio-palmont.firebaseapp.com",
-    projectId: "romaneio-palmont",
-    storageBucket: "romaneio-palmont.appspot.com",
-    messagingSenderId: "378221539005",
-    appId: "1:378221539005:web:1dba5391f18fd057d35a56"
-  };
-  
+</body>
+</html>
