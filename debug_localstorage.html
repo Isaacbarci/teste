@@ -54,15 +54,17 @@
 
     function calcularUsoLocalStorage() {
         let total = 0;
+        let quantidade = 0;
         for (let chave in localStorage) {
             const valor = localStorage.getItem(chave);
             total += chave.length + valor.length;
+            quantidade++;
         }
         const tamanhoKB = (total * 2 / 1024);
         const tamanhoKBFormatado = tamanhoKB.toFixed(2);
         const percentual = Math.min((tamanhoKB / LIMITE_LOCALSTORAGE_KB) * 100, 100).toFixed(1);
 
-        document.getElementById("info").textContent = `Uso atual: ${tamanhoKBFormatado} KB de ${LIMITE_LOCALSTORAGE_KB} KB`;
+        document.getElementById("info").textContent = `Uso atual: ${tamanhoKBFormatado} KB de ${LIMITE_LOCALSTORAGE_KB} KB | ${quantidade} chave(s)`;
         const barra = document.getElementById("progresso");
         barra.style.width = percentual + "%";
         barra.textContent = percentual + "%";
