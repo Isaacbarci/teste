@@ -215,28 +215,8 @@
             border: none;
             cursor: pointer;
         }
-        
-        /* Estilo para o botão de compartilhamento */
-        #btnCompartilhar {
-            transition: all 0.3s ease;
-            padding: 10px 15px;
-            border-radius: 5px;
-            display: inline-flex;
-            align-items: center;
-            background-color: #17a2b8;
-            margin-top: 10px;
-        }
-        
-        #btnCompartilhar:hover {
-            background-color: #138496 !important;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        
-        #btnCompartilhar svg {
-            margin-right: 8px;
-        }
-    </style>
+    
+</style>
 </head>
 <body>
     <h2>
@@ -252,7 +232,7 @@
         </select>
         <button onclick="confirmLoadService()">Carregar Serviço</button>
         <input type="text" id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code">
-        <button onclick="baixarECompartilharFirebase()">Download Excel</button>
+        <button onclick="downloadExcel()">Download Excel</button>
         <button onclick="startQrScanner()">Escanear QR Code</button>
         <button onclick="voltarParaIndex()" title="Voltar para o Início">
             <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 24 24" fill="white" style="vertical-align: middle; margin-right: 5px;">
@@ -313,13 +293,6 @@
             </div>
         </div>
     </div>
-
-    <button id="btnCompartilhar" onclick="compartilharArquivo()" style="display:none;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 5px;">
-            <path d="M11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5z"/>
-        </svg>
-        Compartilhar Romaneio
-    </button>
 
     <script>
         let data = [];
@@ -753,6 +726,77 @@
             renderTable();
         }
 
+function downloadExcel() {
+    if (data.length === 0) {
+        alert("Nenhum dado disponível para exportar.");
+        return;
+    }
+
+    const selectedService = document.getElementById("serviceList").value;
+    if (!selectedService) {
+        alert("Selecione um serviço para exportar.");
+        return;
+    }
+
+    const headerRow = data[0];
+
+    // Filtra apenas os registros editados do serviço atual
+    const filteredRows = Array.from(editedRows)
+        .map(index => data[index])
+        .filter(row => row[servicoIndex] === selectedService);
+
+    if (filteredRows.length === 0) {
+        alert("Nenhum item editado para exportar.");
+        return;
+    }
+
+    const dataToExport = [headerRow, ...filteredRows];
+
+    const formattedData = dataToExport.map((row, rowIndex) => {
+        if (rowIndex === 0) return row; // Cabeçalho
+
+        return row.map((cell, colIndex) => {
+            let header = dataToExport[0][colIndex].trim().toLowerCase();
+
+            if (header === "data do romaneio") {
+                return formatDate(cell);
+            }
+
+            if (header === "peso" || header === "área superf.") {
+                if (cell === "" || cell === null || cell === undefined) {
+                    return "";
+                }
+                const numericValue = parseFloat(cell.toString().replace(",", "."));
+                return isNaN(numericValue) ? "" : numericValue;
+            }
+
+            return cell;
+        });
+    });
+
+    const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
+
+    const romaneiosIndex = headerRow.findIndex(
+        header => header.trim().toLowerCase() === "romaneios"
+    );
+
+    const colWidths = formattedData[0].map((_, i) => {
+        const width = Math.max(...formattedData.map(row => (row[i] ? row[i].toString().length : 10))) + 2;
+        return {
+            wch: width,
+            hidden: i === romaneiosIndex
+        };
+    });
+
+    worksheet["!cols"] = colWidths;
+
+    const nomeArquivo = `Romaneio_Editados_${selectedService.replace(/[\/\\?%*:|"<>]/g, '_')}.xlsx`;
+    XLSX.writeFile(workbook, nomeArquivo);
+}
+
+
         // Funções de formatação de datas utilizando parseDateValue
         function formatDate(dateValue) {
             const date = parseDateValue(dateValue);
@@ -832,120 +876,45 @@
         function voltarParaIndex() {
             window.location.href = "index.html";
         }
-
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyDGeF8d07YUKYpp3ZJJAKBr9R-JpgTXPbg",
-            authDomain: "romaneio-palmont.firebaseapp.com",
-            projectId: "romaneio-palmont",
-            storageBucket: "romaneio-palmont.appspot.com",
-            messagingSenderId: "378221539005",
-            appId: "1:378221539005:web:1dba5391f18fd057d35a56"
-        };
-        
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
-        async function baixarECompartilharFirebase() {
-            const nome = prompt("Digite seu nome para confirmar o download:");
-            if (!nome || nome.trim() === "") {
-                alert("Nome é obrigatório para continuar.");
-                return;
-            }
-
-            try {
-                // Obter dados da tabela
-                const tabela = document.querySelector("table");
-                const linhas = Array.from(tabela.querySelectorAll("tbody tr"));
-                const dados = linhas.map(linha => {
-                    const colunas = linha.querySelectorAll("td");
-                    return {
-                        isometrico: colunas[0].innerText,
-                        spool: colunas[1].innerText,
-                        dataRomaneio: colunas[2].innerText,
-                        progFab: colunas[3].innerText,
-                        qr: colunas[4].innerText
-                    };
-                });
-
-                const selectedService = document.getElementById("serviceList").value || "Spool";
-
-                // Enviar para o Firebase
-                const resp = await fetch("https://us-central1-romaneio-palmont.cloudfunctions.net/gerarExcelRomaneio", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ 
-                        tipo: "spool",
-                        servico: selectedService, 
-                        dados 
-                    })
-                });
-
-                const result = await resp.json();
-                
-                if (!result.url) {
-                    throw new Error("Erro ao gerar arquivo.");
-                }
-
-                // Salvar o link para compartilhamento
-                window.linkCompartilhamento = result.url;
-
-                // Criar download automático
-                const a = document.createElement("a");
-                a.href = result.url;
-                a.download = `Romaneio_${selectedService}_${new Date().toLocaleDateString()}.xlsx`;
-                a.click();
-
-                // Mostrar botão de compartilhamento
-                document.getElementById("btnCompartilhar").style.display = "inline-block";
-                
-                // Registrar no Firestore
-                await db.collection("romaneios").add({
-                    nome,
-                    tipo: "spool",
-                    servico: selectedService,
-                    url: result.url,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-            } catch (error) {
-                console.error("Erro:", error);
-                alert("Ocorreu um erro: " + error.message);
-            }
-        }
-
-        async function compartilharArquivo() {
-            if (!window.linkCompartilhamento) {
-                alert("Nenhum arquivo disponível para compartilhar. Faça o download primeiro.");
-                return;
-            }
-
-            try {
-                if (navigator.share) {
-                    // Dispositivos móveis com API de compartilhamento
-                    await navigator.share({
-                        title: "Romaneio de Spool",
-                        text: "Confira o romaneio gerado",
-                        url: window.linkCompartilhamento
-                    });
-                } else {
-                    // Fallback para desktop ou navegadores sem suporte
-                    const input = document.createElement('input');
-                    input.value = window.linkCompartilhamento;
-                    document.body.appendChild(input);
-                    input.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(input);
-                    alert("Link copiado para a área de transferência!");
-                }
-            } catch (err) {
-                console.error('Erro ao compartilhar:', err);
-                // Fallback alternativo
-                prompt("Copie o link para compartilhar:", window.linkCompartilhamento);
-            }
-        }
     </script>
+
+    <script>
+    async function baixarExcelFirebase() {
+      try {
+        const tabela = document.querySelector("table");
+        const linhas = Array.from(tabela.querySelectorAll("tbody tr"));
+        const dados = linhas.map(linha => {
+          const colunas = linha.querySelectorAll("td");
+          return {
+            cliente: colunas[0].innerText,
+            motorista: colunas[1].innerText,
+            placa: colunas[2].innerText,
+            qtd: parseInt(colunas[3].innerText),
+            material: colunas[4].innerText,
+            servico: colunas[5].innerText
+          };
+        });
+
+        const servico = dados[0]?.servico || "SERVICO";
+
+        const resp = await fetch("https://us-central1-romaneio-palmont.cloudfunctions.net/gerarExcelRomaneio", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tipo: "spool", servico, dados })
+        });
+
+        const result = await resp.json();
+        if (result.url) {
+          window.open(result.url, "_blank");
+        } else {
+          alert("Erro: resposta inválida do servidor");
+        }
+      } catch (e) {
+        alert("Erro ao enviar para Firebase: " + e.message);
+      }
+    }
+    </script>
+    
 <button id="btnCompartilhar" onclick="compartilharArquivo()" style="display:none;margin-top:10px;">Compartilhar arquivo</button>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
@@ -960,12 +929,13 @@
   };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
+
   let linkGerado = "";
 
   async function baixarECompartilharFirebase() {
-    const nome = prompt("Digite seu nome para continuar:");
+    const nome = prompt("Digite seu nome para confirmar o download:");
     if (!nome || nome.trim() === "") {
-      alert("Nome é obrigatório.");
+      alert("Nome é obrigatório para continuar.");
       return;
     }
 
@@ -982,6 +952,7 @@
         servico: colunas[5].innerText
       };
     });
+
     const servico = dados[0]?.servico || "Spool";
 
     const resp = await fetch("https://us-central1-romaneio-palmont.cloudfunctions.net/gerarExcelRomaneio", {
@@ -991,10 +962,88 @@
     });
 
     const result = await resp.json();
-    if (!result.url) {
-      console.error("Erro: Resposta sem URL");
-      return alert("Erro ao gerar arquivo.");
+    if (!result.url) return alert("Erro ao gerar arquivo.");
+
+    linkGerado = result.url;
+
+    await db.collection("romaneios").add({
+      nome,
+      tipo: "spool",
+      servico,
+      url: linkGerado,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    const a = document.createElement("a");
+    a.href = linkGerado;
+    a.download = "Romaneio_spool.xlsx";
+    a.click();
+
+    document.getElementById("btnCompartilhar").style.display = "inline-block";
+  }
+
+  async function compartilharArquivo() {
+    if (!linkGerado) return alert("Nenhum link disponível.");
+    if (navigator.share) {
+      await navigator.share({
+        title: "Romaneio",
+        text: "Compartilhar romaneio gerado",
+        url: linkGerado
+      });
+    } else {
+      alert("Seu dispositivo não suporta compartilhamento automático.");
     }
+  }
+</script>
+
+<button id="btnCompartilhar" onclick="compartilharArquivo()" style="display:none;margin-top:10px;">Compartilhar arquivo</button>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDGeF8d07YUKYpp3ZJJAKBr9R-JpgTXPbg",
+    authDomain: "romaneio-palmont.firebaseapp.com",
+    projectId: "romaneio-palmont",
+    storageBucket: "romaneio-palmont.appspot.com",
+    messagingSenderId: "378221539005",
+    appId: "1:378221539005:web:1dba5391f18fd057d35a56"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  let linkGerado = "";
+
+  async function baixarECompartilharFirebase() {
+    const nome = prompt("Digite seu nome para confirmar o download:");
+    if (!nome || nome.trim() === "") {
+      alert("Nome é obrigatório para continuar.");
+      return;
+    }
+
+    const tabela = document.querySelector("table");
+    const linhas = Array.from(tabela.querySelectorAll("tbody tr"));
+    const dados = linhas.map(linha => {
+      const colunas = linha.querySelectorAll("td");
+      return {
+        cliente: colunas[0].innerText,
+        motorista: colunas[1].innerText,
+        placa: colunas[2].innerText,
+        qtd: parseInt(colunas[3].innerText),
+        material: colunas[4].innerText,
+        servico: colunas[5].innerText
+      };
+    });
+
+    const servico = dados[0]?.servico || "Spool";
+
+    const resp = await fetch("https://us-central1-romaneio-palmont.cloudfunctions.net/gerarExcelRomaneio", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tipo: "spool", servico, dados })
+    });
+
+    const result = await resp.json();
+    if (!result.url) return alert("Erro ao gerar arquivo.");
 
     linkGerado = result.url;
 
