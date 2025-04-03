@@ -651,7 +651,7 @@ async function iniciarApp() {
             renderTable();
         }
 
-        function loadSavedEdits() {
+        async function loadSavedEdits() {
             const stored = JSON.parse(await lerDoIndexedDB("suporte_edicoes") || "{}");
             const currentServico = document.getElementById("servicoSelect").value;
 

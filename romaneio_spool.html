@@ -446,7 +446,7 @@ let data = [];
             renderTable();
         }
 
-        function loadSavedEdits() {
+        async function loadSavedEdits() {
             const stored = JSON.parse(await lerDoIndexedDB("spool_edicoes") || "{}");
             const currentServico = document.getElementById("serviceList").value;
 
