@@ -2,13 +2,22 @@
 <html lang="pt-BR">
 <head>
 <script>
-const chaveSessao = "romaneio_spool_ativo";
-if (localStorage.getItem(chaveSessao) === "true") {
+const canal = new BroadcastChannel("romaneio_spool");
+
+let bloqueado = false;
+
+canal.onmessage = (event) => {
+  if (event.data === "ja_aberta") {
+    bloqueado = true;
+    alert("Esta página já está aberta em outra aba.");
     window.close();
-}
-localStorage.setItem(chaveSessao, "true");
+  }
+};
+
+canal.postMessage("ja_aberta");
+
 window.addEventListener("beforeunload", () => {
-    localStorage.removeItem(chaveSessao);
+  canal.close();
 });
 </script>
 
