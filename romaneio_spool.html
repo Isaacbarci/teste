@@ -19,6 +19,43 @@ canal.postMessage("ja_aberta");
 window.addEventListener("beforeunload", () => {
   canal.close();
 });
+
+let lastDownloadedFile = null;
+
+function showShareModal() {
+    const modal = document.getElementById("shareModal");
+    if (modal && /Android|iPhone|iPad/i.test(navigator.userAgent)) {
+        modal.style.display = "flex";
+    }
+}
+
+function closeShareModal() {
+    const modal = document.getElementById("shareModal");
+    if (modal) {
+        modal.style.display = "none";
+        lastDownloadedFile = null;
+    }
+}
+
+function shareLastFile() {
+    if (!lastDownloadedFile) {
+        closeShareModal();
+        return;
+    }
+    try {
+        const servico = document.getElementById("serviceList").value || "Serviço";
+        const assunto = `Romaneio - ${servico}`;
+        const corpo = `Segue em anexo o Romaneio de spool referente ao serviço ${servico}.
+
+Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar.`;
+        const mailtoLink = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
+        window.location.href = mailtoLink;
+    } catch (error) {
+        alert("Erro ao tentar compartilhar via e-mail.");
+    } finally {
+        closeShareModal();
+    }
+}
 </script>
 
 <meta charset="utf-8"/>
@@ -370,22 +407,12 @@ let lastDownloadedFile = null;
 let db;
 
 // ========== Funções de Compartilhamento ==========
-function showShareModal() {
-    if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
-        document.getElementById('shareModal').style.display = 'flex';
-    }
+
 }
 
-function closeShareModal() {
-    document.getElementById('shareModal').style.display = 'none';
-    lastDownloadedFile = null;
-}
 
-async function shareLastFile() {
-    if (!lastDownloadedFile) {
-        closeShareModal();
-        return;
-    }
+
+async 
 
     try {
         const selectedService = document.getElementById("serviceList").value || "Serviço";
