@@ -9,15 +9,20 @@
     <script>
         const chaveIndex = "romaneio_index_ativo";
 
-        if (localStorage.getItem(chaveIndex) === "true") {
-            window.close();
-        }
-
+try {
+    if (localStorage.getItem(chaveIndex) === "true") {
+        console.warn("App já aberto.");
+        // Não tenta fechar a janela — apenas mostra aviso
+    } else {
         localStorage.setItem(chaveIndex, "true");
+    }
 
-        window.addEventListener("beforeunload", () => {
-            localStorage.removeItem(chaveIndex);
-        });
+    window.addEventListener("beforeunload", () => {
+        localStorage.removeItem(chaveIndex);
+    });
+} catch (e) {
+    console.error("Erro ao verificar múltiplas instâncias:", e);
+}
     </script>
 
     <style>
