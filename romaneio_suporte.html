@@ -1406,11 +1406,7 @@ function downloadExcel() {
     };
     setTimeout(showShareModal, 1000);
     // Salva para possível compartilhamento
-    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    lastDownloadedFile = {
-        blob: new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
-        fileName: `Romaneio_Suporte_${currentServico || ''}.xlsx`
-    };
+    const excelBuffer = 
 
     // Exibe modal de compartilhamento
     setTimeout(() => {
