@@ -1,149 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<script>
-const canal = new BroadcastChannel("romaneio_suporte");
-
-let bloqueado = false;
-
-canal.onmessage = (event) => {
-  if (event.data === "ja_aberta") {
-    bloqueado = true;
-    alert("Esta página já está aberta em outra aba.");
-    window.close();
-  }
-};
-
-canal.postMessage("ja_aberta");
-
-window.addEventListener("beforeunload", () => {
-  canal.close();
-});
-
-// Compartilhamento via modal
-let lastDownloadedFile = null;
-
-}
-
-
-
-
-
-    try {
-        const selectedService = document.getElementById("servicoSelect").value || "Serviço";
-        const assunto = `Romaneio - ${selectedService}`;
-        const corpo = `Segue em anexo o Romaneio de suporte referente ao serviço ${selectedService}.
-
-Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar.`;
-
-        const mailtoLink = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
-        window.location.href = mailtoLink;
-    } catch (error) {
-        console.error('Erro ao abrir o Gmail:', error);
-        alert('Erro ao tentar compartilhar via e-mail.');
-    } finally {
-        closeShareModal();
-    }
-}
-
-
-let lastDownloadedFile = null;
-
-function showShareModal() {
-    const modal = document.getElementById("shareModal");
-    if (modal && /Android|iPhone|iPad/i.test(navigator.userAgent)) {
-        modal.style.display = "flex";
-    }
-}
-
-function closeShareModal() {
-    const modal = document.getElementById("shareModal");
-    if (modal) {
-        modal.style.display = "none";
-        lastDownloadedFile = null;
-    }
-}
-
-function shareLastFile() {
-    if (!lastDownloadedFile) {
-        closeShareModal();
-        return;
-    }
-    try {
-        const servico = document.getElementById("servicoSelect").value || "Serviço";
-        const assunto = `Romaneio - ${servico}`;
-        const corpo = `Segue em anexo o Romaneio de suporte referente ao serviço ${servico}.
-
-Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar.`;
-        const mailtoLink = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
-        window.location.href = mailtoLink;
-    } catch (error) {
-        alert("Erro ao tentar compartilhar via e-mail.");
-    } finally {
-        closeShareModal();
-    }
-}
-</script>
-
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Suporte</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
-// Compartilhamento via modal
-let lastDownloadedFile = null;
-
-}
-
-
-
-
-
-    try {
-        const selectedService = document.getElementById("servicoSelect").value || "Serviço";
-        const assunto = `Romaneio - ${selectedService}`;
-        const corpo = `Segue em anexo o Romaneio de suporte referente ao serviço ${selectedService}.
-
-Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar.`;
-
-        const mailtoLink = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
-        window.location.href = mailtoLink;
-    } catch (error) {
-        console.error('Erro ao abrir o Gmail:', error);
-        alert('Erro ao tentar compartilhar via e-mail.');
-    } finally {
-        closeShareModal();
-    }
-}
-
-</script>
-<script src="https://unpkg.com/html5-qrcode">
-// Compartilhamento via modal
-let lastDownloadedFile = null;
-
-}
-
-
-
-
-
-    try {
-        const selectedService = document.getElementById("servicoSelect").value || "Serviço";
-        const assunto = `Romaneio - ${selectedService}`;
-        const corpo = `Segue em anexo o Romaneio de suporte referente ao serviço ${selectedService}.
-
-Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar.`;
-
-        const mailtoLink = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
-        window.location.href = mailtoLink;
-    } catch (error) {
-        console.error('Erro ao abrir o Gmail:', error);
-        alert('Erro ao tentar compartilhar via e-mail.');
-    } finally {
-        closeShareModal();
-    }
-}
-
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -455,6 +317,39 @@ Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar
     button[onclick*="voltarParaIndex()"]:hover {
         background-color: #c82333;
     }
+
+    #shareModal {
+        display: none; 
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        width: 100%; 
+        height: 100%; 
+        background: rgba(0,0,0,0.8); 
+        z-index: 2000; 
+        justify-content: center; 
+        align-items: center;
+    }
+    
+    #shareModal > div {
+        background: #333; 
+        padding: 25px; 
+        border-radius: 10px; 
+        text-align: center; 
+        color: white; 
+        max-width: 80%;
+    }
+    
+    #shareModal h3 {
+        margin-top: 0;
+    }
+    
+    #shareModal div div {
+        display: flex; 
+        gap: 15px; 
+        justify-content: center; 
+        margin-top: 20px;
+    }
 </style>
 </head>
 <body>
@@ -541,10 +436,62 @@ Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar
         </div>
     </div>
 </div>
-<script>
-// ========== IndexedDB Helpers ==========
-let db;
 
+<!-- Modal de Compartilhamento -->
+<div id="shareModal">
+    <div>
+        <h3>Download concluído!</h3>
+        <p>Deseja compartilhar este arquivo agora?</p>
+        <div>
+            <button style="background-color: #28a745; color: white; border: none; padding: 10px; border-radius: 5px;" onclick="shareLastFile()">Compartilhar</button>
+            <button style="background-color: #dc3545; color: white; border: none; padding: 10px; border-radius: 5px;" onclick="closeShareModal()">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ========== Variáveis Globais ==========
+let db;
+let data = [];
+let filteredData = [];
+let servicoIndex = 0;
+let columnIndexes = {};
+let editedRows = new Set();
+let qrScanner;
+let currentFileName = "Suportes.xlsx";
+const rowsPerPage = 300;
+let alertaConfirmado = false;
+let currentEventListeners = {};
+let lastDownloadedFile = null;
+
+const hiddenColumns = [
+    "desenho suporte", "informações", "isométrico", "peso (kg)", "cond. pintura",
+    "área superfície", "data corte", "data acoplamento", "data solda",
+    "data jato/pintura", "número romaneio", "data romaneio", "data recebimento",
+    "observação", "area m² unitário", "data cadastro", "rev", "executante", "linha", "spool",
+    "localização", "status", "peso unitário", "qtde enviada", "obs romaneio", "qtde", "saldo", "tipo de suporte", "tipo estrutura", "id", "serviço",
+    "identificação 2", "area m²", "peso", "peso enviado", "área enviada", "peso total", "área m² total"
+];
+
+// ========== Broadcast Channel ==========
+const canal = new BroadcastChannel("romaneio_suporte");
+let bloqueado = false;
+
+canal.onmessage = (event) => {
+  if (event.data === "ja_aberta") {
+    bloqueado = true;
+    alert("Esta página já está aberta em outra aba.");
+    window.close();
+  }
+};
+
+canal.postMessage("ja_aberta");
+
+window.addEventListener("beforeunload", () => {
+  canal.close();
+});
+
+// ========== IndexedDB Helpers ==========
 async function abrirIndexedDB() {
     return new Promise((resolve, reject) => {
         const request = indexedDB.open("RomaneioDB", 1);
@@ -591,39 +538,7 @@ async function carregarEdicaoIndexedDB(id) {
     }
 }
 
-async function excluirEdicaoIndexedDB(id) {
-    try {
-        if (!db) await abrirIndexedDB();
-        const tx = db.transaction("edicoes", "readwrite");
-        const store = tx.objectStore("edicoes");
-        await store.delete(id);
-    } catch(e) { 
-        console.error(e);
-    }
-}
-
-// ========== Main Application Code ==========
-let data = [];
-let filteredData = [];
-let servicoIndex = 0;
-let columnIndexes = {};
-let editedRows = new Set();
-let qrScanner;
-let currentFileName = "Suportes.xlsx";
-const rowsPerPage = 300;
-let services = new Set();
-let alertaConfirmado = false;
-let currentEventListeners = {};
-
-const hiddenColumns = [
-    "desenho suporte", "informações", "isométrico", "peso (kg)", "cond. pintura",
-    "área superfície", "data corte", "data acoplamento", "data solda",
-    "data jato/pintura", "número romaneio", "data romaneio", "data recebimento",
-    "observação", "area m² unitário", "data cadastro", "rev", "executante", "linha", "spool",
-    "localização", "status", "peso unitário", "qtde enviada", "obs romaneio", "qtde", "saldo", "tipo de suporte", "tipo estrutura", "id", "serviço",
-    "identificação 2", "area m²", "peso", "peso enviado", "área enviada", "peso total", "área m² total"
-];
-
+// ========== Funções Principais ==========
 function configurarEventosQuantidade() {
     const qtdInput = document.getElementById("QTDENVIADA");
     const okBtn = document.getElementById("okBtnKeyboard");
@@ -1228,8 +1143,8 @@ function downloadExcel() {
         .map(index => data[index])
         .filter(row => row[servicoIndex] === currentServico);
     let dataToExport = [data[0], ...editedOnlyRows.map(row => [...row])];
-    
 
+    // Formatação de dados (original)
     const findColumnIndex = (colName) => {
         const lowerColName = colName.toLowerCase().replace(/\s+/g, '');
         for (let i = 0; i < data[0].length; i++) {
@@ -1267,11 +1182,9 @@ function downloadExcel() {
 
         if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(value)) {
             const [mes, dia, ano] = value.split('/');
-
             let anoCorrigido = ano.length === 2 ? `20${ano}` : ano;
             const diaFormatado = String(dia).padStart(2, '0');
             const mesFormatado = String(mes).padStart(2, '0');
-
             return `${diaFormatado}/${mesFormatado}/${anoCorrigido}`;
         }
 
@@ -1401,98 +1314,61 @@ function downloadExcel() {
         wch: Math.max(...dataToExport.map(row => (row[i] ? row[i].toString().length : 10))) + 2
     }));
 
-    XLSX.writeFile(workbook, `Romaneio_Suporte_${currentServico || ''}.xlsx`);
+    const fileName = `Romaneio_Suporte_${currentServico || ''}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
 
     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     lastDownloadedFile = {
         blob: new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
-        fileName: `Romaneio_Suporte_${currentServico || ''}.xlsx`
+        fileName: fileName
     };
+
     setTimeout(showShareModal, 1000);
-    // Salva para possível compartilhamento
-    const excelBuffer = 
-
-    // Exibe modal de compartilhamento
-    setTimeout(() => {
-        if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
-            const assunto = `Romaneio - ${currentServico}`;
-            const corpo = `Segue em anexo o Romaneio de suporte referente ao serviço ${currentServico}.
-
-Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar.`;
-
-            const mailtoLink = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
-            window.location.href = mailtoLink;
-        }
-    }, 1000);
-
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    loadServices();
-    document.getElementById("servicoSelect").addEventListener("change", confirmLoadService);
-});
-
-window.addEventListener('beforeunload', async function() {
-    const stored = await carregarEdicaoIndexedDB("suporte_edicoes");
-    const parsed = stored ? JSON.parse(stored.valor || "{}") : {};
-    await salvarEdicaoIndexedDB("suporte_edicoes", { id: "suporte_edicoes", valor: JSON.stringify(parsed) });
-});
-
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js')
-        .then((registration) => {
-            console.log('Service Worker registrado com sucesso:', registration);
-        })
-        .catch((error) => {
-            console.error('Erro ao registrar o Service Worker:', error);
-        });
+function showShareModal() {
+    const modal = document.getElementById("shareModal");
+    if (modal && /Android|iPhone|iPad/i.test(navigator.userAgent)) {
+        modal.style.display = "flex";
+    }
 }
 
-localStorage.setItem("suporte_sistemaAberto", "suporte");
-
-function voltarParaIndex() {
-    window.location.href = "index.html";
+function closeShareModal() {
+    const modal = document.getElementById("shareModal");
+    if (modal) {
+        modal.style.display = "none";
+        lastDownloadedFile = null;
+    }
 }
 
-// Compartilhamento via modal
-let lastDownloadedFile = null;
-
-}
-
-
-
-
-
+function shareLastFile() {
+    if (!lastDownloadedFile) {
+        closeShareModal();
+        return;
+    }
     try {
-        const selectedService = document.getElementById("servicoSelect").value || "Serviço";
-        const assunto = `Romaneio - ${selectedService}`;
-        const corpo = `Segue em anexo o Romaneio de suporte referente ao serviço ${selectedService}.
+        const servico = document.getElementById("servicoSelect").value || "Serviço";
+        const assunto = `Romaneio - ${servico}`;
+        const corpo = `Segue em anexo o Romaneio de suporte referente ao serviço ${servico}.
 
 Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar.`;
-
         const mailtoLink = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
         window.location.href = mailtoLink;
     } catch (error) {
-        console.error('Erro ao abrir o Gmail:', error);
-        alert('Erro ao tentar compartilhar via e-mail.');
+        alert("Erro ao tentar compartilhar via e-mail.");
     } finally {
         closeShareModal();
     }
 }
 
+function voltarParaIndex() {
+    window.location.href = "index.html";
+}
+
+// Inicialização
+document.addEventListener('DOMContentLoaded', () => {
+    loadServices();
+});
 </script>
-
-<!-- Modal de Compartilhamento -->
-<div id="shareModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center;">
-    <div style="background: #333; padding: 25px; border-radius: 10px; text-align: center; color: white; max-width: 80%;">
-        <h3>Download concluído!</h3>
-        <p>Deseja compartilhar este arquivo agora?</p>
-        <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
-            <button style="background-color: #28a745; color: white; border: none; padding: 10px; border-radius: 5px;" onclick="shareLastFile()">Compartilhar</button>
-            <button style="background-color: #dc3545; color: white; border: none; padding: 10px; border-radius: 5px;" onclick="closeShareModal()">Fechar</button>
-        </div>
-    </div>
-</div>
-
 </body>
 </html>
