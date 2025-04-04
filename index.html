@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <meta name="theme-color" content="#007BFF">
+  <link rel="manifest" href="manifest.json">
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(() => console.log("✅ Service Worker registrado!"))
+          .catch(err => console.warn("❌ Falha ao registrar Service Worker", err));
+      });
+    }
+  </script>
     <meta charset="UTF-8">
     <title>Selecionar Romaneio</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

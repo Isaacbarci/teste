@@ -1,10 +1,10 @@
 {
   "name": "Romaneio App",
   "short_name": "Romaneio",
-  "start_url": "./index.html",
+  "start_url": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#0088cc",
+  "background_color": "#000000",
+  "theme_color": "#007BFF",
   "icons": [
     {
       "src": "logo_palmont.png",
