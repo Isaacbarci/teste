@@ -3,7 +3,6 @@
 <head>
 <script>
 let lastDownloadedFile = null;
-
 const canal = new BroadcastChannel("romaneio_suporte");
 
 let bloqueado = false;
@@ -352,6 +351,29 @@ window.addEventListener("beforeunload", () => {
         z-index: 2000;
         justify-content: center;
         align-items: center;
+    }
+
+/* Estilos para o modal de compartilhamento */
+    #shareModal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .share-modal-content {
+        background: #333;
+        padding: 25px;
+        border-radius: 10px;
+        text-align: center;
+        color: white;
+        max-width: 80%;
     }
 </style>
 </head>
@@ -1331,18 +1353,15 @@ function voltarParaIndex() {
 }
 </script>
 </div>
-
 <!-- Modal de Compartilhamento -->
-<div id="shareModal" class="modal-overlay" style="z-index: 2000;">
-    <div class="modal" style="text-align: center;">
+<div id="shareModal">
+    <div class="share-modal-content">
         <h3>Download concluído!</h3>
         <p>Deseja compartilhar este arquivo agora?</p>
-        <div class="modal-footer">
+        <div class="share-modal-buttons">
             <button class="save-btn" onclick="shareLastFile()">Compartilhar</button>
             <button class="close-btn" onclick="closeShareModal()">Fechar</button>
         </div>
     </div>
-</div>
-
 </body>
 </html>
