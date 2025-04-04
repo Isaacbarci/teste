@@ -509,7 +509,7 @@ async function shareLastFile() {
     try {
         const selectedService = document.getElementById("servicoSelect").value || "Serviço";
         const assunto = `Romaneio - ${selectedService}`;
-        const corpo = `Segue em anexo o romaneio referente ao serviço ${selectedService}.
+        const corpo = `Segue em anexo o Romaneio de Suporte referente ao serviço ${selectedService}.
 
 Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar.`;
 
@@ -587,10 +587,6 @@ function downloadExcel() {
         alert("Erro ao exportar o arquivo.");
     }
 }
-
-
-// ========== Restante do seu código existente ==========
-// ... (mantenha todo o resto do seu código JavaScript existente) ...
 
 // IndexedDB Helpers
 async function abrirIndexedDB() {
