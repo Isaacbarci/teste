@@ -10,13 +10,85 @@ localStorage.setItem(chaveSessao, "true");
 window.addEventListener("beforeunload", () => {
     localStorage.removeItem(chaveSessao);
 });
+
+
+// Garante que a store 'dados' exista no banco romaneioDB
+(function garantirStoreDados() {
+  const request = indexedDB.open("romaneioDB", 2); // usar versão maior para forçar onupgradeneeded
+
+  request.onupgradeneeded = function(event) {
+    const db = event.target.result;
+    if (!db.objectStoreNames.contains("dados")) {
+      db.createObjectStore("dados", { keyPath: "chave" });
+      console.log("✅ Store 'dados' criada com sucesso!");
+    }
+  };
+
+  request.onsuccess = function() {
+    console.log("🎯 Banco verificado/atualizado.");
+    request.result.close();
+  };
+
+  request.onerror = function() {
+    console.error("❌ Erro ao abrir IndexedDB para criar store");
+  };
+})();
+
 </script>
 
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Spool</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
-<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
+
+// Garante que a store 'dados' exista no banco romaneioDB
+(function garantirStoreDados() {
+  const request = indexedDB.open("romaneioDB", 2); // usar versão maior para forçar onupgradeneeded
+
+  request.onupgradeneeded = function(event) {
+    const db = event.target.result;
+    if (!db.objectStoreNames.contains("dados")) {
+      db.createObjectStore("dados", { keyPath: "chave" });
+      console.log("✅ Store 'dados' criada com sucesso!");
+    }
+  };
+
+  request.onsuccess = function() {
+    console.log("🎯 Banco verificado/atualizado.");
+    request.result.close();
+  };
+
+  request.onerror = function() {
+    console.error("❌ Erro ao abrir IndexedDB para criar store");
+  };
+})();
+
+</script>
+<script src="https://unpkg.com/html5-qrcode">
+
+// Garante que a store 'dados' exista no banco romaneioDB
+(function garantirStoreDados() {
+  const request = indexedDB.open("romaneioDB", 2); // usar versão maior para forçar onupgradeneeded
+
+  request.onupgradeneeded = function(event) {
+    const db = event.target.result;
+    if (!db.objectStoreNames.contains("dados")) {
+      db.createObjectStore("dados", { keyPath: "chave" });
+      console.log("✅ Store 'dados' criada com sucesso!");
+    }
+  };
+
+  request.onsuccess = function() {
+    console.log("🎯 Banco verificado/atualizado.");
+    request.result.close();
+  };
+
+  request.onerror = function() {
+    console.error("❌ Erro ao abrir IndexedDB para criar store");
+  };
+})();
+
+</script>
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -941,6 +1013,30 @@ localStorage.setItem("spool_sistemaAberto", "spool");
 function voltarParaIndex() {
     window.location.href = "index.html";
 }
+
+
+// Garante que a store 'dados' exista no banco romaneioDB
+(function garantirStoreDados() {
+  const request = indexedDB.open("romaneioDB", 2); // usar versão maior para forçar onupgradeneeded
+
+  request.onupgradeneeded = function(event) {
+    const db = event.target.result;
+    if (!db.objectStoreNames.contains("dados")) {
+      db.createObjectStore("dados", { keyPath: "chave" });
+      console.log("✅ Store 'dados' criada com sucesso!");
+    }
+  };
+
+  request.onsuccess = function() {
+    console.log("🎯 Banco verificado/atualizado.");
+    request.result.close();
+  };
+
+  request.onerror = function() {
+    console.error("❌ Erro ao abrir IndexedDB para criar store");
+  };
+})();
+
 </script>
 </body>
 </html>
