@@ -1,4 +1,4 @@
-const CACHE_NAME = 'romaneio-cache-v42';
+const CACHE_NAME = 'romaneio-cache-v43';
 
 const FILES_TO_CACHE = [
     'index.html',
