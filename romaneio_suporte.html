@@ -525,6 +525,7 @@ Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar
 
 
 // ========== Função downloadExcel atualizada ==========
+
 function downloadExcel() {
     try {
         if (!data.length) {
@@ -533,18 +534,42 @@ function downloadExcel() {
         }
 
         const currentServico = document.getElementById("servicoSelect").value;
-        let filteredDataToExport = data.slice(1).filter(row => row[servicoIndex] === currentServico);
+        if (!currentServico) {
+            alert("Selecione um serviço para exportar.");
+            return;
+        }
 
-        let dataToExport = [data[0], ...filteredDataToExport.map(row => [...row])];
+        const headerRow = data[0];
+        const filteredRows = Array.from(editedRows)
+            .map(index => data[index])
+            .filter(row => row[servicoIndex] === currentServico);
 
-        // ... (mantenha todo o código existente de formatação do Excel)
+        if (filteredRows.length === 0) {
+            alert("Nenhum item editado para exportar.");
+            return;
+        }
 
-        const worksheet = XLSX.utils.aoa_to_sheet(dataToExport);
+        const dataToExport = [headerRow, ...filteredRows];
+        const formattedData = dataToExport.map((row, rowIndex) => {
+            if (rowIndex === 0) return row;
+            return row.map((cell, colIndex) => {
+                let header = dataToExport[0][colIndex].trim().toLowerCase();
+                if (header === "data do romaneio") return formatDate(cell);
+                if (header === "peso" || header === "peso (kg)" || header === "área superfície") {
+                    if (cell === "" || cell === null || cell === undefined) return "";
+                    const numericValue = parseFloat(cell.toString().replace(",", "."));
+                    return isNaN(numericValue) ? "" : numericValue;
+                }
+                return cell;
+            });
+        });
+
+        const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Romaneio");
+        XLSX.utils.book_append_sheet(workbook, worksheet, currentServico || "Romaneio");
 
         const fileName = `Romaneio_Suporte_${currentServico || ''}.xlsx`;
-        
+
         // Salva para possível compartilhamento
         const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
         lastDownloadedFile = {
@@ -554,7 +579,7 @@ function downloadExcel() {
 
         // Faz o download
         XLSX.writeFile(workbook, fileName);
-        
+
         // Mostra opção de compartilhamento (após 1s para não atrapalhar o download)
         setTimeout(showShareModal, 1000);
     } catch (error) {
@@ -562,6 +587,7 @@ function downloadExcel() {
         alert("Erro ao exportar o arquivo.");
     }
 }
+
 
 // ========== Restante do seu código existente ==========
 // ... (mantenha todo o resto do seu código JavaScript existente) ...
