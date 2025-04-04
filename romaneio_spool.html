@@ -461,7 +461,7 @@ async function downloadExcel() {
 
         worksheet["!cols"] = colWidths;
 
-        const fileName = `Romaneio_${selectedService.replace(/[\/\\?%*:|"<>]/g, '_')}.xlsx`;
+        const fileName = `Romaneio_Spool${selectedService.replace(/[\/\\?%*:|"<>]/g, '_')}.xlsx`;
         
         // Salva para possível compartilhamento
         const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
@@ -480,9 +480,6 @@ async function downloadExcel() {
         alert("Erro ao exportar o arquivo.");
     }
 }
-
-// ========== Restante do seu código existente ==========
-// ... (mantenha todo o resto do seu código JavaScript existente) ...
 
 // IndexedDB Helpers
 async function abrirIndexedDB() {
