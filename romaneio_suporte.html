@@ -522,32 +522,7 @@ Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar
     }
 }
 
-    try {
-        const file = new File([lastDownloadedFile.blob], lastDownloadedFile.fileName, {
-            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        });
-
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({
-                title: 'Romaneio de Suporte',
-                files: [file],
-                text: 'Romaneio gerado pelo sistema'
-            });
-        } else {
-            // Fallback para WhatsApp Web
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64 = e.target.result.split(',')[1];
-                window.open(`https://wa.me/?text=${encodeURIComponent('Romaneio de Suporte')}&file=data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${base64}`, '_blank');
-            };
-            reader.readAsDataURL(lastDownloadedFile.blob);
-        }
-    } catch (error) {
-        console.error('Erro ao compartilhar:', error);
-        alert('Não foi possível compartilhar: ' + error.message);
-    } finally {
-        closeShareModal();
-    }
+    
 }
 
 // ========== Função downloadExcel atualizada ==========
