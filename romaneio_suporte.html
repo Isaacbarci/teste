@@ -1105,9 +1105,12 @@ function downloadExcel() {
     }
 
     const currentServico = document.getElementById("servicoSelect").value;
-    let filteredDataToExport = data.slice(1).filter(row => row[servicoIndex] === currentServico);
-
-    let dataToExport = [data[0], ...filteredDataToExport.map(row => [...row])];
+    
+    const editedOnlyRows = Array.from(editedRows)
+        .map(index => data[index])
+        .filter(row => row[servicoIndex] === currentServico);
+    let dataToExport = [data[0], ...editedOnlyRows.map(row => [...row])];
+    
 
     const findColumnIndex = (colName) => {
         const lowerColName = colName.toLowerCase().replace(/\s+/g, '');
@@ -1312,3 +1315,29 @@ function voltarParaIndex() {
 </script>
 </body>
 </html>
+<script>
+
+async function shareLastFile() {
+    if (!lastDownloadedFile) {
+        closeShareModal();
+        return;
+    }
+
+    try {
+        const selectedService = document.getElementById("servicoSelect").value || "Serviço";
+        const assunto = `Romaneio - ${selectedService}`;
+        const corpo = `Segue em anexo o romaneio referente ao serviço ${selectedService}.
+
+Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar.`;
+
+        const mailtoLink = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
+        window.location.href = mailtoLink;
+    } catch (error) {
+        console.error('Erro ao abrir o Gmail:', error);
+        alert('Erro ao tentar compartilhar via e-mail.');
+    } finally {
+        closeShareModal();
+    }
+}
+
+</script>
