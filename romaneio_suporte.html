@@ -2,6 +2,8 @@
 <html lang="pt-BR">
 <head>
 <script>
+let lastDownloadedFile = null;
+
 const canal = new BroadcastChannel("romaneio_suporte");
 
 let bloqueado = false;
@@ -1329,5 +1331,18 @@ function voltarParaIndex() {
 }
 </script>
 </div>
+
+<!-- Modal de Compartilhamento -->
+<div id="shareModal" class="modal-overlay" style="z-index: 2000;">
+    <div class="modal" style="text-align: center;">
+        <h3>Download concluído!</h3>
+        <p>Deseja compartilhar este arquivo agora?</p>
+        <div class="modal-footer">
+            <button class="save-btn" onclick="shareLastFile()">Compartilhar</button>
+            <button class="close-btn" onclick="closeShareModal()">Fechar</button>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
