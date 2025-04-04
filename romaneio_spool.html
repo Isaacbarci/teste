@@ -19,193 +19,13 @@ canal.postMessage("ja_aberta");
 window.addEventListener("beforeunload", () => {
   canal.close();
 });
-
-function downloadExcel() {
-    if (data.length === 0) {
-        alert("Nenhum dado disponível para exportar.");
-        return;
-    }
-
-    const selectedService = document.getElementById("serviceList").value;
-    if (!selectedService) {
-        alert("Selecione um serviço para exportar.");
-        return;
-    }
-
-    const headerRow = data[0];
-
-    const filteredRows = Array.from(editedRows)
-        .map(index => data[index])
-        .filter(row => row[servicoIndex] === selectedService);
-
-    if (filteredRows.length === 0) {
-        alert("Nenhum item editado para exportar.");
-        return;
-    }
-
-    const dataToExport = [headerRow, ...filteredRows];
-
-    const formattedData = dataToExport.map((row, rowIndex) => {
-        if (rowIndex === 0) return row;
-
-        return row.map((cell, colIndex) => {
-            let header = dataToExport[0][colIndex].trim().toLowerCase();
-            if (header === "data do romaneio") {
-                return formatDate(cell);
-            }
-            return cell;
-        });
-    });
-
-    const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
-
-    const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const file = new File([blob], selectedService + ".xlsx", { type: blob.type });
-
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        navigator.share({
-            title: "Romaneio - " + selectedService,
-            text: "Segue o arquivo de romaneio.",
-            files: [file]
-        }).catch(error => {
-            console.error("Erro ao compartilhar:", error);
-            alert("Erro ao compartilhar o arquivo.");
-        });
-    } else {
-        alert("Este navegador não suporta compartilhamento de arquivos.");
-    }
-}
-
 </script>
 
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Spool</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
-function downloadExcel() {
-    if (data.length === 0) {
-        alert("Nenhum dado disponível para exportar.");
-        return;
-    }
-
-    const selectedService = document.getElementById("serviceList").value;
-    if (!selectedService) {
-        alert("Selecione um serviço para exportar.");
-        return;
-    }
-
-    const headerRow = data[0];
-
-    const filteredRows = Array.from(editedRows)
-        .map(index => data[index])
-        .filter(row => row[servicoIndex] === selectedService);
-
-    if (filteredRows.length === 0) {
-        alert("Nenhum item editado para exportar.");
-        return;
-    }
-
-    const dataToExport = [headerRow, ...filteredRows];
-
-    const formattedData = dataToExport.map((row, rowIndex) => {
-        if (rowIndex === 0) return row;
-
-        return row.map((cell, colIndex) => {
-            let header = dataToExport[0][colIndex].trim().toLowerCase();
-            if (header === "data do romaneio") {
-                return formatDate(cell);
-            }
-            return cell;
-        });
-    });
-
-    const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
-
-    const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const file = new File([blob], selectedService + ".xlsx", { type: blob.type });
-
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        navigator.share({
-            title: "Romaneio - " + selectedService,
-            text: "Segue o arquivo de romaneio.",
-            files: [file]
-        }).catch(error => {
-            console.error("Erro ao compartilhar:", error);
-            alert("Erro ao compartilhar o arquivo.");
-        });
-    } else {
-        alert("Este navegador não suporta compartilhamento de arquivos.");
-    }
-}
-
-</script>
-<script src="https://unpkg.com/html5-qrcode">
-function downloadExcel() {
-    if (data.length === 0) {
-        alert("Nenhum dado disponível para exportar.");
-        return;
-    }
-
-    const selectedService = document.getElementById("serviceList").value;
-    if (!selectedService) {
-        alert("Selecione um serviço para exportar.");
-        return;
-    }
-
-    const headerRow = data[0];
-
-    const filteredRows = Array.from(editedRows)
-        .map(index => data[index])
-        .filter(row => row[servicoIndex] === selectedService);
-
-    if (filteredRows.length === 0) {
-        alert("Nenhum item editado para exportar.");
-        return;
-    }
-
-    const dataToExport = [headerRow, ...filteredRows];
-
-    const formattedData = dataToExport.map((row, rowIndex) => {
-        if (rowIndex === 0) return row;
-
-        return row.map((cell, colIndex) => {
-            let header = dataToExport[0][colIndex].trim().toLowerCase();
-            if (header === "data do romaneio") {
-                return formatDate(cell);
-            }
-            return cell;
-        });
-    });
-
-    const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
-
-    const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const file = new File([blob], selectedService + ".xlsx", { type: blob.type });
-
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        navigator.share({
-            title: "Romaneio - " + selectedService,
-            text: "Segue o arquivo de romaneio.",
-            files: [file]
-        }).catch(error => {
-            console.error("Erro ao compartilhar:", error);
-            alert("Erro ao compartilhar o arquivo.");
-        });
-    } else {
-        alert("Este navegador não suporta compartilhamento de arquivos.");
-    }
-}
-
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -986,7 +806,150 @@ function applyFilter() {
     renderTable();
 }
 
+function downloadExcel() {
+    if (data.length === 0) {
+        alert("Nenhum dado disponível para exportar.");
+        return;
+    }
 
+    const selectedService = document.getElementById("serviceList").value;
+    if (!selectedService) {
+        alert("Selecione um serviço para exportar.");
+        return;
+    }
+
+    const headerRow = data[0];
+
+    const filteredRows = Array.from(editedRows)
+        .map(index => data[index])
+        .filter(row => row[servicoIndex] === selectedService);
+
+    if (filteredRows.length === 0) {
+        alert("Nenhum item editado para exportar.");
+        return;
+    }
+
+    const dataToExport = [headerRow, ...filteredRows];
+
+    const formattedData = dataToExport.map((row, rowIndex) => {
+        if (rowIndex === 0) return row;
+
+        return row.map((cell, colIndex) => {
+            let header = dataToExport[0][colIndex].trim().toLowerCase();
+
+            if (header === "data do romaneio") {
+                return formatDate(cell);
+            }
+
+            if (header === "peso" || header === "área superf.") {
+                if (cell === "" || cell === null || cell === undefined) {
+                    return "";
+                }
+                const numericValue = parseFloat(cell.toString().replace(",", "."));
+                return isNaN(numericValue) ? "" : numericValue;
+            }
+
+            return cell;
+        });
+    });
+
+    const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
+
+    const romaneiosIndex = headerRow.findIndex(
+        header => header.trim().toLowerCase() === "romaneios"
+    );
+
+    const colWidths = formattedData[0].map((_, i) => {
+        const width = Math.max(...formattedData.map(row => (row[i] ? row[i].toString().length : 10))) + 2;
+        return {
+            wch: width,
+            hidden: i === romaneiosIndex
+        };
+    });
+
+    worksheet["!cols"] = colWidths;
+
+    const nomeArquivo = `Romaneio_${selectedService.replace(/[\/\\?%*:|"<>]/g, '_')}.xlsx`;
+    XLSX.writeFile(workbook, nomeArquivo);
 }
 
+function formatDate(dateValue) {
+    const date = parseDateValue(dateValue);
+    if (!date) return "";
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
+function formatDateForInput(dateValue) {
+    const date = parseDateValue(dateValue);
+    if (!date) return "";
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${year}-${month}-${day}`;
+}
+
+function parseDateValue(dateValue) {
+    if (!dateValue) return null;
     
+    if (dateValue instanceof Date) return dateValue;
+
+    if (!isNaN(dateValue)) {
+        const excelEpoch = new Date(1899, 11, 30);
+        const dias = Math.floor(dateValue);
+        const msExtra = (dateValue - dias) * 86400000;
+        return new Date(excelEpoch.getTime() + dias * 86400000 + msExtra);
+    }
+
+    if (typeof dateValue === "string") {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+            const [y, m, d] = dateValue.split("-");
+            return new Date(y, m - 1, d);
+        }
+        if (dateValue.includes("/")) {
+            const parts = dateValue.split("/");
+            if (parts.length === 3) {
+                return new Date(parts[2], parts[1] - 1, parts[0]);
+            }
+        }
+    }
+
+    const parsed = new Date(dateValue);
+    return isNaN(parsed.getTime()) ? null : parsed;
+}
+
+document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadServices();
+    document.getElementById("serviceList").addEventListener("change", confirmLoadService);
+});
+
+window.addEventListener('beforeunload', async function() {
+    const stored = await carregarEdicaoIndexedDB("spool_edicoes");
+    const parsed = stored ? JSON.parse(stored.valor || "{}") : {};
+    await salvarEdicaoIndexedDB("spool_edicoes", { id: "spool_edicoes", valor: JSON.stringify(parsed) });
+});
+
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+        .then((registration) => {
+            console.log('Service Worker registrado com sucesso:', registration);
+        })
+        .catch((error) => {
+            console.error('Erro ao registrar o Service Worker:', error);
+        });
+}
+
+localStorage.setItem("spool_sistemaAberto", "spool");
+
+function voltarParaIndex() {
+    window.location.href = "index.html";
+}
+</script>
+</body>
+</html>
