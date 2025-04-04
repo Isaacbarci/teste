@@ -19,13 +19,127 @@ canal.postMessage("ja_aberta");
 window.addEventListener("beforeunload", () => {
   canal.close();
 });
+
+// Compartilhamento via modal
+let lastDownloadedFile = null;
+
+function showShareModal() {
+    if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+        document.getElementById('shareModal').style.display = 'flex';
+    }
+}
+
+function closeShareModal() {
+    document.getElementById('shareModal').style.display = 'none';
+    lastDownloadedFile = null;
+}
+
+function shareLastFile() {
+    if (!lastDownloadedFile) {
+        closeShareModal();
+        return;
+    }
+
+    try {
+        const selectedService = document.getElementById("servicoSelect").value || "Serviço";
+        const assunto = `Romaneio - ${selectedService}`;
+        const corpo = `Segue em anexo o Romaneio de suporte referente ao serviço ${selectedService}.
+
+Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar.`;
+
+        const mailtoLink = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
+        window.location.href = mailtoLink;
+    } catch (error) {
+        console.error('Erro ao abrir o Gmail:', error);
+        alert('Erro ao tentar compartilhar via e-mail.');
+    } finally {
+        closeShareModal();
+    }
+}
+
 </script>
 
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Suporte</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
-<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
+// Compartilhamento via modal
+let lastDownloadedFile = null;
+
+function showShareModal() {
+    if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+        document.getElementById('shareModal').style.display = 'flex';
+    }
+}
+
+function closeShareModal() {
+    document.getElementById('shareModal').style.display = 'none';
+    lastDownloadedFile = null;
+}
+
+function shareLastFile() {
+    if (!lastDownloadedFile) {
+        closeShareModal();
+        return;
+    }
+
+    try {
+        const selectedService = document.getElementById("servicoSelect").value || "Serviço";
+        const assunto = `Romaneio - ${selectedService}`;
+        const corpo = `Segue em anexo o Romaneio de suporte referente ao serviço ${selectedService}.
+
+Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar.`;
+
+        const mailtoLink = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
+        window.location.href = mailtoLink;
+    } catch (error) {
+        console.error('Erro ao abrir o Gmail:', error);
+        alert('Erro ao tentar compartilhar via e-mail.');
+    } finally {
+        closeShareModal();
+    }
+}
+
+</script>
+<script src="https://unpkg.com/html5-qrcode">
+// Compartilhamento via modal
+let lastDownloadedFile = null;
+
+function showShareModal() {
+    if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+        document.getElementById('shareModal').style.display = 'flex';
+    }
+}
+
+function closeShareModal() {
+    document.getElementById('shareModal').style.display = 'none';
+    lastDownloadedFile = null;
+}
+
+function shareLastFile() {
+    if (!lastDownloadedFile) {
+        closeShareModal();
+        return;
+    }
+
+    try {
+        const selectedService = document.getElementById("servicoSelect").value || "Serviço";
+        const assunto = `Romaneio - ${selectedService}`;
+        const corpo = `Segue em anexo o Romaneio de suporte referente ao serviço ${selectedService}.
+
+Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar.`;
+
+        const mailtoLink = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
+        window.location.href = mailtoLink;
+    } catch (error) {
+        console.error('Erro ao abrir o Gmail:', error);
+        alert('Erro ao tentar compartilhar via e-mail.');
+    } finally {
+        closeShareModal();
+    }
+}
+
+</script>
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -337,54 +451,6 @@ window.addEventListener("beforeunload", () => {
     button[onclick*="voltarParaIndex()"]:hover {
         background-color: #c82333;
     }
-
-    /* Estilos para o modal de compartilhamento */
-    #shareModal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.8);
-        z-index: 2000;
-        justify-content: center;
-        align-items: center;
-    }
-    
-    .share-modal-content {
-        background: #333;
-        padding: 25px;
-        border-radius: 10px;
-        text-align: center;
-        color: white;
-        max-width: 80%;
-    }
-    
-    .share-modal-buttons {
-        display: flex;
-        gap: 15px;
-        justify-content: center;
-        margin-top: 20px;
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-    
-    @keyframes slideUp {
-        from { transform: translateY(20px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-    }
-    
-    #shareModal {
-        animation: fadeIn 0.3s ease-out;
-    }
-    
-    .share-modal-content {
-        animation: slideUp 0.3s ease-out;
-    }
 </style>
 </head>
 <body>
@@ -471,93 +537,10 @@ window.addEventListener("beforeunload", () => {
         </div>
     </div>
 </div>
-<!-- Modal de Compartilhamento -->
-<div id="shareModal">
-    <div class="share-modal-content">
-        <h3>Download concluído!</h3>
-        <p>Deseja compartilhar este arquivo agora?</p>
-        <div class="share-modal-buttons">
-            <button class="save-btn" onclick="shareLastFile()">Compartilhar</button>
-            <button class="close-btn" onclick="closeShareModal()">Fechar</button>
-        </div>
-    </div>
-</div>
 <script>
-// ========== Variáveis Globais para Compartilhamento ==========
-let lastDownloadedFile = null;
+// ========== IndexedDB Helpers ==========
 let db;
 
-// ========== Funções de Compartilhamento ==========
-function showShareModal() {
-    if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
-        document.getElementById('shareModal').style.display = 'flex';
-    }
-}
-
-function closeShareModal() {
-    document.getElementById('shareModal').style.display = 'none';
-    lastDownloadedFile = null;
-}
-
-async function shareLastFile() {
-    if (!lastDownloadedFile) {
-        closeShareModal();
-        return;
-    }
-
-    try {
-        const selectedService = document.getElementById("servicoSelect").value || "Serviço";
-        const assunto = `Romaneio - ${selectedService}`;
-        const corpo = `Segue em anexo o romaneio referente ao serviço ${selectedService}.
-
-Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar.`;
-
-        const mailtoLink = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
-        window.location.href = mailtoLink;
-    } catch (error) {
-        console.error('Erro ao abrir o Gmail:', error);
-        alert('Erro ao tentar compartilhar via e-mail.');
-    } finally {
-        closeShareModal();
-    }
-}
-
-    
-}
-
-// ========== Função downloadExcel atualizada ==========
-function downloadExcel() {
-    try {
-        if (!data.length) {
-            alert("Nenhum dado carregado para exportar.");
-            return;
-        }
-
-        
-    } catch (error) {
-        console.error("Erro ao exportar Excel:", error);
-        alert("Erro ao exportar o arquivo.");
-    }
-}
-
-        
-    } catch (error) {
-        console.error("Erro ao exportar Excel:", error);
-        alert("Erro ao exportar o arquivo.");
-    }
-}
-
-        
-    } catch (error) {
-        console.error("Erro ao exportar Excel:", error);
-        alert("Erro ao exportar o arquivo.");
-    }
-}
-
-// ========== Restante do seu código existente ==========
-// ... (mantenha todo o resto do seu código JavaScript existente) ...
-
-// IndexedDB Helpers
 async function abrirIndexedDB() {
     return new Promise((resolve, reject) => {
         const request = indexedDB.open("RomaneioDB", 1);
@@ -604,7 +587,18 @@ async function carregarEdicaoIndexedDB(id) {
     }
 }
 
-// Main Application Code
+async function excluirEdicaoIndexedDB(id) {
+    try {
+        if (!db) await abrirIndexedDB();
+        const tx = db.transaction("edicoes", "readwrite");
+        const store = tx.objectStore("edicoes");
+        await store.delete(id);
+    } catch(e) { 
+        console.error(e);
+    }
+}
+
+// ========== Main Application Code ==========
 let data = [];
 let filteredData = [];
 let servicoIndex = 0;
@@ -1218,6 +1212,221 @@ function stopQrScanner() {
     }
 }
 
+function downloadExcel() {
+    if (!data.length) {
+        alert("Nenhum dado carregado para exportar.");
+        return;
+    }
+
+    const currentServico = document.getElementById("servicoSelect").value;
+    
+    const editedOnlyRows = Array.from(editedRows)
+        .map(index => data[index])
+        .filter(row => row[servicoIndex] === currentServico);
+    let dataToExport = [data[0], ...editedOnlyRows.map(row => [...row])];
+    
+
+    const findColumnIndex = (colName) => {
+        const lowerColName = colName.toLowerCase().replace(/\s+/g, '');
+        for (let i = 0; i < data[0].length; i++) {
+            const header = String(data[0][i]).toLowerCase().replace(/\s+/g, '');
+            if (header === lowerColName) {
+                return i;
+            }
+        }
+        return undefined;
+    };
+
+    const colIndexes = {
+        qtde: findColumnIndex("qtde"),
+        qtdEnviada: findColumnIndex("QTD ENVIADA"),
+        qtdeEnviada: findColumnIndex("Qtde Enviada"),
+        saldo: findColumnIndex("saldo"),
+        pesoKg: findColumnIndex("peso (kg)"),
+        areaSuperficie: findColumnIndex("área superfície"),
+        pesoEnviado: findColumnIndex("peso enviado"),
+        areaEnviada: findColumnIndex("área enviada"),
+        pesoUnitario: findColumnIndex("peso unitário"),
+        areaUnitario: findColumnIndex("area m² unitário"),
+        pesoTotal: findColumnIndex("peso total"),
+        areaTotal: findColumnIndex("área m² total"),
+        dataRomaneio1: findColumnIndex("DATA DO ROMANEIO"),
+        dataRomaneio2: findColumnIndex("Data Romaneio")
+    };
+
+    const formatDateBR = (value) => {
+        if (!value) return "";
+
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+            return value;
+        }
+
+        if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(value)) {
+            const [mes, dia, ano] = value.split('/');
+
+            let anoCorrigido = ano.length === 2 ? `20${ano}` : ano;
+            const diaFormatado = String(dia).padStart(2, '0');
+            const mesFormatado = String(mes).padStart(2, '0');
+
+            return `${diaFormatado}/${mesFormatado}/${anoCorrigido}`;
+        }
+
+        if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+            const [ano, mes, dia] = value.split("-");
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        return value;
+    };
+
+    dataToExport.forEach((row, rowIndex) => {
+        if (rowIndex === 0) return;
+
+        const toInt = (value) => {
+            if (value === "" || value === null || value === undefined) return "";
+            const num = Number(value);
+            return isNaN(num) ? value : Math.round(num);
+        };
+
+        const toDecimal = (value) => {
+            if (value === "" || value === null || value === undefined) return "";
+            const num = Number(value);
+            return isNaN(num) ? value : num;
+        };
+
+        if (colIndexes.qtdeEnviada !== undefined) {
+            const originalValue = row[colIndexes.qtdeEnviada];
+            row[colIndexes.qtdeEnviada] = toInt(originalValue);
+            if (originalValue !== "" && !isNaN(Number(originalValue))) {
+                row[colIndexes.qtdeEnviada] = Math.round(Number(originalValue));
+            }
+        }
+
+        if (colIndexes.qtde !== undefined) row[colIndexes.qtde] = toInt(row[colIndexes.qtde]);
+        if (colIndexes.saldo !== undefined) row[colIndexes.saldo] = toInt(row[colIndexes.saldo]);
+
+        if (colIndexes.pesoKg !== undefined) row[colIndexes.pesoKg] = toDecimal(row[colIndexes.pesoKg]);
+        if (colIndexes.areaSuperficie !== undefined) row[colIndexes.areaSuperficie] = toDecimal(row[colIndexes.areaSuperficie]);
+        if (colIndexes.pesoUnitario !== undefined) row[colIndexes.pesoUnitario] = toDecimal(row[colIndexes.pesoUnitario]);
+        if (colIndexes.areaUnitario !== undefined) row[colIndexes.areaUnitario] = toDecimal(row[colIndexes.areaUnitario]);
+        if (colIndexes.pesoTotal !== undefined) row[colIndexes.pesoTotal] = toDecimal(row[colIndexes.pesoTotal]);
+        if (colIndexes.areaTotal !== undefined) row[colIndexes.areaTotal] = toDecimal(row[colIndexes.areaTotal]);
+
+        if (colIndexes.qtdEnviada !== undefined && row[colIndexes.qtdEnviada] !== "") {
+            if (colIndexes.pesoUnitario !== undefined && colIndexes.pesoEnviado !== undefined) {
+                const pesoUnitario = toDecimal(row[colIndexes.pesoUnitario]);
+                const qtdEnviada = toInt(row[colIndexes.qtdEnviada]);
+                if (!isNaN(pesoUnitario) && !isNaN(qtdEnviada)) {
+                    row[colIndexes.pesoEnviado] = pesoUnitario * qtdEnviada;
+                }
+            }
+
+            if (colIndexes.areaUnitario !== undefined && colIndexes.areaEnviada !== undefined) {
+                const areaUnitario = toDecimal(row[colIndexes.areaUnitario]);
+                const qtdEnviada = toInt(row[colIndexes.qtdEnviada]);
+                if (!isNaN(areaUnitario) && !isNaN(qtdEnviada)) {
+                    row[colIndexes.areaEnviada] = areaUnitario * qtdEnviada;
+                }
+            }
+        } else {
+            if (colIndexes.pesoEnviado !== undefined) row[colIndexes.pesoEnviado] = "";
+            if (colIndexes.areaEnviada !== undefined) row[colIndexes.areaEnviada] = "";
+        }
+
+        if (colIndexes.dataRomaneio1 !== undefined) {
+            row[colIndexes.dataRomaneio1] = formatDateBR(row[colIndexes.dataRomaneio1]);
+        }
+        if (colIndexes.dataRomaneio2 !== undefined) {
+            row[colIndexes.dataRomaneio2] = formatDateBR(row[colIndexes.dataRomaneio2]);
+        }
+    });
+
+    const worksheet = XLSX.utils.aoa_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Romaneio");
+
+    if (worksheet["!ref"]) {
+        const range = XLSX.utils.decode_range(worksheet["!ref"]);
+
+        if (colIndexes.qtdEnviada !== undefined) {
+            for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
+                const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: colIndexes.qtdEnviada});
+                if (worksheet[cellAddress]) {
+                    worksheet[cellAddress].t = 'n';
+                    worksheet[cellAddress].z = '#,##0';
+                }
+            }
+        }
+
+        const numericColumns = {
+            inteiros: [colIndexes.qtde, colIndexes.saldo],
+            decimais: [
+                colIndexes.pesoKg, colIndexes.areaSuperficie,
+                colIndexes.pesoEnviado, colIndexes.areaEnviada,
+                colIndexes.pesoUnitario, colIndexes.areaUnitario,
+                colIndexes.pesoTotal, colIndexes.areaTotal
+            ]
+        };
+
+        numericColumns.inteiros.forEach(col => {
+            if (col !== undefined) {
+                for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
+                    const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: col});
+                    if (worksheet[cellAddress] && worksheet[cellAddress].v !== "") {
+                        worksheet[cellAddress].t = 'n';
+                        worksheet[cellAddress].z = '#,##0';
+                    }
+                }
+            }
+        });
+
+        numericColumns.decimais.forEach(col => {
+            if (col !== undefined) {
+                for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
+                    const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: col});
+                    if (worksheet[cellAddress] && worksheet[cellAddress].v !== "") {
+                        worksheet[cellAddress].t = 'n';
+                        worksheet[cellAddress].z = '#,##0.00';
+                    }
+                }
+            }
+        });
+    }
+
+    worksheet["!cols"] = data[0].map((_, i) => ({
+        wch: Math.max(...dataToExport.map(row => (row[i] ? row[i].toString().length : 10))) + 2
+    }));
+
+    XLSX.writeFile(workbook, `Romaneio_Suporte_${currentServico || ''}.xlsx`);
+
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    lastDownloadedFile = {
+        blob: new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+        fileName: `Romaneio_Suporte_${currentServico || ''}.xlsx`
+    };
+    setTimeout(showShareModal, 1000);
+    // Salva para possível compartilhamento
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    lastDownloadedFile = {
+        blob: new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+        fileName: `Romaneio_Suporte_${currentServico || ''}.xlsx`
+    };
+
+    // Exibe modal de compartilhamento
+    setTimeout(() => {
+        if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+            const assunto = `Romaneio - ${currentServico}`;
+            const corpo = `Segue em anexo o Romaneio de suporte referente ao serviço ${currentServico}.
+
+Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar.`;
+
+            const mailtoLink = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
+            window.location.href = mailtoLink;
+        }
+    }, 1000);
+
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     loadServices();
     document.getElementById("servicoSelect").addEventListener("change", confirmLoadService);
@@ -1244,6 +1453,57 @@ localStorage.setItem("suporte_sistemaAberto", "suporte");
 function voltarParaIndex() {
     window.location.href = "index.html";
 }
+
+// Compartilhamento via modal
+let lastDownloadedFile = null;
+
+function showShareModal() {
+    if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+        document.getElementById('shareModal').style.display = 'flex';
+    }
+}
+
+function closeShareModal() {
+    document.getElementById('shareModal').style.display = 'none';
+    lastDownloadedFile = null;
+}
+
+function shareLastFile() {
+    if (!lastDownloadedFile) {
+        closeShareModal();
+        return;
+    }
+
+    try {
+        const selectedService = document.getElementById("servicoSelect").value || "Serviço";
+        const assunto = `Romaneio - ${selectedService}`;
+        const corpo = `Segue em anexo o Romaneio de suporte referente ao serviço ${selectedService}.
+
+Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar.`;
+
+        const mailtoLink = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
+        window.location.href = mailtoLink;
+    } catch (error) {
+        console.error('Erro ao abrir o Gmail:', error);
+        alert('Erro ao tentar compartilhar via e-mail.');
+    } finally {
+        closeShareModal();
+    }
+}
+
 </script>
+
+<!-- Modal de Compartilhamento -->
+<div id="shareModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center;">
+    <div style="background: #333; padding: 25px; border-radius: 10px; text-align: center; color: white; max-width: 80%;">
+        <h3>Download concluído!</h3>
+        <p>Deseja compartilhar este arquivo agora?</p>
+        <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
+            <button style="background-color: #28a745; color: white; border: none; padding: 10px; border-radius: 5px;" onclick="shareLastFile()">Compartilhar</button>
+            <button style="background-color: #dc3545; color: white; border: none; padding: 10px; border-radius: 5px;" onclick="closeShareModal()">Fechar</button>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
