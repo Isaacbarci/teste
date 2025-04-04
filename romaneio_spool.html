@@ -388,28 +388,17 @@ async function shareLastFile() {
     }
 
     try {
-        const file = new File([lastDownloadedFile.blob], lastDownloadedFile.fileName, {
-            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        });
+        const selectedService = document.getElementById("serviceList").value || "Serviço";
+        const assunto = `Romaneio - ${selectedService}`;
+        const corpo = `Segue em anexo o romaneio referente ao serviço ${selectedService}.
 
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({
-                title: 'Romaneio de Spool',
-                files: [file],
-                text: 'Romaneio gerado pelo sistema'
-            });
-        } else {
-            // Fallback para WhatsApp Web
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64 = e.target.result.split(',')[1];
-                window.open(`https://wa.me/?text=${encodeURIComponent('Romaneio de Spool')}&file=data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${base64}`, '_blank');
-            };
-            reader.readAsDataURL(lastDownloadedFile.blob);
-        }
+Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar.`;
+
+        const mailtoLink = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
+        window.location.href = mailtoLink;
     } catch (error) {
-        console.error('Erro ao compartilhar:', error);
-        alert('Não foi possível compartilhar: ' + error.message);
+        console.error('Erro ao abrir o Gmail:', error);
+        alert('Erro ao tentar compartilhar via e-mail.');
     } finally {
         closeShareModal();
     }
