@@ -663,7 +663,7 @@ async function populateServicoOptions() {
     }
 
     const servicoSelect = document.getElementById("serviceList");
-    servicoSelect.innerHTML = '<option value="">Selecione um serviço</option>';
+    servicoSelect.innerHTML = '<option value="" disabled selected hidden>Selecione um serviço</option>';
 
     const servicosOrdenados = Array.from(servicoSet).sort();
 
