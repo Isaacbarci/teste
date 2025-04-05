@@ -1372,6 +1372,7 @@ document.addEventListener('DOMContentLoaded', () => {
 document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
 
     document.getElementById("servicoSelect").addEventListener("change", confirmLoadService);
+    });
 
 window.addEventListener('beforeunload', async function() {
     const stored = await carregarEdicaoIndexedDB("suporte_edicoes");
