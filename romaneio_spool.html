@@ -986,7 +986,7 @@ async function downloadExcel() {
 
         worksheet["!cols"] = colWidths;
 
-        const fileName = `Romaneio_Spool${selectedService.replace(/[\/\?%*:|"<>]/g, '_')}.xlsx`;
+        const fileName = `Romaneio_Spool_${selectedService.replace(/[\/\?%*:|"<>]/g, '_')}.xlsx`;
         
         // Gera o buffer do Excel e salva para compartilhamento
         const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
