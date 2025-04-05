@@ -1368,7 +1368,29 @@ function voltarParaIndex() {
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
     loadServices();
+
+document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
+
+    document.getElementById("servicoSelect").addEventListener("change", confirmLoadService);
+
+window.addEventListener('beforeunload', async function() {
+    const stored = await carregarEdicaoIndexedDB("suporte_edicoes");
+    const parsed = stored ? JSON.parse(stored.valor || "{}") : {};
+    await salvarEdicaoIndexedDB("suporte_edicoes", { id: "suporte_edicoes", valor: JSON.stringify(parsed) });
 });
+
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+        .then((registration) => {
+            console.log('Service Worker registrado com sucesso:', registration);
+        })
+        .catch((error) => {
+            console.error('Erro ao registrar o Service Worker:', error);
+        });
+}
+
+localStorage.setItem("suporte_sistemaAberto", "suporte");
+    
 </script>
 </body>
 </html>
