@@ -1393,21 +1393,5 @@ if ('serviceWorker' in navigator) {
 localStorage.setItem("suporte_sistemaAberto", "suporte");
     
 </script>
-
-<script>
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js').then(reg => {
-        reg.onupdatefound = () => {
-            const newWorker = reg.installing;
-            newWorker.onstatechange = () => {
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    window.location.reload();
-                }
-            };
-        };
-    });
-}
-</script>
-
 </body>
 </html>
