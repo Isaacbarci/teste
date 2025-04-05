@@ -1029,7 +1029,7 @@ function shareLastFile() {
     try {
         const servico = document.getElementById("serviceList").value || "Serviço";
         const assunto = `Romaneio - ${servico}`;
-        const corpo = `Segue em anexo o Romaneio de spool referente ao serviço ${servico}.
+        const corpo = `Segue em anexo o Romaneio de Spool referente ao serviço ${servico}.
 
 Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar.`;
         const mailtoLink = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
