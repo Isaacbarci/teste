@@ -1,7 +1,0 @@
-{
-  "name": "romaneio-palmont",
-  "version": "1.0.0",
-  "scripts": {
-    "build-sw": "node build-service-worker.js"
-  }
-}
