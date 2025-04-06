@@ -1,11 +1,13 @@
 [
   {
-    "relation": ["delegate_permission/common.handle_all_urls"],
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
     "target": {
       "namespace": "android_app",
       "package_name": "com.example.romaneioteste",
       "sha256_cert_fingerprints": [
-        "DF:8D:72:D1:97:17:79:2D:1E:EA:7A:25:16:FD:84:54:69:C8:BA:35:EE:BD:DC:2F:6E:59:76:92:11:06:3C:CC"
+        "F6:30:7F:0D:19:CF:89:8F:C5:27:F6:D6:6E:AA:7B:EF:6A:9D:E7:A9:30:AC:4C:6C:94:55:F9:86:97:D3:90:31"
       ]
     }
   }
