@@ -1101,9 +1101,12 @@ function renderTable() {
 
     const rowsOrdenadas = [...rowsComEdicao, ...rowsSemEdicao];
 
-    rowsOrdenadas.slice(0, rowsPerPage).forEach((row) => {
-        const originalIndex = data.indexOf(row);
-        if (originalIndex === -1) return;
+   rowsOrdenadas.slice(0, rowsPerPage).forEach((row) => {
+    const originalIndex = data.indexOf(row);
+    if (originalIndex === -1) return;
+
+    const isLinhaVazia = row.every(cell => !cell || String(cell).trim() === "");
+    if (isLinhaVazia) return;
 
         const tr = document.createElement("tr");
         tr.onclick = () => openEditModal(originalIndex);
