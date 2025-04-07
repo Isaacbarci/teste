@@ -665,6 +665,7 @@ function debounce(func, wait) {
 
 document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
 
+
 async function loadServices() {
     const loading = document.getElementById("loadingOverlay");
     const progressBar = document.getElementById("progressBar");
@@ -683,16 +684,18 @@ async function loadServices() {
         }
     }, 100);
 
-    const loading = document.getElementById("loadingOverlay");
-    loading.style.display = "flex";
     try {
         const response = await fetch(currentFileName);
         if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
         const arrayBuffer = await response.arrayBuffer();
-        
+
         clearPreviousFileData();
 
-        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const workbook = XLSX.read(arrayBuffer, {
+            type: 'array',
+            cellDates: true,
+            dateNF: 'dd/mm/yyyy'
+        });
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
 
@@ -708,23 +711,30 @@ async function loadServices() {
         mapColumnIndexes();
         await populateServicoOptions();
 
-        const suporte_ultimoServico = await carregarEdicaoIndexedDB("suporte_ultimoServico");
+        const ultimoServico = await carregarEdicaoIndexedDB("suporte_ultimoServico");
         const servicoSelect = document.getElementById("servicoSelect");
 
-        if (suporte_ultimoServico?.valor && Array.from(servicoSelect.options).some(o => o.value === suporte_ultimoServico.valor)) {
-            servicoSelect.value = suporte_ultimoServico.valor;
+        if (ultimoServico?.valor && Array.from(servicoSelect.options).some(o => o.value === ultimoServico.valor)) {
+            servicoSelect.value = ultimoServico.valor;
             renderSelectedServico(true);
         } else if (servicoSelect.options.length > 0) {
             servicoSelect.value = servicoSelect.options[0].value;
             renderSelectedServico(true);
         }
+
     } catch (error) {
-    console.error(error);
-    alert("Erro ao carregar o arquivo.");
         console.error("Erro ao carregar Excel:", error);
-        alert("Não foi possível carregar o arquivo do diretório.");
+        alert("Erro ao carregar o arquivo.");
+    } finally {
+        clearInterval(simulateProgress);
+        progressBar.style.width = "100%";
+        progressText.textContent = "100%";
+        setTimeout(() => {
+            loading.style.display = "none";
+        }, 500);
     }
 }
+
 
 async function confirmLoadService() {
     const senhaCorreta = "1234";
