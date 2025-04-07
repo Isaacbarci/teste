@@ -36,6 +36,7 @@
     text-align: center;
     font-size: 14px;
     line-height: 20px;
+    font-weight: bold;
 }
 
 .loading-text {
@@ -447,6 +448,11 @@
     border-radius: 3px;
     width: 0%;
     transition: width 0.3s ease;
+    color: white;
+    text-align: center;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: bold;
 }
 
 .loading-text {
@@ -764,6 +770,7 @@ document.getElementById("identificacaoFilter").addEventListener("input", debounc
 
 
 
+
 async function loadServices() {
     document.getElementById("loadingOverlay").style.display = "flex";
     const progressBar = document.getElementById("progressBar");
@@ -775,9 +782,6 @@ async function loadServices() {
         if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
         const arrayBuffer = await response.arrayBuffer();
 
-        progressBar.style.width = "30%";
-        progressBar.textContent = "30%";
-
         clearPreviousFileData();
 
         const workbook = XLSX.read(arrayBuffer, { type: 'array' });
@@ -788,24 +792,30 @@ async function loadServices() {
             throw new Error("O arquivo está vazio ou não contém dados.");
         }
 
-        progressBar.style.width = "60%";
-        progressBar.textContent = "60%";
-
         window.originalData = JSON.parse(JSON.stringify(jsonData));
         data = JSON.parse(JSON.stringify(jsonData));
-        filteredData = data.slice(1);
+        filteredData = [];
+
+        const totalRows = data.length - 1;
+        const batchSize = Math.ceil(totalRows / 100);
+        for (let i = 1; i < data.length; i++) {
+            filteredData.push(data[i]);
+
+            if (i % batchSize === 0 || i === data.length - 1) {
+                const percent = Math.min(100, Math.round((i / totalRows) * 80));
+                progressBar.style.width = percent + "%";
+                progressBar.textContent = percent + "%";
+                await new Promise(resolve => setTimeout(resolve, 10));
+            }
+        }
 
         findColumnIndexes();
         mapColumnIndexes();
-
-        progressBar.style.width = "80%";
-        progressBar.textContent = "80%";
 
         await populateServicoOptions();
 
         progressBar.style.width = "100%";
         progressBar.textContent = "100%";
-
         setTimeout(() => {
             document.getElementById("loadingOverlay").style.display = "none";
         }, 500);
@@ -826,6 +836,7 @@ async function loadServices() {
         document.getElementById("loadingOverlay").style.display = "none";
     }
 }
+
 
 
 
