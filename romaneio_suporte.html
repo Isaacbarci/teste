@@ -1190,12 +1190,17 @@ function startQrScanner() {
 }
 
 function stopQrScanner() {
+    // Esconde imediatamente para evitar atraso visual
+    document.getElementById("qr-container").style.display = "none";
+    document.getElementById("closeScannerBtn").style.display = "none";
+
+    // Para o scanner depois
     if (qrScanner) {
         qrScanner.stop().then(() => {
-            document.getElementById("qr-container").style.display = "none";
-            document.getElementById("closeScannerBtn").style.display = "none";
+            qrScanner.clear();
+            qrScanner = null; // limpa a referência
         }).catch((err) => {
-            console.error(err);
+            console.error("Erro ao parar o scanner:", err);
         });
     }
 }
