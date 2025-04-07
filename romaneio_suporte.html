@@ -733,11 +733,30 @@ async function loadServices() {
 
         window.originalData = JSON.parse(JSON.stringify(jsonData));
         data = JSON.parse(JSON.stringify(jsonData));
-        filteredData = data.slice(1);
+        filteredData = [];
+
+        const totalRows = data.length - 1;
+        const batchSize = Math.ceil(totalRows / 100);
+        for (let i = 1; i < data.length; i++) {
+            filteredData.push(data[i]);
+
+            if (i % batchSize === 0 || i === data.length - 1) {
+                const percent = Math.min(100, Math.round((i / totalRows) * 80));
+                progressBar.style.width = percent + "%";
+                progressBar.textContent = percent + "%";
+                await new Promise(resolve => setTimeout(resolve, 10));
+            }
+        }
 
         findColumnIndexes();
         mapColumnIndexes();
         await populateServicoOptions();
+
+        progressBar.style.width = "100%";
+        progressBar.textContent = "100%";
+        setTimeout(() => {
+            loadingOverlay.style.display = "none";
+        }, 500);
 
         const suporte_ultimoServico = await carregarEdicaoIndexedDB("suporte_ultimoServico");
         const servicoSelect = document.getElementById("servicoSelect");
