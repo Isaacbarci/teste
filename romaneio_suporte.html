@@ -709,6 +709,10 @@ async function loadServices() {
     const progressBar = document.getElementById("progressBar");
     progressBar.style.width = "0%";
     progressBar.textContent = "0%";
+    
+    const progressBar = document.getElementById("progressBar");
+    progressBar.style.width = "0%";
+    progressBar.textContent = "0%";
     document.getElementById("progressBar").style.width = "0%";
     try {
         const response = await fetch(currentFileName);
@@ -732,7 +736,11 @@ async function loadServices() {
         findColumnIndexes();
         mapColumnIndexes();
         await populateServicoOptions();
-    progressBar.style.width = "100%";
+    if (progressBar) {
+        progressBar.style.width = "100%";
+    progressBar.textContent = "100%";
+    }
+    progressBar.textContent = "100%";
     progressBar.textContent = "100%";
     setTimeout(() => {
         document.getElementById("loadingOverlay").style.display = "none";
