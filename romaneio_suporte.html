@@ -763,15 +763,20 @@ function debounce(func, wait) {
 document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
 
 
+
 async function loadServices() {
     document.getElementById("loadingOverlay").style.display = "flex";
     const progressBar = document.getElementById("progressBar");
     progressBar.style.width = "0%";
+    progressBar.textContent = "0%";
 
     try {
         const response = await fetch(currentFileName);
         if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
         const arrayBuffer = await response.arrayBuffer();
+
+        progressBar.style.width = "30%";
+        progressBar.textContent = "30%";
 
         clearPreviousFileData();
 
@@ -783,15 +788,24 @@ async function loadServices() {
             throw new Error("O arquivo está vazio ou não contém dados.");
         }
 
+        progressBar.style.width = "60%";
+        progressBar.textContent = "60%";
+
         window.originalData = JSON.parse(JSON.stringify(jsonData));
         data = JSON.parse(JSON.stringify(jsonData));
         filteredData = data.slice(1);
 
         findColumnIndexes();
         mapColumnIndexes();
+
+        progressBar.style.width = "80%";
+        progressBar.textContent = "80%";
+
         await populateServicoOptions();
 
         progressBar.style.width = "100%";
+        progressBar.textContent = "100%";
+
         setTimeout(() => {
             document.getElementById("loadingOverlay").style.display = "none";
         }, 500);
@@ -812,6 +826,7 @@ async function loadServices() {
         document.getElementById("loadingOverlay").style.display = "none";
     }
 }
+
 
 
 async function confirmLoadService() {
@@ -971,6 +986,7 @@ function mapColumnIndexes() {
 }
 
 
+
 async function populateServicoOptions() {
     const servicoSet = new Set();
 
@@ -999,6 +1015,8 @@ async function populateServicoOptions() {
 
     const progressBar = document.getElementById("progressBar");
     progressBar.style.width = "100%";
+    progressBar.textContent = "100%";
+
     setTimeout(() => {
         document.getElementById("loadingOverlay").style.display = "none";
     }, 500);
@@ -1008,6 +1026,7 @@ async function populateServicoOptions() {
         servicoSelect.value = suporte_ultimoServico.valor;
     }
 }
+
 
 
 function applyFilter() {

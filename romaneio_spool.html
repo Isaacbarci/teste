@@ -536,17 +536,21 @@ function debounce(func, wait) {
     };
 }
 
+
 async function loadServices() {
     document.getElementById("loadingOverlay").style.display = "flex";
     const progressBar = document.getElementById("progressBar");
     progressBar.style.width = "0%";
     progressBar.textContent = "0%";
-    document.getElementById("progressBar").style.width = "0%";
+
     try {
         const response = await fetch(currentFileName);
         if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
         const arrayBuffer = await response.arrayBuffer();
-        
+
+        progressBar.style.width = "30%";
+        progressBar.textContent = "30%";
+
         clearPreviousFileData();
 
         const workbook = XLSX.read(arrayBuffer, {
@@ -561,21 +565,29 @@ async function loadServices() {
             throw new Error("O arquivo está vazio ou não contém dados.");
         }
 
+        progressBar.style.width = "60%";
+        progressBar.textContent = "60%";
+
         window.originalData = JSON.parse(JSON.stringify(jsonData));
         data = JSON.parse(JSON.stringify(jsonData));
         filteredData = data.slice(1);
 
         findColumnIndexes();
         mapColumnIndexes();
+
+        progressBar.style.width = "80%";
+        progressBar.textContent = "80%";
+
         await populateServicoOptions();
 
         progressBar.style.width = "100%";
-    progressBar.textContent = "100%";
-    setTimeout(() => {
-        document.getElementById("loadingOverlay").style.display = "none";
-    }, 500);
+        progressBar.textContent = "100%";
 
-    const spool_ultimoServico = await carregarEdicaoIndexedDB("spool_ultimoServico");
+        setTimeout(() => {
+            document.getElementById("loadingOverlay").style.display = "none";
+        }, 500);
+
+        const spool_ultimoServico = await carregarEdicaoIndexedDB("spool_ultimoServico");
         const servicoSelect = document.getElementById("serviceList");
 
         if (spool_ultimoServico?.valor && Array.from(servicoSelect.options).some(o => o.value === spool_ultimoServico.valor)) {
@@ -588,8 +600,10 @@ async function loadServices() {
     } catch (error) {
         console.error("Erro ao carregar Excel:", error);
         alert("Não foi possível carregar o arquivo do diretório.");
+        document.getElementById("loadingOverlay").style.display = "none";
     }
 }
+
 
 async function confirmLoadService() {
     const senhaCorreta = "1234";
@@ -716,6 +730,7 @@ function mapColumnIndexes() {
     });
 }
 
+
 async function populateServicoOptions() {
     const servicoSet = new Set();
 
@@ -742,8 +757,10 @@ async function populateServicoOptions() {
         servicoSelect.appendChild(option);
     });
 
+    const progressBar = document.getElementById("progressBar");
     progressBar.style.width = "100%";
     progressBar.textContent = "100%";
+
     setTimeout(() => {
         document.getElementById("loadingOverlay").style.display = "none";
     }, 500);
@@ -753,6 +770,7 @@ async function populateServicoOptions() {
         servicoSelect.value = spool_ultimoServico.valor;
     }
 }
+
 
 function renderTable() {
     const table = document.getElementById("dataTable");
