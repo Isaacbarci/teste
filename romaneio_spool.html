@@ -538,6 +538,9 @@ function debounce(func, wait) {
 
 async function loadServices() {
     document.getElementById("loadingOverlay").style.display = "flex";
+    const progressBar = document.getElementById("progressBar");
+    progressBar.style.width = "0%";
+    progressBar.textContent = "0%";
     document.getElementById("progressBar").style.width = "0%";
     try {
         const response = await fetch(currentFileName);
@@ -566,7 +569,8 @@ async function loadServices() {
         mapColumnIndexes();
         await populateServicoOptions();
 
-        document.getElementById("progressBar").style.width = "100%";
+        progressBar.style.width = "100%";
+    progressBar.textContent = "100%";
     setTimeout(() => {
         document.getElementById("loadingOverlay").style.display = "none";
     }, 500);
@@ -738,7 +742,8 @@ async function populateServicoOptions() {
         servicoSelect.appendChild(option);
     });
 
-    document.getElementById("progressBar").style.width = "100%";
+    progressBar.style.width = "100%";
+    progressBar.textContent = "100%";
     setTimeout(() => {
         document.getElementById("loadingOverlay").style.display = "none";
     }, 500);

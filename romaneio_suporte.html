@@ -706,6 +706,9 @@ document.getElementById("identificacaoFilter").addEventListener("input", debounc
 
 async function loadServices() {
     document.getElementById("loadingOverlay").style.display = "flex";
+    const progressBar = document.getElementById("progressBar");
+    progressBar.style.width = "0%";
+    progressBar.textContent = "0%";
     document.getElementById("progressBar").style.width = "0%";
     try {
         const response = await fetch(currentFileName);
@@ -729,6 +732,11 @@ async function loadServices() {
         findColumnIndexes();
         mapColumnIndexes();
         await populateServicoOptions();
+    progressBar.style.width = "100%";
+    progressBar.textContent = "100%";
+    setTimeout(() => {
+        document.getElementById("loadingOverlay").style.display = "none";
+    }, 500);
 
         const suporte_ultimoServico = await carregarEdicaoIndexedDB("suporte_ultimoServico");
         const servicoSelect = document.getElementById("servicoSelect");
@@ -1457,6 +1465,14 @@ localStorage.setItem("suporte_sistemaAberto", "suporte");
     <div class="loading-text">Carregando sistema...</div>
     <div class="progress-container">
         <div class="progress-bar" id="progressBar"></div>
+    </div>
+</div>
+
+
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-text">Carregando sistema...</div>
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar">0%</div>
     </div>
 </div>
 
