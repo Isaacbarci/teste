@@ -729,9 +729,7 @@ async function loadServices() {
         clearInterval(simulateProgress);
         progressBar.style.width = "100%";
         progressText.textContent = "100%";
-        setTimeout(() => {
-            loading.style.display = "none";
-        }, 500);
+        
     }
 }
 
@@ -807,6 +805,7 @@ async function renderSelectedServico(manterEdicoes = false) {
     await salvarEdicaoIndexedDB("suporte_ultimoServico", { id: "suporte_ultimoServico", valor: selectedServico });
     document.getElementById("dataTable").innerHTML = "";
     renderTable();
+    document.getElementById("loadingOverlay").style.display = "none";
 }
 
 async function loadSavedEdits() {
@@ -1411,9 +1410,7 @@ Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar
     clearInterval(simulateProgress);
         progressBar.style.width = "100%";
         progressText.textContent = "100%";
-        setTimeout(() => {
-            loading.style.display = "none";
-        }, 400);
+        
 
     loading.style.display = "none";
         closeShareModal();
