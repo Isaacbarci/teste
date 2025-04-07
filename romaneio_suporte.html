@@ -1,6 +1,51 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+
+<style id="forced-loading-style">
+.loading-overlay {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 99999;
+}
+
+.progress-container {
+    width: 80%;
+    max-width: 400px;
+    background-color: #333;
+    border-radius: 5px;
+    padding: 3px;
+    margin-top: 20px;
+}
+
+.progress-bar {
+    height: 20px;
+    background-color: #28a745;
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.3s ease;
+    color: white;
+    text-align: center;
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.loading-text {
+    color: white;
+    margin-bottom: 10px;
+    font-size: 18px;
+    text-align: center;
+}
+</style>
+
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Suporte</title>
@@ -369,62 +414,58 @@
     }
 }
 
+
+
+
 <style>
-    .loading-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: rgba(0, 0, 0, 0.8);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-    }
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 9999;
+}
 
-    .progress-container {
-        width: 80%;
-        max-width: 400px;
-        background-color: #333;
-        border-radius: 5px;
-        padding: 3px;
-        margin-top: 20px;
-    }
+.progress-container {
+    width: 80%;
+    max-width: 400px;
+    background-color: #333;
+    border-radius: 5px;
+    padding: 3px;
+    margin-top: 20px;
+}
 
-    .progress-bar {
-        height: 20px;
-        background-color: #007BFF;
-        border-radius: 3px;
-        width: 0%;
-        transition: width 0.3s ease;
-        text-align: center;
-        color: white;
-        font-weight: bold;
-        font-size: 14px;
-        line-height: 20px;
-    }
+.progress-bar {
+    height: 20px;
+    background-color: #28a745;
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.3s ease;
+}
 
-    .loading-text {
-        color: white;
-        margin-bottom: 10px;
-        font-size: 18px;
-    }
+.loading-text {
+    color: white;
+    margin-bottom: 10px;
+    font-size: 18px;
+    text-align: center;
+}
 </style>
 
 </style>
 </head>
 <body>
-<div class="loading-overlay" id="loadingOverlay">
-    <div class="loading-text">Carregando dados...</div>
+
+<div class="loading-overlay" id="loadingOverlay" style="display: none;">
+    <div class="loading-text">Carregando sistema...</div>
     <div class="progress-container">
         <div class="progress-bar" id="progressBar">0%</div>
     </div>
-
-</div>
-
-
 </div>
 
 <h2 style="display: flex; align-items: center;"><img alt="Logo" src="image.png" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;"/>
@@ -721,16 +762,17 @@ function debounce(func, wait) {
 
 document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
 
+
 async function loadServices() {
     document.getElementById("loadingOverlay").style.display = "flex";
     const progressBar = document.getElementById("progressBar");
     progressBar.style.width = "0%";
-    progressBar.textContent = "0%";
+
     try {
         const response = await fetch(currentFileName);
         if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
         const arrayBuffer = await response.arrayBuffer();
-        
+
         clearPreviousFileData();
 
         const workbook = XLSX.read(arrayBuffer, { type: 'array' });
@@ -750,12 +792,11 @@ async function loadServices() {
         await populateServicoOptions();
 
         progressBar.style.width = "100%";
-    progressBar.textContent = "100%";
-    setTimeout(() => {
-        document.getElementById("loadingOverlay").style.display = "none";
-    }, 500);
+        setTimeout(() => {
+            document.getElementById("loadingOverlay").style.display = "none";
+        }, 500);
 
-    const suporte_ultimoServico = await carregarEdicaoIndexedDB("suporte_ultimoServico");
+        const suporte_ultimoServico = await carregarEdicaoIndexedDB("suporte_ultimoServico");
         const servicoSelect = document.getElementById("servicoSelect");
 
         if (suporte_ultimoServico?.valor && Array.from(servicoSelect.options).some(o => o.value === suporte_ultimoServico.valor)) {
@@ -768,8 +809,10 @@ async function loadServices() {
     } catch (error) {
         console.error("Erro ao carregar Excel:", error);
         alert("Não foi possível carregar o arquivo do diretório.");
+        document.getElementById("loadingOverlay").style.display = "none";
     }
 }
+
 
 async function confirmLoadService() {
     const senhaCorreta = "1234";
@@ -927,6 +970,7 @@ function mapColumnIndexes() {
     });
 }
 
+
 async function populateServicoOptions() {
     const servicoSet = new Set();
 
@@ -953,8 +997,8 @@ async function populateServicoOptions() {
         servicoSelect.appendChild(option);
     });
 
+    const progressBar = document.getElementById("progressBar");
     progressBar.style.width = "100%";
-    progressBar.textContent = "100%";
     setTimeout(() => {
         document.getElementById("loadingOverlay").style.display = "none";
     }, 500);
@@ -964,6 +1008,7 @@ async function populateServicoOptions() {
         servicoSelect.value = suporte_ultimoServico.valor;
     }
 }
+
 
 function applyFilter() {
     const filterValue = document.getElementById("identificacaoFilter").value.trim().toLowerCase();
@@ -1484,7 +1529,8 @@ localStorage.setItem("suporte_sistemaAberto", "suporte");
     
 </script>
 
-
+<div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
     </div>
 </div>
 
