@@ -927,38 +927,13 @@ function closeModal() {
     document.body.style.overflow = "";
 }
 
-
 function startQrScanner() {
     document.getElementById("qr-container").style.display = "block";
     document.getElementById("closeScannerBtn").style.display = "block";
 
-    const config = { fps: 10, qrbox: 250 };
-
     qrScanner = new Html5Qrcode("qr-reader");
     qrScanner.start(
         { facingMode: "environment" },
-        config,
-        (decodedText, decodedResult) => {
-            document.getElementById("identificacaoFilter").value = decodedText;
-            document.getElementById("qr-container").style.display = "none";
-            document.getElementById("closeScannerBtn").style.display = "none";
-            qrScanner.stop().then(() => {
-                qrScanner.clear();
-            }).catch(err => {
-                console.error("Erro ao parar o scanner:", err);
-            });
-            renderTable();
-        },
-        (errorMessage) => {
-            // Ignorar erros de leitura
-        }
-    ).catch(err => {
-        console.error("Erro ao iniciar scanner QR:", err);
-        alert("Não foi possível iniciar a câmera. Verifique as permissões.");
-        document.getElementById("qr-container").style.display = "none";
-    });
-}
-},
         {
             fps: 10,
             qrbox: 250
