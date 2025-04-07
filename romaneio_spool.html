@@ -406,6 +406,295 @@ document.getElementById("isometricoFilter").addEventListener("input", function(e
     applyFilter();
 });
 
+
+function iniciarFiltroPorVoz() {
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("Seu navegador não suporta reconhecimento de voz.");
+        return;
+    }
+
+    const unidades = {
+        "zero": 0, "um": 1, "uma": 1, "dois": 2, "duas": 2,
+        "três": 3, "tres": 3, "quatro": 4, "cinco": 5,
+        "seis": 6, "meia": 6, "sete": 7, "oito": 8, "nove": 9
+    };
+    const especiais = {
+        "dez": 10, "onze": 11, "doze": 12, "treze": 13, "quatorze": 14, "catorze": 14,
+        "quinze": 15, "dezesseis": 16, "dezessete": 17, "dezoito": 18, "dezenove": 19
+    };
+    const dezenas = {
+        "vinte": 20, "trinta": 30, "quarenta": 40, "cinquenta": 50,
+        "sessenta": 60, "setenta": 70, "oitenta": 80, "noventa": 90
+    };
+    const centenas = {
+        "cem": 100, "cento": 100, "duzentos": 200, "trezentos": 300,
+        "quatrocentos": 400, "quinhentos": 500, "seiscentos": 600,
+        "setecentos": 700, "oitocentos": 800, "novecentos": 900
+    };
+
+    function extensoParaNumero(texto) {
+        const palavras = texto.toLowerCase().split(" ");
+        let total = 0;
+        let temp = 0;
+        for (let i = 0; i < palavras.length; i++) {
+            let palavra = palavras[i];
+            if (palavra === "mil") {
+                total += (temp === 0 ? 1 : temp) * 1000;
+                temp = 0;
+            } else if (centenas[palavra] !== undefined) {
+                temp += centenas[palavra];
+            } else if (especiais[palavra] !== undefined) {
+                temp += especiais[palavra];
+            } else if (dezenas[palavra] !== undefined) {
+                temp += dezenas[palavra];
+            } else if (unidades[palavra] !== undefined) {
+                temp += unidades[palavra];
+            }
+        }
+        return (total + temp).toString();
+    }
+
+    function limparTexto(raw) {
+        return extensoParaNumero(raw
+            .replace(/spool|isométrico|suporte|identificação/g, "")
+            .replace(/tra[cç]o|h[ií]fen/g, "-")
+            .toLowerCase());
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = "pt-BR";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = function(event) {
+        let textoFalado = event.results[0][0].transcript;
+        console.log("Você disse:", textoFalado);
+        let convertido = limparTexto(textoFalado)
+            .replace(/\s+/g, "")
+            .toUpperCase()
+            .replace(/([A-Z]+)(\d+)/g, "$1-$2");
+
+        document.getElementById("isometricoFilter").value = convertido;
+        applyFilter();
+    };
+
+    recognition.onerror = function(event) {
+        alert("Erro no reconhecimento de voz: " + event.error);
+    };
+
+    recognition.start();
+}
+
+function aplicarInteligenciaTextoManual(valor) {
+    return limparTexto(valor)
+        .replace(/\s+/g, "")
+        .toUpperCase()
+        .replace(/([A-Z]+)(\d+)/g, "$1-$2");
+}
+
+document.getElementById("isometricoFilter").addEventListener("input", function(e) {
+    const original = e.target.value;
+    const convertido = aplicarInteligenciaTextoManual(original);
+    if (original !== convertido) {
+        e.target.value = convertido;
+    }
+    applyFilter();
+});
+
+
+function iniciarFiltroPorVoz() {
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("Seu navegador não suporta reconhecimento de voz.");
+        return;
+    }
+
+    const unidades = {
+        "zero": 0, "um": 1, "uma": 1, "dois": 2, "duas": 2,
+        "três": 3, "tres": 3, "quatro": 4, "cinco": 5,
+        "seis": 6, "meia": 6, "sete": 7, "oito": 8, "nove": 9
+    };
+    const especiais = {
+        "dez": 10, "onze": 11, "doze": 12, "treze": 13, "quatorze": 14, "catorze": 14,
+        "quinze": 15, "dezesseis": 16, "dezessete": 17, "dezoito": 18, "dezenove": 19
+    };
+    const dezenas = {
+        "vinte": 20, "trinta": 30, "quarenta": 40, "cinquenta": 50,
+        "sessenta": 60, "setenta": 70, "oitenta": 80, "noventa": 90
+    };
+    const centenas = {
+        "cem": 100, "cento": 100, "duzentos": 200, "trezentos": 300,
+        "quatrocentos": 400, "quinhentos": 500, "seiscentos": 600,
+        "setecentos": 700, "oitocentos": 800, "novecentos": 900
+    };
+
+    function extensoParaNumero(texto) {
+        const palavras = texto.toLowerCase().split(" ");
+        let total = 0;
+        let temp = 0;
+        for (let i = 0; i < palavras.length; i++) {
+            let palavra = palavras[i];
+            if (palavra === "mil") {
+                total += (temp === 0 ? 1 : temp) * 1000;
+                temp = 0;
+            } else if (unidades[palavra] !== undefined) {
+                temp += unidades[palavra];
+            } else if (especiais[palavra] !== undefined) {
+                temp += especiais[palavra];
+            } else if (dezenas[palavra] !== undefined) {
+                temp += dezenas[palavra];
+            } else if (centenas[palavra] !== undefined) {
+                temp += centenas[palavra];
+            }
+        }
+        return (total + temp).toString();
+    }
+
+    function limparTexto(raw) {
+        return extensoParaNumero(
+            raw
+                .replace(/spool|isométrico|suporte|identificação/g, "")
+                .replace(/tra[cç]o|h[ií]fen/g, "-")
+                .toLowerCase()
+        );
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = "pt-BR";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = function(event) {
+        let textoFalado = event.results[0][0].transcript;
+        console.log("Você disse:", textoFalado);
+        let convertido = limparTexto(textoFalado)
+            .replace(/\s+/g, "")
+            .toUpperCase()
+            .replace(/([A-Z]+)(\d+)/g, "$1-$2");
+
+        document.getElementById("isometricoFilter").value = convertido;
+        applyFilter();
+    };
+
+    recognition.onerror = function(event) {
+        alert("Erro no reconhecimento de voz: " + event.error);
+    };
+
+    recognition.start();
+}
+
+function aplicarInteligenciaTextoManual(valor) {
+    return limparTexto(valor)
+        .replace(/\s+/g, "")
+        .toUpperCase()
+        .replace(/([A-Z]+)(\d+)/g, "$1-$2");
+}
+
+document.getElementById("isometricoFilter").addEventListener("input", function(e) {
+    const original = e.target.value;
+    const convertido = aplicarInteligenciaTextoManual(original);
+    if (original !== convertido) {
+        e.target.value = convertido;
+    }
+    applyFilter();
+});
+
+
+function iniciarFiltroPorVoz() {
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("Seu navegador não suporta reconhecimento de voz.");
+        return;
+    }
+
+    const unidades = {
+        "zero": 0, "um": 1, "uma": 1, "dois": 2, "duas": 2,
+        "três": 3, "tres": 3, "quatro": 4, "cinco": 5,
+        "seis": 6, "meia": 6, "sete": 7, "oito": 8, "nove": 9
+    };
+    const especiais = {
+        "dez": 10, "onze": 11, "doze": 12, "treze": 13, "quatorze": 14, "catorze": 14,
+        "quinze": 15, "dezesseis": 16, "dezessete": 17, "dezoito": 18, "dezenove": 19
+    };
+    const dezenas = {
+        "vinte": 20, "trinta": 30, "quarenta": 40, "cinquenta": 50,
+        "sessenta": 60, "setenta": 70, "oitenta": 80, "noventa": 90
+    };
+    const centenas = {
+        "cem": 100, "cento": 100, "duzentos": 200, "trezentos": 300,
+        "quatrocentos": 400, "quinhentos": 500, "seiscentos": 600,
+        "setecentos": 700, "oitocentos": 800, "novecentos": 900
+    };
+
+    function extensoParaNumero(texto) {
+        const palavras = texto.toLowerCase().split(" ");
+        let total = 0;
+        let temp = 0;
+        for (let i = 0; i < palavras.length; i++) {
+            let palavra = palavras[i];
+            if (palavra === "mil") {
+                total += (temp === 0 ? 1 : temp) * 1000;
+                temp = 0;
+            } else if (centenas[palavra] !== undefined) {
+                temp += centenas[palavra];
+            } else if (especiais[palavra] !== undefined) {
+                temp += especiais[palavra];
+            } else if (dezenas[palavra] !== undefined) {
+                temp += dezenas[palavra];
+            } else if (unidades[palavra] !== undefined) {
+                temp += unidades[palavra];
+            }
+        }
+        return (total + temp).toString();
+    }
+
+    function limparTexto(raw) {
+        return extensoParaNumero(
+            raw
+                .replace(/spool|isométrico|suporte|identificação/g, "")
+                .replace(/tra[cç]o|h[ií]fen/g, "-")
+                .toLowerCase()
+        );
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = "pt-BR";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = function(event) {
+        let textoFalado = event.results[0][0].transcript;
+        console.log("Você disse:", textoFalado);
+        let convertido = limparTexto(textoFalado)
+            .replace(/\s+/g, "")
+            .toUpperCase()
+            .replace(/([A-Z]+)(\d+)/g, "$1-$2");
+
+        document.getElementById("isometricoFilter").value = convertido;
+        applyFilter();
+    };
+
+    recognition.onerror = function(event) {
+        alert("Erro no reconhecimento de voz: " + event.error);
+    };
+
+    recognition.start();
+}
+
+function aplicarInteligenciaTextoManual(valor) {
+    return limparTexto(valor)
+        .replace(/\s+/g, "")
+        .toUpperCase()
+        .replace(/([A-Z]+)(\d+)/g, "$1-$2");
+}
+
+document.getElementById("isometricoFilter").addEventListener("input", function(e) {
+    const original = e.target.value;
+    const convertido = aplicarInteligenciaTextoManual(original);
+    if (original !== convertido) {
+        e.target.value = convertido;
+    }
+    applyFilter();
+});
+
 </script>
 <script src="https://unpkg.com/html5-qrcode">
 function iniciarFiltroPorVoz() {
@@ -809,6 +1098,295 @@ document.getElementById("isometricoFilter").addEventListener("input", function(e
     applyFilter();
 });
 
+
+function iniciarFiltroPorVoz() {
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("Seu navegador não suporta reconhecimento de voz.");
+        return;
+    }
+
+    const unidades = {
+        "zero": 0, "um": 1, "uma": 1, "dois": 2, "duas": 2,
+        "três": 3, "tres": 3, "quatro": 4, "cinco": 5,
+        "seis": 6, "meia": 6, "sete": 7, "oito": 8, "nove": 9
+    };
+    const especiais = {
+        "dez": 10, "onze": 11, "doze": 12, "treze": 13, "quatorze": 14, "catorze": 14,
+        "quinze": 15, "dezesseis": 16, "dezessete": 17, "dezoito": 18, "dezenove": 19
+    };
+    const dezenas = {
+        "vinte": 20, "trinta": 30, "quarenta": 40, "cinquenta": 50,
+        "sessenta": 60, "setenta": 70, "oitenta": 80, "noventa": 90
+    };
+    const centenas = {
+        "cem": 100, "cento": 100, "duzentos": 200, "trezentos": 300,
+        "quatrocentos": 400, "quinhentos": 500, "seiscentos": 600,
+        "setecentos": 700, "oitocentos": 800, "novecentos": 900
+    };
+
+    function extensoParaNumero(texto) {
+        const palavras = texto.toLowerCase().split(" ");
+        let total = 0;
+        let temp = 0;
+        for (let i = 0; i < palavras.length; i++) {
+            let palavra = palavras[i];
+            if (palavra === "mil") {
+                total += (temp === 0 ? 1 : temp) * 1000;
+                temp = 0;
+            } else if (centenas[palavra] !== undefined) {
+                temp += centenas[palavra];
+            } else if (especiais[palavra] !== undefined) {
+                temp += especiais[palavra];
+            } else if (dezenas[palavra] !== undefined) {
+                temp += dezenas[palavra];
+            } else if (unidades[palavra] !== undefined) {
+                temp += unidades[palavra];
+            }
+        }
+        return (total + temp).toString();
+    }
+
+    function limparTexto(raw) {
+        return extensoParaNumero(raw
+            .replace(/spool|isométrico|suporte|identificação/g, "")
+            .replace(/tra[cç]o|h[ií]fen/g, "-")
+            .toLowerCase());
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = "pt-BR";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = function(event) {
+        let textoFalado = event.results[0][0].transcript;
+        console.log("Você disse:", textoFalado);
+        let convertido = limparTexto(textoFalado)
+            .replace(/\s+/g, "")
+            .toUpperCase()
+            .replace(/([A-Z]+)(\d+)/g, "$1-$2");
+
+        document.getElementById("isometricoFilter").value = convertido;
+        applyFilter();
+    };
+
+    recognition.onerror = function(event) {
+        alert("Erro no reconhecimento de voz: " + event.error);
+    };
+
+    recognition.start();
+}
+
+function aplicarInteligenciaTextoManual(valor) {
+    return limparTexto(valor)
+        .replace(/\s+/g, "")
+        .toUpperCase()
+        .replace(/([A-Z]+)(\d+)/g, "$1-$2");
+}
+
+document.getElementById("isometricoFilter").addEventListener("input", function(e) {
+    const original = e.target.value;
+    const convertido = aplicarInteligenciaTextoManual(original);
+    if (original !== convertido) {
+        e.target.value = convertido;
+    }
+    applyFilter();
+});
+
+
+function iniciarFiltroPorVoz() {
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("Seu navegador não suporta reconhecimento de voz.");
+        return;
+    }
+
+    const unidades = {
+        "zero": 0, "um": 1, "uma": 1, "dois": 2, "duas": 2,
+        "três": 3, "tres": 3, "quatro": 4, "cinco": 5,
+        "seis": 6, "meia": 6, "sete": 7, "oito": 8, "nove": 9
+    };
+    const especiais = {
+        "dez": 10, "onze": 11, "doze": 12, "treze": 13, "quatorze": 14, "catorze": 14,
+        "quinze": 15, "dezesseis": 16, "dezessete": 17, "dezoito": 18, "dezenove": 19
+    };
+    const dezenas = {
+        "vinte": 20, "trinta": 30, "quarenta": 40, "cinquenta": 50,
+        "sessenta": 60, "setenta": 70, "oitenta": 80, "noventa": 90
+    };
+    const centenas = {
+        "cem": 100, "cento": 100, "duzentos": 200, "trezentos": 300,
+        "quatrocentos": 400, "quinhentos": 500, "seiscentos": 600,
+        "setecentos": 700, "oitocentos": 800, "novecentos": 900
+    };
+
+    function extensoParaNumero(texto) {
+        const palavras = texto.toLowerCase().split(" ");
+        let total = 0;
+        let temp = 0;
+        for (let i = 0; i < palavras.length; i++) {
+            let palavra = palavras[i];
+            if (palavra === "mil") {
+                total += (temp === 0 ? 1 : temp) * 1000;
+                temp = 0;
+            } else if (unidades[palavra] !== undefined) {
+                temp += unidades[palavra];
+            } else if (especiais[palavra] !== undefined) {
+                temp += especiais[palavra];
+            } else if (dezenas[palavra] !== undefined) {
+                temp += dezenas[palavra];
+            } else if (centenas[palavra] !== undefined) {
+                temp += centenas[palavra];
+            }
+        }
+        return (total + temp).toString();
+    }
+
+    function limparTexto(raw) {
+        return extensoParaNumero(
+            raw
+                .replace(/spool|isométrico|suporte|identificação/g, "")
+                .replace(/tra[cç]o|h[ií]fen/g, "-")
+                .toLowerCase()
+        );
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = "pt-BR";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = function(event) {
+        let textoFalado = event.results[0][0].transcript;
+        console.log("Você disse:", textoFalado);
+        let convertido = limparTexto(textoFalado)
+            .replace(/\s+/g, "")
+            .toUpperCase()
+            .replace(/([A-Z]+)(\d+)/g, "$1-$2");
+
+        document.getElementById("isometricoFilter").value = convertido;
+        applyFilter();
+    };
+
+    recognition.onerror = function(event) {
+        alert("Erro no reconhecimento de voz: " + event.error);
+    };
+
+    recognition.start();
+}
+
+function aplicarInteligenciaTextoManual(valor) {
+    return limparTexto(valor)
+        .replace(/\s+/g, "")
+        .toUpperCase()
+        .replace(/([A-Z]+)(\d+)/g, "$1-$2");
+}
+
+document.getElementById("isometricoFilter").addEventListener("input", function(e) {
+    const original = e.target.value;
+    const convertido = aplicarInteligenciaTextoManual(original);
+    if (original !== convertido) {
+        e.target.value = convertido;
+    }
+    applyFilter();
+});
+
+
+function iniciarFiltroPorVoz() {
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("Seu navegador não suporta reconhecimento de voz.");
+        return;
+    }
+
+    const unidades = {
+        "zero": 0, "um": 1, "uma": 1, "dois": 2, "duas": 2,
+        "três": 3, "tres": 3, "quatro": 4, "cinco": 5,
+        "seis": 6, "meia": 6, "sete": 7, "oito": 8, "nove": 9
+    };
+    const especiais = {
+        "dez": 10, "onze": 11, "doze": 12, "treze": 13, "quatorze": 14, "catorze": 14,
+        "quinze": 15, "dezesseis": 16, "dezessete": 17, "dezoito": 18, "dezenove": 19
+    };
+    const dezenas = {
+        "vinte": 20, "trinta": 30, "quarenta": 40, "cinquenta": 50,
+        "sessenta": 60, "setenta": 70, "oitenta": 80, "noventa": 90
+    };
+    const centenas = {
+        "cem": 100, "cento": 100, "duzentos": 200, "trezentos": 300,
+        "quatrocentos": 400, "quinhentos": 500, "seiscentos": 600,
+        "setecentos": 700, "oitocentos": 800, "novecentos": 900
+    };
+
+    function extensoParaNumero(texto) {
+        const palavras = texto.toLowerCase().split(" ");
+        let total = 0;
+        let temp = 0;
+        for (let i = 0; i < palavras.length; i++) {
+            let palavra = palavras[i];
+            if (palavra === "mil") {
+                total += (temp === 0 ? 1 : temp) * 1000;
+                temp = 0;
+            } else if (centenas[palavra] !== undefined) {
+                temp += centenas[palavra];
+            } else if (especiais[palavra] !== undefined) {
+                temp += especiais[palavra];
+            } else if (dezenas[palavra] !== undefined) {
+                temp += dezenas[palavra];
+            } else if (unidades[palavra] !== undefined) {
+                temp += unidades[palavra];
+            }
+        }
+        return (total + temp).toString();
+    }
+
+    function limparTexto(raw) {
+        return extensoParaNumero(
+            raw
+                .replace(/spool|isométrico|suporte|identificação/g, "")
+                .replace(/tra[cç]o|h[ií]fen/g, "-")
+                .toLowerCase()
+        );
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = "pt-BR";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = function(event) {
+        let textoFalado = event.results[0][0].transcript;
+        console.log("Você disse:", textoFalado);
+        let convertido = limparTexto(textoFalado)
+            .replace(/\s+/g, "")
+            .toUpperCase()
+            .replace(/([A-Z]+)(\d+)/g, "$1-$2");
+
+        document.getElementById("isometricoFilter").value = convertido;
+        applyFilter();
+    };
+
+    recognition.onerror = function(event) {
+        alert("Erro no reconhecimento de voz: " + event.error);
+    };
+
+    recognition.start();
+}
+
+function aplicarInteligenciaTextoManual(valor) {
+    return limparTexto(valor)
+        .replace(/\s+/g, "")
+        .toUpperCase()
+        .replace(/([A-Z]+)(\d+)/g, "$1-$2");
+}
+
+document.getElementById("isometricoFilter").addEventListener("input", function(e) {
+    const original = e.target.value;
+    const convertido = aplicarInteligenciaTextoManual(original);
+    if (original !== convertido) {
+        e.target.value = convertido;
+    }
+    applyFilter();
+});
+
 </script>
 <style>
     body {
@@ -1131,6 +1709,30 @@ document.getElementById("isometricoFilter").addEventListener("input", function(e
   border: none;
   border-radius: 4px;
   margin-left: 5px;
+  cursor: pointer;
+}
+
+
+.filtro-container {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+#isometricoFilter, .microfone-btn {
+  height: 38px;
+  font-size: 14px;
+  padding: 6px 10px;
+  vertical-align: middle;
+  box-sizing: border-box;
+}
+
+.microfone-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
   cursor: pointer;
 }
 
@@ -2300,6 +2902,295 @@ function aplicarInteligenciaTextoManual(valor) {
         .replace(/([A-Z]+)(\d+)/g, "$1-$2");
 
     return convertido;
+}
+
+document.getElementById("isometricoFilter").addEventListener("input", function(e) {
+    const original = e.target.value;
+    const convertido = aplicarInteligenciaTextoManual(original);
+    if (original !== convertido) {
+        e.target.value = convertido;
+    }
+    applyFilter();
+});
+
+
+function iniciarFiltroPorVoz() {
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("Seu navegador não suporta reconhecimento de voz.");
+        return;
+    }
+
+    const unidades = {
+        "zero": 0, "um": 1, "uma": 1, "dois": 2, "duas": 2,
+        "três": 3, "tres": 3, "quatro": 4, "cinco": 5,
+        "seis": 6, "meia": 6, "sete": 7, "oito": 8, "nove": 9
+    };
+    const especiais = {
+        "dez": 10, "onze": 11, "doze": 12, "treze": 13, "quatorze": 14, "catorze": 14,
+        "quinze": 15, "dezesseis": 16, "dezessete": 17, "dezoito": 18, "dezenove": 19
+    };
+    const dezenas = {
+        "vinte": 20, "trinta": 30, "quarenta": 40, "cinquenta": 50,
+        "sessenta": 60, "setenta": 70, "oitenta": 80, "noventa": 90
+    };
+    const centenas = {
+        "cem": 100, "cento": 100, "duzentos": 200, "trezentos": 300,
+        "quatrocentos": 400, "quinhentos": 500, "seiscentos": 600,
+        "setecentos": 700, "oitocentos": 800, "novecentos": 900
+    };
+
+    function extensoParaNumero(texto) {
+        const palavras = texto.toLowerCase().split(" ");
+        let total = 0;
+        let temp = 0;
+        for (let i = 0; i < palavras.length; i++) {
+            let palavra = palavras[i];
+            if (palavra === "mil") {
+                total += (temp === 0 ? 1 : temp) * 1000;
+                temp = 0;
+            } else if (centenas[palavra] !== undefined) {
+                temp += centenas[palavra];
+            } else if (especiais[palavra] !== undefined) {
+                temp += especiais[palavra];
+            } else if (dezenas[palavra] !== undefined) {
+                temp += dezenas[palavra];
+            } else if (unidades[palavra] !== undefined) {
+                temp += unidades[palavra];
+            }
+        }
+        return (total + temp).toString();
+    }
+
+    function limparTexto(raw) {
+        return extensoParaNumero(raw
+            .replace(/spool|isométrico|suporte|identificação/g, "")
+            .replace(/tra[cç]o|h[ií]fen/g, "-")
+            .toLowerCase());
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = "pt-BR";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = function(event) {
+        let textoFalado = event.results[0][0].transcript;
+        console.log("Você disse:", textoFalado);
+        let convertido = limparTexto(textoFalado)
+            .replace(/\s+/g, "")
+            .toUpperCase()
+            .replace(/([A-Z]+)(\d+)/g, "$1-$2");
+
+        document.getElementById("isometricoFilter").value = convertido;
+        applyFilter();
+    };
+
+    recognition.onerror = function(event) {
+        alert("Erro no reconhecimento de voz: " + event.error);
+    };
+
+    recognition.start();
+}
+
+function aplicarInteligenciaTextoManual(valor) {
+    return limparTexto(valor)
+        .replace(/\s+/g, "")
+        .toUpperCase()
+        .replace(/([A-Z]+)(\d+)/g, "$1-$2");
+}
+
+document.getElementById("isometricoFilter").addEventListener("input", function(e) {
+    const original = e.target.value;
+    const convertido = aplicarInteligenciaTextoManual(original);
+    if (original !== convertido) {
+        e.target.value = convertido;
+    }
+    applyFilter();
+});
+
+
+function iniciarFiltroPorVoz() {
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("Seu navegador não suporta reconhecimento de voz.");
+        return;
+    }
+
+    const unidades = {
+        "zero": 0, "um": 1, "uma": 1, "dois": 2, "duas": 2,
+        "três": 3, "tres": 3, "quatro": 4, "cinco": 5,
+        "seis": 6, "meia": 6, "sete": 7, "oito": 8, "nove": 9
+    };
+    const especiais = {
+        "dez": 10, "onze": 11, "doze": 12, "treze": 13, "quatorze": 14, "catorze": 14,
+        "quinze": 15, "dezesseis": 16, "dezessete": 17, "dezoito": 18, "dezenove": 19
+    };
+    const dezenas = {
+        "vinte": 20, "trinta": 30, "quarenta": 40, "cinquenta": 50,
+        "sessenta": 60, "setenta": 70, "oitenta": 80, "noventa": 90
+    };
+    const centenas = {
+        "cem": 100, "cento": 100, "duzentos": 200, "trezentos": 300,
+        "quatrocentos": 400, "quinhentos": 500, "seiscentos": 600,
+        "setecentos": 700, "oitocentos": 800, "novecentos": 900
+    };
+
+    function extensoParaNumero(texto) {
+        const palavras = texto.toLowerCase().split(" ");
+        let total = 0;
+        let temp = 0;
+        for (let i = 0; i < palavras.length; i++) {
+            let palavra = palavras[i];
+            if (palavra === "mil") {
+                total += (temp === 0 ? 1 : temp) * 1000;
+                temp = 0;
+            } else if (unidades[palavra] !== undefined) {
+                temp += unidades[palavra];
+            } else if (especiais[palavra] !== undefined) {
+                temp += especiais[palavra];
+            } else if (dezenas[palavra] !== undefined) {
+                temp += dezenas[palavra];
+            } else if (centenas[palavra] !== undefined) {
+                temp += centenas[palavra];
+            }
+        }
+        return (total + temp).toString();
+    }
+
+    function limparTexto(raw) {
+        return extensoParaNumero(
+            raw
+                .replace(/spool|isométrico|suporte|identificação/g, "")
+                .replace(/tra[cç]o|h[ií]fen/g, "-")
+                .toLowerCase()
+        );
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = "pt-BR";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = function(event) {
+        let textoFalado = event.results[0][0].transcript;
+        console.log("Você disse:", textoFalado);
+        let convertido = limparTexto(textoFalado)
+            .replace(/\s+/g, "")
+            .toUpperCase()
+            .replace(/([A-Z]+)(\d+)/g, "$1-$2");
+
+        document.getElementById("isometricoFilter").value = convertido;
+        applyFilter();
+    };
+
+    recognition.onerror = function(event) {
+        alert("Erro no reconhecimento de voz: " + event.error);
+    };
+
+    recognition.start();
+}
+
+function aplicarInteligenciaTextoManual(valor) {
+    return limparTexto(valor)
+        .replace(/\s+/g, "")
+        .toUpperCase()
+        .replace(/([A-Z]+)(\d+)/g, "$1-$2");
+}
+
+document.getElementById("isometricoFilter").addEventListener("input", function(e) {
+    const original = e.target.value;
+    const convertido = aplicarInteligenciaTextoManual(original);
+    if (original !== convertido) {
+        e.target.value = convertido;
+    }
+    applyFilter();
+});
+
+
+function iniciarFiltroPorVoz() {
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("Seu navegador não suporta reconhecimento de voz.");
+        return;
+    }
+
+    const unidades = {
+        "zero": 0, "um": 1, "uma": 1, "dois": 2, "duas": 2,
+        "três": 3, "tres": 3, "quatro": 4, "cinco": 5,
+        "seis": 6, "meia": 6, "sete": 7, "oito": 8, "nove": 9
+    };
+    const especiais = {
+        "dez": 10, "onze": 11, "doze": 12, "treze": 13, "quatorze": 14, "catorze": 14,
+        "quinze": 15, "dezesseis": 16, "dezessete": 17, "dezoito": 18, "dezenove": 19
+    };
+    const dezenas = {
+        "vinte": 20, "trinta": 30, "quarenta": 40, "cinquenta": 50,
+        "sessenta": 60, "setenta": 70, "oitenta": 80, "noventa": 90
+    };
+    const centenas = {
+        "cem": 100, "cento": 100, "duzentos": 200, "trezentos": 300,
+        "quatrocentos": 400, "quinhentos": 500, "seiscentos": 600,
+        "setecentos": 700, "oitocentos": 800, "novecentos": 900
+    };
+
+    function extensoParaNumero(texto) {
+        const palavras = texto.toLowerCase().split(" ");
+        let total = 0;
+        let temp = 0;
+        for (let i = 0; i < palavras.length; i++) {
+            let palavra = palavras[i];
+            if (palavra === "mil") {
+                total += (temp === 0 ? 1 : temp) * 1000;
+                temp = 0;
+            } else if (centenas[palavra] !== undefined) {
+                temp += centenas[palavra];
+            } else if (especiais[palavra] !== undefined) {
+                temp += especiais[palavra];
+            } else if (dezenas[palavra] !== undefined) {
+                temp += dezenas[palavra];
+            } else if (unidades[palavra] !== undefined) {
+                temp += unidades[palavra];
+            }
+        }
+        return (total + temp).toString();
+    }
+
+    function limparTexto(raw) {
+        return extensoParaNumero(
+            raw
+                .replace(/spool|isométrico|suporte|identificação/g, "")
+                .replace(/tra[cç]o|h[ií]fen/g, "-")
+                .toLowerCase()
+        );
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = "pt-BR";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = function(event) {
+        let textoFalado = event.results[0][0].transcript;
+        console.log("Você disse:", textoFalado);
+        let convertido = limparTexto(textoFalado)
+            .replace(/\s+/g, "")
+            .toUpperCase()
+            .replace(/([A-Z]+)(\d+)/g, "$1-$2");
+
+        document.getElementById("isometricoFilter").value = convertido;
+        applyFilter();
+    };
+
+    recognition.onerror = function(event) {
+        alert("Erro no reconhecimento de voz: " + event.error);
+    };
+
+    recognition.start();
+}
+
+function aplicarInteligenciaTextoManual(valor) {
+    return limparTexto(valor)
+        .replace(/\s+/g, "")
+        .toUpperCase()
+        .replace(/([A-Z]+)(\d+)/g, "$1-$2");
 }
 
 document.getElementById("isometricoFilter").addEventListener("input", function(e) {
