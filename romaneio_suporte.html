@@ -1286,15 +1286,19 @@ function startQrScanner() {
 }
 
 function stopQrScanner() {
+    document.getElementById("qr-container").style.display = "none";
+    document.getElementById("closeScannerBtn").style.display = "none";
+
     if (qrScanner) {
         qrScanner.stop().then(() => {
-            document.getElementById("qr-container").style.display = "none";
-            document.getElementById("closeScannerBtn").style.display = "none";
+            qrScanner.clear();
+            qrScanner = null;
         }).catch((err) => {
-            console.error(err);
+            console.error("Erro ao parar o scanner:", err);
         });
     }
 }
+
 
 function downloadExcel() {
     if (!data.length) {
