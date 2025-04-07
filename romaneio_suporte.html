@@ -368,7 +368,7 @@
         width: calc(100% - 20px);
     }
 }
-</style>
+
 <style>
     .loading-overlay {
         position: fixed;
@@ -399,6 +399,11 @@
         border-radius: 3px;
         width: 0%;
         transition: width 0.3s ease;
+        text-align: center;
+        color: white;
+        font-weight: bold;
+        font-size: 14px;
+        line-height: 20px;
     }
 
     .loading-text {
@@ -408,6 +413,7 @@
     }
 </style>
 
+</style>
 </head>
 <body>
 <h2 style="display: flex; align-items: center;"><img alt="Logo" src="image.png" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;"/>
@@ -706,15 +712,9 @@ document.getElementById("identificacaoFilter").addEventListener("input", debounc
 
 async function loadServices() {
     document.getElementById("loadingOverlay").style.display = "flex";
-    var progressBar = document.getElementById("progressBar");
-    if (progressBar) {
-        progressBar.style.width = "0%";
-        progressBar.textContent = "0%";
-    }
     const progressBar = document.getElementById("progressBar");
     progressBar.style.width = "0%";
     progressBar.textContent = "0%";
-    document.getElementById("progressBar").style.width = "0%";
     try {
         const response = await fetch(currentFileName);
         if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
@@ -737,17 +737,14 @@ async function loadServices() {
         findColumnIndexes();
         mapColumnIndexes();
         await populateServicoOptions();
-    if (progressBar) {
+
         progressBar.style.width = "100%";
-        progressBar.textContent = "100%";
-    }
-    progressBar.textContent = "100%";
     progressBar.textContent = "100%";
     setTimeout(() => {
         document.getElementById("loadingOverlay").style.display = "none";
     }, 500);
 
-        const suporte_ultimoServico = await carregarEdicaoIndexedDB("suporte_ultimoServico");
+    const suporte_ultimoServico = await carregarEdicaoIndexedDB("suporte_ultimoServico");
         const servicoSelect = document.getElementById("servicoSelect");
 
         if (suporte_ultimoServico?.valor && Array.from(servicoSelect.options).some(o => o.value === suporte_ultimoServico.valor)) {
@@ -944,6 +941,12 @@ async function populateServicoOptions() {
         option.textContent = servico;
         servicoSelect.appendChild(option);
     });
+
+    progressBar.style.width = "100%";
+    progressBar.textContent = "100%";
+    setTimeout(() => {
+        document.getElementById("loadingOverlay").style.display = "none";
+    }, 500);
 
     const suporte_ultimoServico = await carregarEdicaoIndexedDB("suporte_ultimoServico");
     if (suporte_ultimoServico?.valor && servicosOrdenados.includes(suporte_ultimoServico.valor)) {
@@ -1469,14 +1472,6 @@ if ('serviceWorker' in navigator) {
 localStorage.setItem("suporte_sistemaAberto", "suporte");
     
 </script>
-
-<div class="loading-overlay" id="loadingOverlay">
-    <div class="loading-text">Carregando sistema...</div>
-    <div class="progress-container">
-        <div class="progress-bar" id="progressBar"></div>
-    </div>
-</div>
-
 
 <div class="loading-overlay" id="loadingOverlay">
     <div class="loading-text">Carregando sistema...</div>
