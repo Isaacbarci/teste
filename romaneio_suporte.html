@@ -1065,6 +1065,7 @@ function renderTable() {
     const table = document.getElementById("dataTable");
     table.innerHTML = "";
 
+    if (!filteredData || filteredData.length === 0) return;
     if (!data.length) return;
 
     const fragment = document.createDocumentFragment();
