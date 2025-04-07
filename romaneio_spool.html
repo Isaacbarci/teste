@@ -548,11 +548,15 @@ async function loadServices() {
 
         if (ultimoServico?.valor && Array.from(servicoSelect.options).some(o => o.value === ultimoServico.valor)) {
             servicoSelect.value = ultimoServico.valor;
-            renderSelectedServico(true);
-        } else if (servicoSelect.options.length > 0) {
+            await renderSelectedServico(true);
+        
+    document.getElementById(\"loadingOverlay\").style.display = \"none\";
+} else if (servicoSelect.options.length > 0) {
             servicoSelect.value = servicoSelect.options[0].value;
-            renderSelectedServico(true);
-        }
+            await renderSelectedServico(true);
+        
+    document.getElementById(\"loadingOverlay\").style.display = \"none\";
+}
 
     } catch (error) {
         console.error("Erro ao carregar Excel:", error);
@@ -561,7 +565,9 @@ async function loadServices() {
         clearInterval(simulateProgress);
         progressBar.style.width = "100%";
         progressText.textContent = "100%";
-        
+        setTimeout(() => {
+            loading.style.display = "none";
+        }, 500);
     }
 }
 
@@ -600,8 +606,10 @@ async function confirmLoadService() {
 
         simBtn.onclick = () => {
             fecharModal();
-            renderSelectedServico(true);
-        };
+            await renderSelectedServico(true);
+        
+    document.getElementById(\"loadingOverlay\").style.display = \"none\";
+};
 
         novoBtn.onclick = () => {
             delete parsed[currentFileName][selectedServico];
@@ -637,7 +645,6 @@ async function renderSelectedServico(manterEdicoes = false) {
     await salvarEdicaoIndexedDB("spool_ultimoServico", { id: "spool_ultimoServico", valor: selectedServico });
     document.getElementById("dataTable").innerHTML = "";
     renderTable();
-    document.getElementById("loadingOverlay").style.display = "none";
 }
 
 async function loadSavedEdits() {
@@ -1088,7 +1095,9 @@ Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar
     clearInterval(simulateProgress);
         progressBar.style.width = "100%";
         progressText.textContent = "100%";
-        
+        setTimeout(() => {
+            loading.style.display = "none";
+        }, 400);
 
     loading.style.display = "none";
         closeShareModal();
