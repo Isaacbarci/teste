@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR">
 <head>
+
 <style id="forced-loading-style">
 .loading-overlay {
     position: fixed !important;
@@ -45,61 +45,8 @@
     font-size: 18px;
     text-align: center;
 }
-
-#dataTable tr:empty { display: none; }
-
-#dataTable {
-  background: transparent;
-  box-shadow: none;
-  border: none;
-}
-
-body {
-    background-color: #121212 !important;
-}
-.table-container {
-    min-height: 100vh;
-    background-color: #121212 !important;
-}
-
-html, body {
-    height: 100%;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    background-color: #121212;
-}
-
-.table-container {
-    flex: 1;
-    background-color: transparent;
-}
-
-body {
-    background: transparent !important;
-    overflow: hidden !important;
-}
-html {
-    background: transparent !important;
-}
-.table-container {
-    background-color: #121212 !important;
-}
-
-body {
-    background-color: #121212 !important;
-    overflow: hidden !important;
-    margin: 0;
-}
-
-html {
-    background-color: #121212 !important;
-}
-
-.table-container {
-    background-color: transparent !important;
-}
 </style>
+
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Suporte</title>
@@ -471,213 +418,115 @@ html {
 
 
 
-<style>
-.loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.9);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    z-index: 9999;
-}
 
-.progress-container {
-    width: 80%;
-    max-width: 400px;
-    background-color: #333;
-    border-radius: 5px;
-    padding: 3px;
-    margin-top: 20px;
-}
 
-.progress-bar {
-    height: 20px;
-    background-color: #28a745;
-    border-radius: 3px;
-    width: 0%;
-    transition: width 0.3s ease;
-    color: white;
-    text-align: center;
-    font-size: 14px;
-    line-height: 20px;
-    font-weight: bold;
-}
-
-.loading-text {
-    color: white;
-    margin-bottom: 10px;
-    font-size: 18px;
-    text-align: center;
-}
-
-#dataTable tbody tr:empty {
-  display: none;
-}
-
-    
-
-#dataTable tr:empty { display: none; }
-
-#dataTable {
-  background: transparent;
-  box-shadow: none;
-  border: none;
-}
-
-body {
-    background-color: #121212 !important;
-}
-.table-container {
-    min-height: 100vh;
-    background-color: #121212 !important;
-}
-
-html, body {
-    height: 100%;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    background-color: #121212;
-}
-
-.table-container {
-    flex: 1;
-    background-color: transparent;
-}
-
-body {
-    background: transparent !important;
-    overflow: hidden !important;
-}
-html {
-    background: transparent !important;
-}
-.table-container {
-    background-color: #121212 !important;
-}
-
-body {
-    background-color: #121212 !important;
-    overflow: hidden !important;
-    margin: 0;
-}
-
-html {
-    background-color: #121212 !important;
-}
-
-.table-container {
-    background-color: transparent !important;
-}
 </style>
-
 </head>
 <body>
+
 <div class="loading-overlay" id="loadingOverlay" style="display: none;">
-<div class="loading-text">Carregando sistema...</div>
-<div class="progress-container">
-<div class="progress-bar" id="progressBar">0%</div>
+    <div class="loading-text">Carregando sistema...</div>
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar">0%</div>
+    </div>
 </div>
-</div>
+
 <h2 style="display: flex; align-items: center;"><img alt="Logo" src="image.png" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;"/>
-<span style="font-size: 23px;">ROMANEIO DE SUPORTE</span>
+    <span style="font-size: 23px;">ROMANEIO DE SUPORTE</span>
 </h2>
 <p style="font-size: 6px; color: white; margin-left: 17px; margin-top: -14px;">
     Developed by Isaac Dutra
 </p>
 <div style="margin-left: 5px;">
-<select id="servicoSelect">
-<option disabled="" hidden="" selected="" value="">Selecione um serviço</option>
+    <select id="servicoSelect">
+         <option value="" disabled selected hidden>Selecione um serviço</option>
 </select>
-<button onclick="confirmLoadService()">Carregar Serviço</button>
-<input id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação" type="text"/>
-<button onclick="downloadExcel()">Download Excel</button>
-<button onclick="startQrScanner()">Escanear QR Code</button>
-<button onclick="voltarParaIndex()" title="Voltar para o Início">
-<svg fill="white" height="16" style="vertical-align: middle; margin-right: 5px;" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
-<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
-</svg>
+    <button onclick="confirmLoadService()">Carregar Serviço</button>
+    <input id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação" type="text"/>
+    <button onclick="downloadExcel()">Download Excel</button>
+    <button onclick="startQrScanner()">Escanear QR Code</button>
+    <button onclick="voltarParaIndex()" title="Voltar para o Início">
+        <svg fill="white" height="16" style="vertical-align: middle; margin-right: 5px;" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
+        </svg>
         Voltar
     </button>
 </div>
 <div class="modal-overlay" id="confirmModalOverlay" style="z-index: 2000;">
-<div class="modal" style="text-align: center;">
-<p id="confirmModalMessage" style="font-size: 16px;">Existem dados salvos para este serviço.<br/>Deseja continuar o Romaneio existente? </p>
-<div class="modal-footer">
-<button class="save-btn" id="btnConfirmSim">SIM</button>
-<button class="close-btn" id="btnConfirmNovo" style="background-color: white; color: black;">NOVO ROMANEIO</button>
-</div>
-</div>
+    <div class="modal" style="text-align: center;">
+        <p id="confirmModalMessage" style="font-size: 16px;">Existem dados salvos para este serviço.<br/>Deseja continuar o Romaneio existente? </p>
+        <div class="modal-footer">
+            <button class="save-btn" id="btnConfirmSim">SIM</button>
+            <button class="close-btn" id="btnConfirmNovo" style="background-color: white; color: black;">NOVO ROMANEIO</button>
+        </div>
+    </div>
 </div>
 <div id="qr-container" style="display: none;">
-<div id="qr-reader" style="width:300px; margin-top:10px;"></div>
-<button class="close-btn" id="closeScannerBtn" onclick="stopQrScanner()" style="display: none;">Fechar Scanner</button>
+    <div id="qr-reader" style="width:300px; margin-top:10px;"></div>
+    <button class="close-btn" id="closeScannerBtn" onclick="stopQrScanner()" style="display: none;">Fechar Scanner</button>
 </div>
 <div class="table-container">
-<table id="dataTable"></table>
+    <table id="dataTable"></table>
 </div>
 <div class="modal-overlay" id="modalOverlay">
-<div class="modal">
-<input id="editIndex" type="hidden"/>
-<label>Posição / TAG:
+    <div class="modal">
+        <input id="editIndex" type="hidden"/>
+        <label>Posição / TAG:
             <input id="POSICAOTAG" readonly="" type="text"/>
-</label>
-<label>Identificação 1:
+        </label>
+        <label>Identificação 1:
             <input id="IDENTIFICACAO1" readonly="" type="text"/>
-</label>
-<label>Identificação 2:
+        </label>
+        <label>Identificação 2:
             <input id="IDENTIFICACAO2" readonly="" type="text"/>
-</label>
-<label>Observação:
+        </label>
+        <label>Observação:
             <input id="OBSERVACAO" readonly="" type="text"/>
-</label>
-<label>Peso (kg):
+        </label>
+        <label>Peso (kg):
             <input id="PesoKg" readonly="" type="text"/>
-</label>
-<label>Data do Romaneio:
+        </label>
+        <label>Data do Romaneio:
             <input id="DATADOROMANEIO" type="date"/>
-</label>
-<div class="quantidade-container">
-<label>Qtd Enviada:
+        </label>
+        <div class="quantidade-container">
+            <label>Qtd Enviada:
                 <input class="input-quantidade" id="QTDENVIADA" type="number"/>
-<button id="okBtnKeyboard">
-<svg fill="#28a745" height="20" viewbox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
-<path d="M9 16.17l-3.88-3.88-1.42 1.41L9 19 20.3 7.71l-1.42-1.41z"></path>
-</svg>
-</button>
-</label>
-</div>
-<label>Obs Romaneio:
+                <button id="okBtnKeyboard">
+                    <svg fill="#28a745" height="20" viewbox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 16.17l-3.88-3.88-1.42 1.41L9 19 20.3 7.71l-1.42-1.41z"></path>
+                    </svg>
+                </button>
+            </label>
+        </div>
+        <label>Obs Romaneio:
             <input id="OBSROMANEIO" type="text"/>
-</label>
-<label>Qtde:
+        </label>
+        <label>Qtde:
             <input id="Qtde" readonly="" type="text"/>
-</label>
-<label>Saldo:
+        </label>
+        <label>Saldo:
             <input class="saldo-input" id="Saldo" readonly="" type="text"/>
-</label>
-<div class="modal-footer">
-<button class="save-btn" onclick="saveEdit()">Salvar</button>
-<button class="close-btn" onclick="closeModal()">Fechar</button>
+        </label>
+        <div class="modal-footer">
+            <button class="save-btn" onclick="saveEdit()">Salvar</button>
+            <button class="close-btn" onclick="closeModal()">Fechar</button>
+        </div>
+    </div>
 </div>
-</div>
-</div>
+
 <!-- Modal de Compartilhamento -->
 <div id="shareModal">
-<div>
-<h3>Download concluído!</h3>
-<p>Deseja compartilhar este arquivo agora?</p>
-<div>
-<button onclick="shareLastFile()" style="background-color: #28a745; color: white; border: none; padding: 10px; border-radius: 5px;">Compartilhar</button>
-<button onclick="closeShareModal()" style="background-color: #dc3545; color: white; border: none; padding: 10px; border-radius: 5px;">Fechar</button>
+    <div>
+        <h3>Download concluído!</h3>
+        <p>Deseja compartilhar este arquivo agora?</p>
+        <div>
+            <button style="background-color: #28a745; color: white; border: none; padding: 10px; border-radius: 5px;" onclick="shareLastFile()">Compartilhar</button>
+            <button style="background-color: #dc3545; color: white; border: none; padding: 10px; border-radius: 5px;" onclick="closeShareModal()">Fechar</button>
+        </div>
+    </div>
 </div>
-</div>
-</div>
+
 <script>
 // ========== Variáveis Globais ==========
 let db;
@@ -873,8 +722,6 @@ function debounce(func, wait) {
         timeout = setTimeout(() => func.apply(this, args), wait);
     };
 }
-
-document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
 
 
 
@@ -1173,7 +1020,8 @@ function renderTable() {
     const table = document.getElementById("dataTable");
     table.innerHTML = "";
 
-    if (!filteredData || filteredData.length === 0 || !data.length) return;
+    if (!filteredData || filteredData.length === 0) return;
+    if (!data.length) return;
 
     const fragment = document.createDocumentFragment();
 
@@ -1204,42 +1052,6 @@ function renderTable() {
         } else {
             rowsSemEdicao.push(row);
         }
-    });
-
-    const rowsOrdenadas = [...rowsComEdicao, ...rowsSemEdicao];
-
-    rowsOrdenadas.slice(0, rowsPerPage).forEach((row) => {
-        const originalIndex = data.indexOf(row);
-        if (originalIndex === -1) return;
-
-        const tr = document.createElement("tr");
-        tr.onclick = () => openEditModal(originalIndex);
-
-        const isLinhaVazia = row.every(cell => !cell || String(cell).trim() === "");
-        if (isLinhaVazia) return;
-
-        colunasExibidas.forEach(col => {
-            const colIndex = columnIndexes[col];
-            const td = document.createElement("td");
-            let cellValue = row[colIndex] || "";
-
-            if (col === "data do romaneio") {
-                cellValue = formatDate(cellValue);
-            }
-
-            td.textContent = cellValue;
-            tr.appendChild(td);
-        });
-
-        if (editedRows.has(originalIndex)) {
-            tr.classList.add("edited-row");
-        }
-
-        fragment.appendChild(tr);
-    });
-
-    table.appendChild(fragment);
-}
     });
 
     const rowsOrdenadas = [...rowsComEdicao, ...rowsSemEdicao];
@@ -1685,8 +1497,6 @@ function voltarParaIndex() {
 document.addEventListener('DOMContentLoaded', () => {
     loadServices();
 
-document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
-
     document.getElementById("servicoSelect").addEventListener("change", confirmLoadService);
     });
 
@@ -1709,9 +1519,9 @@ if ('serviceWorker' in navigator) {
 localStorage.setItem("suporte_sistemaAberto", "suporte");
     
 </script>
-<div class="progress-container">
-<div class="progress-bar" id="progressBar"></div>
-</div>
 
+<div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
 </body>
 </html>
