@@ -1564,5 +1564,66 @@ document.getElementById("identificacaoFilter").addEventListener("input", functio
 });
 </script>
 
+
+<script>
+document.getElementById("identificacaoFilter").addEventListener("input", function(e) {
+    const original = e.target.value;
+
+    const unidades = {
+        "zero": 0, "um": 1, "uma": 1, "dois": 2, "duas": 2,
+        "três": 3, "tres": 3, "quatro": 4, "cinco": 5,
+        "seis": 6, "meia": 6, "sete": 7, "oito": 8, "nove": 9
+    };
+    const especiais = {
+        "dez": 10, "onze": 11, "doze": 12, "treze": 13, "quatorze": 14,
+        "quinze": 15, "dezesseis": 16, "dezessete": 17, "dezoito": 18, "dezenove": 19
+    };
+    const dezenas = {
+        "vinte": 20, "trinta": 30, "quarenta": 40, "cinquenta": 50,
+        "sessenta": 60, "setenta": 70, "oitenta": 80, "noventa": 90
+    };
+    const centenas = {
+        "cem": 100, "cento": 100, "duzentos": 200, "trezentos": 300,
+        "quatrocentos": 400, "quinhentos": 500, "seiscentos": 600,
+        "setecentos": 700, "oitocentos": 800, "novecentos": 900
+    };
+
+    function extensoParaNumero(texto) {
+        const palavras = texto.toLowerCase().split(" ");
+        let total = 0, temp = 0;
+        for (let palavra of palavras) {
+            if (palavra === "mil") {
+                total += (temp === 0 ? 1 : temp) * 1000;
+                temp = 0;
+            } else if (centenas[palavra] !== undefined) {
+                temp += centenas[palavra];
+            } else if (especiais[palavra] !== undefined) {
+                temp += especiais[palavra];
+            } else if (dezenas[palavra] !== undefined) {
+                temp += dezenas[palavra];
+            } else if (unidades[palavra] !== undefined) {
+                temp += unidades[palavra];
+            }
+        }
+        return total + temp;
+    }
+
+    // Separar prefixo de texto e parte numérica por extenso
+    const match = original.trim().match(/^([a-zA-Z]+)[\s-]*(.*)$/);
+    if (!match) return;
+
+    const prefixo = match[1].toUpperCase();
+    const parteNumerica = match[2];
+
+    const convertido = extensoParaNumero(parteNumerica).toString();
+    const final = (prefixo + "-" + convertido).toUpperCase();
+
+    e.target.value = final;
+
+    // Dispara o filtro
+    e.target.dispatchEvent(new Event('input'));
+});
+</script>
+
 </body>
 </html>
