@@ -352,6 +352,35 @@
         font-size: 18px;
     }
 </style>
+
+<style>
+@media (max-width: 768px) {
+    .modal-overlay#modalOverlay .modal {
+        width: 95vw !important;
+        height: auto !important;
+        max-width: none !important;
+        max-height: 90vh !important;
+        padding: 20px !important;
+        border-radius: 10px !important;
+        box-sizing: border-box !important;
+        overflow-y: auto !important;
+    }
+
+    .modal-footer {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .modal input, .modal label {
+        font-size: 16px !important;
+    }
+
+    .modal input[type="date"] {
+        font-size: 14px !important;
+    }
+}
+</style>
+
 </head>
 <body>
 <h2><img alt="Logo" src="image.png" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;"/>
