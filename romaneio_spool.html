@@ -1365,6 +1365,79 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 </script>
 
+
+<script>
+function startVoiceRecognition() {
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("Reconhecimento de voz não é suportado neste navegador.");
+        return;
+    }
+
+    const btn = document.getElementById("voiceSearchBtn");
+    if (btn.disabled) return;
+
+    btn.disabled = true;
+    btn.classList.add("listening");
+    btn.title = "Ouvindo...";
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = "pt-BR";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = function(event) {
+        let texto = event.results[0][0].transcript || "";
+        texto = texto.normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+        const palavrasComTraco = [
+            "traco", "trasso", "traso", "tras", "traço", "trás", "trazu",
+            "braço", "braco", "brasso", "brasu", "braso", "bráço",
+            "tiras", "tira", "tirasso", "tirazo", "trassu", "traçol"
+        ];
+
+        palavrasComTraco.forEach(palavra => {
+            const regex = new RegExp("\b" + palavra + "\b", "gi");
+            texto = texto.replace(regex, "-");
+        });
+
+        texto = texto.replace(/\s+/g, "");
+        texto = texto.toUpperCase();
+
+        document.getElementById("identificacaoFilter").value = texto;
+        applyFilter();
+    };
+
+    recognition.onerror = function(event) {
+        console.error("Erro no reconhecimento de voz:", event.error);
+        if (event.error === "aborted") {
+            alert("O reconhecimento foi interrompido. Tente novamente.");
+        } else {
+            alert("Erro no reconhecimento de voz: " + event.error);
+        }
+    };
+
+    recognition.onend = function() {
+        btn.disabled = false;
+        btn.classList.remove("listening");
+        btn.title = "Pesquisar por voz";
+    };
+
+    recognition.start();
+}
+</script>
+
+<style>
+#voiceSearchBtn.listening {
+    animation: pulse 1s infinite;
+    background-color: #ffc107 !important;
+}
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255,193,7, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(255,193,7, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255,193,7, 0); }
+}
+</style>
+
 </body>
 
 </html>
