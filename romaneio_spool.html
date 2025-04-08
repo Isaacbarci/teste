@@ -1366,7 +1366,29 @@ function startVoiceRecognition() {
     recognition.maxAlternatives = 1;
 
     recognition.onresult = function(event) {
-        const texto = event.results[0][0].transcript;
+        let texto = event.results[0][0].transcript || "";
+
+        // Remover acentos
+        texto = texto.normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+        // Lista de palavras que soam como "traço"
+        const palavrasComTraco = [
+            "traco", "trasso", "traso", "tras", "traço", "trás", "trazu",
+            "braço", "braco", "brasso", "brasu", "braso", "bráço",
+            "tiras", "tira", "tirasso", "tirazo", "trassu", "traçol"
+        ];
+
+        palavrasComTraco.forEach(palavra => {
+            const regex = new RegExp("\b" + palavra + "\b", "gi");
+            texto = texto.replace(regex, "-");
+        });
+
+        // Remover espaços entre letras/palavras
+        texto = texto.replace(/\s+/g, "");
+
+        // Transformar em maiúsculo
+        texto = texto.toUpperCase();
+
         document.getElementById("identificacaoFilter").value = texto;
         applyFilter();
     };
