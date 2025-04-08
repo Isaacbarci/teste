@@ -1000,9 +1000,8 @@ function renderTable() {
         "identificação 1",
         "data do romaneio",
         "qtd enviada",
-        "prog. fab.",
-        
-    ];
+        "prog. fab."
+];
 
     const headerRow = document.createElement("tr");
     colunasExibidas.forEach(col => {
@@ -1155,6 +1154,12 @@ async function saveEdit() {
 
         closeModal();
         renderTable();
+
+        const filtroInput = document.getElementById("identificacaoFilter");
+        if (filtroInput.value.trim() !== "") {
+            filtroInput.value = "";
+            applyFilter();
+        }
     
   } catch(e) { 
         console.error('Erro ao salvar edição:', e); 

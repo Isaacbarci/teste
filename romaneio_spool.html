@@ -916,6 +916,12 @@ async function saveEdit() {
 
         closeModal();
         renderTable();
+
+        const filtroInput = document.getElementById("identificacaoFilter");
+        if (filtroInput.value.trim() !== "") {
+            filtroInput.value = "";
+            applyFilter();
+        }
     
   } catch(e) { 
         console.error('Erro ao salvar edição:', e); 
