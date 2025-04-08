@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"/>
@@ -351,7 +352,6 @@
         font-size: 18px;
     }
 </style>
-
 </head>
 <body>
 <h2><img alt="Logo" src="image.png" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;"/>
@@ -361,80 +361,79 @@
     Developed by Isaac Dutra
 </p>
 <div style="margin-left: 5px;">
-    <select id="serviceList">
-         <option value="" disabled selected hidden>Selecione um serviço</option>
+<select id="serviceList">
+<option disabled="" hidden="" selected="" value="">Selecione um serviço</option>
 </select>
-    <button onclick="confirmLoadService()">Carregar Serviço</button>
-    <input id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code" type="text"/>
-    <button onclick="downloadExcel()">Download Excel</button>
-    <button onclick="startQrScanner()">Escanear QR Code</button>
-    <button onclick="voltarParaIndex()" title="Voltar para o Início">
-        <svg fill="white" height="16" style="vertical-align: middle; margin-right: 5px;" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
-        </svg>
+<button onclick="confirmLoadService()">Carregar Serviço</button>
+<input id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code" style="width: 255px !important;" type="text"/><button id="voiceSearchBtn" onclick="startVoiceRecognition()" style="background-color: #007bff; color: white; padding: 6px 12px; font-size: 14px; border: none; border-radius: 4px; margin-left: 5px;" title="Pesquisar por voz"><img alt="Microfone" height="20" src="https://img.icons8.com/material-rounded/24/ffffff/microphone.png" width="20"/></button>
+<button onclick="downloadExcel()">Download Excel</button>
+<button onclick="startQrScanner()">Escanear QR Code</button>
+<button onclick="voltarParaIndex()" title="Voltar para o Início">
+<svg fill="white" height="16" style="vertical-align: middle; margin-right: 5px;" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
+<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
+</svg>
         Voltar
     </button>
 </div>
 <div class="modal-overlay" id="confirmModalOverlay" style="z-index: 2000;">
-    <div class="modal" style="text-align: center;">
-        <p id="confirmModalMessage" style="font-size: 16px;">
+<div class="modal" style="text-align: center;">
+<p id="confirmModalMessage" style="font-size: 16px;">
             Existem dados salvos para este serviço.<br/>Deseja continuar o Romaneio existente?
         </p>
-        <div class="modal-footer">
-            <button class="save-btn" id="btnConfirmSim">SIM</button>
-            <button class="close-btn" id="btnConfirmNovo" style="background-color: white; color: black;">NOVO ROMANEIO</button>
-        </div>
-    </div>
+<div class="modal-footer">
+<button class="save-btn" id="btnConfirmSim">SIM</button>
+<button class="close-btn" id="btnConfirmNovo" style="background-color: white; color: black;">NOVO ROMANEIO</button>
+</div>
+</div>
 </div>
 <div id="qr-container" style="display: none;">
-    <div id="qr-reader" style="width:300px; margin-top:10px;"></div>
-    <button class="close-btn" id="closeScannerBtn" onclick="stopQrScanner()" style="display: none;">Fechar Scanner</button>
+<div id="qr-reader" style="width:300px; margin-top:10px;"></div>
+<button class="close-btn" id="closeScannerBtn" onclick="stopQrScanner()" style="display: none;">Fechar Scanner</button>
 </div>
 <div class="table-container">
-    <table id="dataTable"></table>
+<table id="dataTable"></table>
 </div>
 <div class="modal-overlay" id="modalOverlay">
-    <div class="modal">
-        <input id="editIndex" type="hidden"/>
-        <label>ISOMÉTRICO:
+<div class="modal">
+<input id="editIndex" type="hidden"/>
+<label>ISOMÉTRICO:
             <input id="ISOMETRICO" readonly="" type="text"/>
-        </label>
-        <label>SPOOL:
+</label>
+<label>SPOOL:
             <input id="SPOOL" readonly="" type="text"/>
-        </label>
-        <label>ÁREA:
+</label>
+<label>ÁREA:
             <input id="AREA" readonly="" type="text"/>
-        </label>
-        <label>PROG FAB:
+</label>
+<label>PROG FAB:
             <input id="PROGFAB" readonly="" type="text"/>
-        </label>
-        <label>PESO:
+</label>
+<label>PESO:
             <input id="PESO" readonly="" type="text"/>
-        </label>
-        <label>Data do Romaneio:
+</label>
+<label>Data do Romaneio:
             <input id="DATADOROMANEIO" type="date"/>
-        </label>
-        <label>Obs Romaneio:
+</label>
+<label>Obs Romaneio:
             <input id="OBSROMANEIO" type="text"/>
-        </label>
-        <div class="modal-footer">
-            <button class="save-btn" onclick="saveEdit()">Salvar</button>
-            <button class="close-btn" onclick="closeModal()">Fechar</button>
-        </div>
-    </div>
+</label>
+<div class="modal-footer">
+<button class="save-btn" onclick="saveEdit()">Salvar</button>
+<button class="close-btn" onclick="closeModal()">Fechar</button>
+</div>
+</div>
 </div>
 <!-- Modal de Compartilhamento -->
 <div id="shareModal">
-    <div class="share-modal-content">
-        <h3>Download concluído!</h3>
-        <p>Deseja compartilhar este arquivo agora?</p>
-        <div class="share-modal-buttons">
-            <button class="save-btn" onclick="shareLastFile()">Compartilhar</button>
-            <button class="close-btn" onclick="closeShareModal()">Fechar</button>
-        </div>
-    </div>
+<div class="share-modal-content">
+<h3>Download concluído!</h3>
+<p>Deseja compartilhar este arquivo agora?</p>
+<div class="share-modal-buttons">
+<button class="save-btn" onclick="shareLastFile()">Compartilhar</button>
+<button class="close-btn" onclick="closeShareModal()">Fechar</button>
 </div>
-
+</div>
+</div>
 <script>
 // ========== Variáveis Globais ==========
 const canal = new BroadcastChannel("romaneio_spool");
@@ -684,7 +683,8 @@ async function renderSelectedServico(manterEdicoes = false) {
     await salvarEdicaoIndexedDB("spool_ultimoServico", { id: "spool_ultimoServico", valor: selectedServico });
     document.getElementById("dataTable").innerHTML = "";
     renderTable();
-}
+
+  if (filtroInput.value.trim() !== "" && filteredData.length > 0) filtroInput.value = "";}
 
 async function loadSavedEdits() {
     try {
@@ -916,7 +916,8 @@ async function saveEdit() {
 
         closeModal();
         renderTable();
-    } catch(e) { 
+    
+  if (filtroInput.value.trim() !== "" && filteredData.length > 0) filtroInput.value = "";} catch(e) { 
         console.error('Erro ao salvar edição:', e); 
         alert('Erro ao salvar edição'); 
     }
@@ -968,6 +969,7 @@ function stopQrScanner() {
 }
 
 function applyFilter() {
+  const filtroInput = document.getElementById("identificacaoFilter");
     const filterValue = document.getElementById("identificacaoFilter").value.trim().toLowerCase();
     const currentServico = document.getElementById("serviceList").value;
 
@@ -986,7 +988,8 @@ function applyFilter() {
     });
 
     renderTable();
-}
+
+  if (filtroInput.value.trim() !== "" && filteredData.length > 0) filtroInput.value = "";}
 
 function formatDate(dateValue) {
     const date = parseDateValue(dateValue);
@@ -1175,13 +1178,56 @@ if ('serviceWorker' in navigator) {
 
 localStorage.setItem("spool_sistemaAberto", "spool");
 </script>
-
 <div class="loading-overlay" id="loadingOverlay">
-    <div class="loading-text">Carregando sistema...</div>
-    <div class="progress-container">
-        <div class="progress-bar" id="progressBar"></div>
-    </div>
+<div class="loading-text">Carregando sistema...</div>
+<div class="progress-container">
+<div class="progress-bar" id="progressBar"></div>
 </div>
+</div>
+<script>
+function iniciarReconhecimentoVoz() {
+    const campo = document.getElementById("identificacaoFilter");
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("Reconhecimento de voz não suportado neste navegador.");
+        return;
+    }
 
-</body>
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = "pt-BR";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.start();
+
+    recognition.onresult = function(event) {
+        const resultado = event.results[0][0].transcript;
+        campo.value = resultado;
+        applyFilter();
+    };
+
+    recognition.onerror = function(event) {
+        alert("Erro no reconhecimento de voz: " + event.error);
+    };
+}
+</script>
+<script>
+function startVoiceRecognition() {
+  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = "pt-BR";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onresult = function(event) {
+    const result = event.results[0][0].transcript;
+    document.getElementById('identificacaoFilter').value = result;
+    if (typeof applyFilter === 'function') applyFilter();
+  };
+
+  recognition.onerror = function(event) {
+    console.error("Erro no reconhecimento de voz:", event.error);
+  };
+
+  recognition.start();
+}
+</script></body>
 </html>

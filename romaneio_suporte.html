@@ -423,7 +423,7 @@
 <option disabled="" hidden="" selected="" value="">Selecione um serviço</option>
 </select>
 <button onclick="confirmLoadService()">Carregar Serviço</button>
-<input id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação" type="text"/>
+<input id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação" style="width: 255px !important;" type="text"/><button id="voiceSearchBtn" onclick="startVoiceRecognition()" style="background-color: #28a745; color: white; padding: 6px 12px; font-size: 14px; border: none; border-radius: 4px; margin-left: 5px;" title="Pesquisar por voz"><img alt="Microfone" height="20" src="https://img.icons8.com/material-rounded/24/ffffff/microphone.png" width="20"/></button>
 <button onclick="downloadExcel()">Download Excel</button>
 <button onclick="startQrScanner()">Escanear QR Code</button>
 <button onclick="voltarParaIndex()" title="Voltar para o Início">
@@ -846,7 +846,8 @@ async function renderSelectedServico(manterEdicoes = false) {
     await salvarEdicaoIndexedDB("suporte_ultimoServico", { id: "suporte_ultimoServico", valor: selectedServico });
     document.getElementById("dataTable").innerHTML = "";
     renderTable();
-}
+
+  if (filtroInput.value.trim() !== "" && filteredData.length > 0) filtroInput.value = "";}
 
 async function loadSavedEdits() {
     try {
@@ -964,6 +965,7 @@ async function populateServicoOptions() {
 }
 
 function applyFilter() {
+  const filtroInput = document.getElementById("identificacaoFilter");
     const filterValue = document.getElementById("identificacaoFilter").value.trim().toLowerCase();
     const currentServico = document.getElementById("servicoSelect").value;
 
@@ -982,7 +984,8 @@ function applyFilter() {
     });
 
     renderTable();
-}
+
+  if (filtroInput.value.trim() !== "" && filteredData.length > 0) filtroInput.value = "";}
 
 function renderTable() {
     const table = document.getElementById("dataTable");
@@ -1152,7 +1155,8 @@ async function saveEdit() {
 
         closeModal();
         renderTable();
-    } catch(e) { 
+    
+  if (filtroInput.value.trim() !== "" && filteredData.length > 0) filtroInput.value = "";} catch(e) { 
         console.error('Erro ao salvar edição:', e); 
         alert('Erro ao salvar edição'); 
     }
@@ -1486,12 +1490,56 @@ if ('serviceWorker' in navigator) {
 localStorage.setItem("suporte_sistemaAberto", "suporte");
     
 </script>
-
 <div class="loading-overlay" id="loadingOverlay" style="display: none;">
 <div class="loading-text">Carregando sistema...</div>
 <div class="progress-container">
 <div class="progress-bar" id="progressBar">0%</div>
 </div>
 </div>
-</body>
+<script>
+function iniciarReconhecimentoVoz() {
+    const campo = document.getElementById("identificacaoFilter");
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("Reconhecimento de voz não suportado neste navegador.");
+        return;
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = "pt-BR";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.start();
+
+    recognition.onresult = function(event) {
+        const resultado = event.results[0][0].transcript;
+        campo.value = resultado;
+        applyFilter();
+    };
+
+    recognition.onerror = function(event) {
+        alert("Erro no reconhecimento de voz: " + event.error);
+    };
+}
+</script>
+<script>
+function startVoiceRecognition() {
+  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = "pt-BR";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onresult = function(event) {
+    const result = event.results[0][0].transcript;
+    document.getElementById('identificacaoFilter').value = result;
+    if (typeof applyFilter === 'function') applyFilter();
+  };
+
+  recognition.onerror = function(event) {
+    console.error("Erro no reconhecimento de voz:", event.error);
+  };
+
+  recognition.start();
+}
+</script></body>
 </html>
