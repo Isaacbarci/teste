@@ -1156,7 +1156,7 @@ async function saveEdit() {
         renderTable();
 
         const filtroInput = document.getElementById("identificacaoFilter");
-        if (filtroInput.value.trim() !== "" && filteredData.length === 1) {
+        if (filtroInput.value.trim() !== "") {
             filtroInput.value = "";
             applyFilter();
         }
@@ -1571,18 +1571,20 @@ function normalizarTextoFalado(texto) {
 
 function interpretarEAplicarFiltroVoz(transcript) {
     const input = document.getElementById("identificacaoFilter");
-    const texto = transcript.toLowerCase();
-    const colunas = {"spool": "spool", "isométrico": "isométrico", "identificação 1": "identificação 1", "posição": "posição", "tag": "posição"};
-    let colunaAlvo = Object.keys(colunas).find(col => texto.includes(col));
-    let valor = texto;
-
-    if (colunaAlvo) {
-        valor = texto.replace(colunaAlvo, "").replace("filtrar por", "").replace("buscar", "").replace("procurar", "").trim();
-    }
-
-    valor = normalizarTextoFalado(valor);
+    const valor = normalizarTextoFalado(transcript.trim());
     input.value = valor;
     applyFilter();
 }
+</script><script>
+document.addEventListener("DOMContentLoaded", function () {
+    const filtroInput = document.getElementById("identificacaoFilter");
+    if (filtroInput) {
+        filtroInput.addEventListener("input", function () {
+            let valor = filtroInput.value.toUpperCase();
+            valor = valor.replace(/([A-Z])(\d)/g, '$1-$2');
+            filtroInput.value = valor;
+        });
+    }
+});
     </script></body>
 </html>
