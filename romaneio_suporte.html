@@ -1533,27 +1533,6 @@ function iniciarReconhecimentoVoz() {
 }
 </script>
 <script>
-function startVoiceRecognition() {
-  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = "pt-BR";
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
-
-  recognition.onresult = function(event) {
-    const result = event.results[0][0].transcript;
-    document.getElementById('identificacaoFilter').value = result;
-    if (typeof applyFilter === 'function') applyFilter();
-  };
-
-  recognition.onerror = function(event) {
-    console.error("Erro no reconhecimento de voz:", event.error);
-  };
-
-  recognition.start();
-
-    if (filtroInput.value.trim() !== "" && filteredData.length > 0) filtroInput.value = "";
-}
-</script><script>
 function normalizarTextoFalado(texto) {
     texto = texto.replace(/(tra[çc]o|trasso)/gi, "-");
     texto = texto.replace(/\btra[çc]o\b/gi, "-");
@@ -1591,55 +1570,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
  
     </script>
-<script>
-function startVoiceRecognition() {
-    const input = document.getElementById("identificacaoFilter");
 
-    if (!('webkitSpeechRecognition' in window)) {
-        alert("Este navegador não suporta reconhecimento de voz.");
-        return;
-    }
-
-    const recognition = new webkitSpeechRecognition();
-    recognition.lang = "pt-BR";
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.onresult = function(event) {
-        let transcript = event.results[0][0].transcript.toLowerCase().trim();
-
-        const palavrasParaNumeros = {
-            "zero": "0", "um": "1", "uma": "1", "dois": "2", "duas": "2", "três": "3", "tres": "3", "quatro": "4", "cinco": "5",
-            "meia": "6", "seis": "6", "sete": "7", "oito": "8", "nove": "9", "dez": "10", "onze": "11", "doze": "12",
-            "treze": "13", "quatorze": "14", "catorze": "14", "quinze": "15", "dezesseis": "16", "dezessete": "17",
-            "dezoito": "18", "dezenove": "19", "vinte": "20", "trinta": "30", "quarenta": "40", "cinquenta": "50",
-            "sessenta": "60", "setenta": "70", "oitenta": "80", "noventa": "90",
-            "cem": "100", "cento": "100", "duzentos": "200", "trezentos": "300", "quatrocentos": "400", "quinhentos": "500",
-            "seiscentos": "600", "setecentos": "700", "oitocentos": "800", "novecentos": "900"
-        };
-
-        // Substitui palavras por números
-        transcript = transcript
-            .replace(/\b(tr(a|á)ç{o|u}|trasso|\.tra[cç]o)\b/g, "-")  // traço
-            .split(" ")
-            .map(p => palavrasParaNumeros[p] || p)
-            .join("");
-
-        // Deixa tudo maiúsculo
-        transcript = transcript.toUpperCase();
-
-        input.value = transcript;
-        input.dispatchEvent(new Event("input"));
-    };
-
-    recognition.onerror = function(event) {
-        console.error("Erro no reconhecimento de voz:", event.error);
-        alert("Erro ao reconhecer a voz. Tente novamente.");
-    };
-
-    recognition.start();
-}
-</script>
 
 
 <script>
@@ -1656,6 +1587,13 @@ function startVoiceRecognition() {
         return;
     }
 
+    const btn = document.getElementById("voiceSearchBtn");
+    const originalText = btn.title;
+    const originalClass = btn.className;
+
+    btn.classList.add("listening");
+    btn.title = "Ouvindo... clique para tentar novamente";
+
     const recognition = new webkitSpeechRecognition();
     recognition.lang = "pt-BR";
     recognition.interimResults = false;
@@ -1663,11 +1601,8 @@ function startVoiceRecognition() {
 
     recognition.onresult = function(event) {
         let texto = event.results[0][0].transcript || "";
-
-        // Remover acentos
         texto = texto.normalize("NFD").replace(/[̀-ͯ]/g, "");
 
-        // Lista de palavras que soam como "traço"
         const palavrasComTraco = [
             "traco", "trasso", "traso", "tras", "traço", "trás", "trazu",
             "braço", "braco", "brasso", "brasu", "braso", "bráço",
@@ -1679,10 +1614,7 @@ function startVoiceRecognition() {
             texto = texto.replace(regex, "-");
         });
 
-        // Remover espaços entre letras/palavras
         texto = texto.replace(/\s+/g, "");
-
-        // Transformar em maiúsculo
         texto = texto.toUpperCase();
 
         document.getElementById("identificacaoFilter").value = texto;
@@ -1692,55 +1624,41 @@ function startVoiceRecognition() {
     recognition.onerror = function(event) {
         console.error("Erro no reconhecimento de voz:", event.error);
         alert("Erro no reconhecimento de voz: " + event.error);
+    };
+
+    recognition.onend = function() {
+        btn.classList.remove("listening");
+        btn.title = originalText;
     };
 
     recognition.start();
 }
 </script>
 
+<style>
+/* Efeito visual quando estiver ouvindo */
+#voiceSearchBtn.listening {
+    animation: pulse 1s infinite;
+    background-color: #ffc107 !important; /* amarelo */
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255,193,7, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(255,193,7, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255,193,7, 0); }
+}
+</style>
+
 
 <script>
-function startVoiceRecognition() {
-    if (!('webkitSpeechRecognition' in window)) {
-        alert("Reconhecimento de voz não é suportado neste navegador.");
-        return;
-    }
-
-    const recognition = new webkitSpeechRecognition();
-    recognition.lang = "pt-BR";
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.onresult = function(event) {
-        let texto = event.results[0][0].transcript || "";
-
-        texto = texto.normalize("NFD").replace(/[̀-ͯ]/g, "");
-
-        const palavrasComTraco = [
-            "traco", "trasso", "traso", "tras", "traço", "trás", "trazu",
-            "braço", "braco", "brasso", "brasu", "braso", "bráço",
-            "tiras", "tira", "tirasso", "tirazo", "trassu", "traçol"
-        ];
-
-        palavrasComTraco.forEach(palavra => {
-            const regex = new RegExp("\b" + palavra + "\b", "gi");
-            texto = texto.replace(regex, "-");
+document.addEventListener("DOMContentLoaded", function() {
+    const filtro = document.getElementById("identificacaoFilter");
+    if (filtro) {
+        filtro.addEventListener("input", function() {
+            this.value = this.value.toUpperCase();
         });
-
-        texto = texto.replace(/\s+/g, "");
-        texto = texto.toUpperCase();
-
-        document.getElementById("identificacaoFilter").value = texto;
-        applyFilter();
-    };
-
-    recognition.onerror = function(event) {
-        console.error("Erro no reconhecimento de voz:", event.error);
-        alert("Erro no reconhecimento de voz: " + event.error);
-    };
-
-    recognition.start();
-}
+    }
+});
 </script>
 
 </body>
