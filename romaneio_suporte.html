@@ -970,7 +970,7 @@ function applyFilter() {
     const currentServico = document.getElementById("servicoSelect").value;
 
     const colIdentificacao1 = columnIndexes["identificação 1"];
-    const colQR = columnIndexes[];
+    const colQR = columnIndexes["qr"] || columnIndexes["QR"];
 
     filteredData = data.slice(1).filter(row => {
         if (currentServico && row[servicoIndex] !== currentServico) {
