@@ -1160,6 +1160,8 @@ async function saveEdit() {
         console.error('Erro ao salvar edição:', e); 
         alert('Erro ao salvar edição'); 
     }
+    if (filtroInput.value.trim() !== "" && filteredData.length > 0) filtroInput.value = "";
+        if (filtroInput.value.trim() !== "" && filteredData.length > 0) filtroInput.value = "";
 }
 
 function closeModal() {
