@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Romaneio de Suporte</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #000;
+        color: white;
+    }
+    
+    h2 {
+        color: white;
+        padding: 20px;
+        margin: 0;
+        display: flex;
+        align-items: center;
+    }
+    
+    input[type="text"], button, select {
+        margin: 5px;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+    }
+    
+    input[type="text"] {
+        width: 300px;
+    }
+
+    #identificacaoFilter {
+        width: 300px !important;
+    }
+    
+    select {
+        margin: 3px;
+        padding: 3px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        font-size: 12px;
+        width: 205px;
+        height: 25px;
+    }
+    
+    button {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    
+    button:hover {
+        background-color: #218838;
+    }
+    
+    .close-btn {
+        background-color: #dc3545;
+    }
+    
+    .close-btn:hover {
+        background-color: #c82333;
+    }
+    
+    .save-btn {
+        background-color: #28a745;
+    }
+    
+    .save-btn:hover {
+        background-color: #218838;
+    }
+    
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+        margin-top: 20px;
+    }
+    
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        background-color: #000;
+        color: white;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        border: 2px solid black;
+    }
+    
+    th, td {
+        border: none;
+        padding: 10px;
+        font-size: 14px;
+        text-align: left;
+        white-space: nowrap;
+    }
+    
+    th {
+        background-color: #28a745;
+        color: white;
+    }
+    
+    td {
+        cursor: pointer;
+    }
+    
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .modal {
+        background-color: #1e1e1e;
+        color: #fff;
+        padding: 25px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 500px;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        border: 1px solid #444;
+    }
+    
+    .modal label {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 15px;
+        font-weight: bold;
+        color: #fff;
+        font-size: 14px;
+    }
+    
+    .modal input {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        border-radius: 5px;
+        border: 1px solid #555;
+        font-size: 14px;
+        background-color: #2c2c2c;
+        color: #fff;
+        box-sizing: border-box;
+    }
+    
+    .modal input[type="date"] {
+        padding: 9px;
+        background-color: #2c2c2c;
+        color: #fff;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        position: relative;
+        padding-right: 30px;
+    }
+    
+    .modal input[type="date"]::after {
+        content: "";
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 20px;
+        height: 20px;
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm-8 4H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg>');
+        background-repeat: no-repeat;
+        pointer-events: none;
+    }
+    
+    .modal input[type="date"]::-webkit-calendar-picker-indicator {
+        opacity: 0;
+        position: absolute;
+        right: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+    
+    .modal input[type="date"]::-moz-calendar-picker-indicator {
+        opacity: 0;
+        position: absolute;
+        right: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+    
+    .modal input[readonly] {
+        background-color: #333;
+        cursor: not-allowed;
+    }
+    
+    .modal-footer {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    
+    .modal-footer button {
+        flex: 1;
+        padding: 10px;
+        font-size: 14px;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .edited-row {
+        background-color: darkgray !important;
+    }
+    
+    .saldo-input {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        border-radius: 5px;
+        border: 1px solid #555;
+        font-size: 14px;
+        background-color: #2c2c2c;
+        color: #fff;
+        box-sizing: border-box;
+        font-weight: bold;
+    }
+    
+    .saldo-negativo {
+        color: #ff6b6b !important;
+    }
+    
+    .saldo-positivo {
+        color: #51cf66 !important;
+    }
+
+    #okBtnKeyboard {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        width: 36px;
+        height: 36px;
+        display: none;
+    }
+
+    #okBtnKeyboard svg {
+        width: 36px;
+        height: 40px;
+        fill: white;
+    }
+
+    .input-quantidade {
+        transition: background-color 0.3s;
+        padding-right: 35px !important;
+        width: calc(100% - 12px);
+        background-color: #2c2c2c !important;
+    }
+    
+    .input-quantidade.valido {
+        background-color: rgba(81, 207, 102, 0.2) !important;
+    }
+    
+    .input-quantidade.invalido {
+        background-color: rgba(255, 107, 107, 0.2) !important;
+    }
+
+    .quantidade-container {
+        position: relative;
+    }
+
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+    
+    @media (max-width: 768px) {
+        .modal {
+            width: 95%;
+            max-width: none;
+            max-height: 90vh;
+            padding: 20px;
+        }
+        
+        .modal-footer {
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        input[type="text"] {
+            width: calc(100% - 20px);
+        }
+    }
+
+    button[onclick*="voltarParaIndex()"] {
+        background-color: #dc3545;
+    }
+
+    button[onclick*="voltarParaIndex()"]:hover {
+        background-color: #c82333;
+    }
+
+    #shareModal {
+        display: none; 
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        width: 100%; 
+        height: 100%; 
+        background: rgba(0,0,0,0.8); 
+        z-index: 2000; 
+        justify-content: center; 
+        align-items: center;
+    }
+    
+    #shareModal > div {
+        background: #333; 
+        padding: 25px; 
+        border-radius: 10px; 
+        text-align: center; 
+        color: white; 
+        max-width: 80%;
+    }
+    
+    #shareModal h3 {
+        margin-top: 0;
+    }
+    
+    #shareModal div div {
+        display: flex; 
+        gap: 15px; 
+        justify-content: center; 
+        margin-top: 20px;
+    }
+@media (max-width: 768px) {
+    .modal-overlay#modalOverlay .modal {
+        width: 100vw;
+        height: 100vh;
+        max-width: none;
+        max-height: none;
+        padding: 20px;
+        border-radius: 0;
+        box-sizing: border-box;
+    }
+    .modal-footer {
+        flex-direction: column;
+        gap: 8px;
+    }
+    input[type="text"] {
+        width: calc(100% - 20px);
+    }
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.progress-container {
+    width: 80%;
+    max-width: 400px;
+    background-color: #333;
+    border-radius: 5px;
+    padding: 3px;
+    margin-top: 20px;
+}
+
+.progress-bar {
+    height: 20px;
+    background-color: #28a745;
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.3s ease;
+    text-align: center;
+    color: white;
+    font-weight: bold;
+}
+
+.loading-text {
+    color: white;
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+</style>
+</head>
+<body>
+<h2 style="display: flex; align-items: center;"><img alt="Logo" src="image.png" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;"/>
+<span style="font-size: 23px;">ROMANEIO DE SUPORTE</span>
+</h2>
+<p style="font-size: 6px; color: white; margin-left: 17px; margin-top: -14px;">
+    Developed by Isaac Dutra
+</p>
+<div style="margin-left: 5px;">
+<select id="servicoSelect">
+<option disabled="" hidden="" selected="" value="">Selecione um serviço</option>
+</select>
+<button onclick="confirmLoadService()">Carregar Serviço</button>
+<input id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação" style="width: 255px !important;" type="text"/><button id="voiceSearchBtn" onclick="startVoiceRecognition()" style="background-color: #28a745; color: white; padding: 6px 12px; font-size: 14px; border: none; border-radius: 4px; margin-left: 5px;" title="Pesquisar por voz"><img alt="Microfone" height="20" src="https://img.icons8.com/material-rounded/24/ffffff/microphone.png" width="20"/></button>
+<button onclick="downloadExcel()">Download Excel</button>
+<button onclick="startQrScanner()">Escanear QR Code</button>
+<button onclick="voltarParaIndex()" title="Voltar para o Início">
+<svg fill="white" height="16" style="vertical-align: middle; margin-right: 5px;" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
+<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
+</svg>
+        Voltar
+    </button>
+</div>
+<div class="modal-overlay" id="confirmModalOverlay" style="z-index: 2000;">
+<div class="modal" style="text-align: center;">
+<p id="confirmModalMessage" style="font-size: 16px;">Existem dados salvos para este serviço.<br/>Deseja continuar o Romaneio existente? </p>
+<div class="modal-footer">
+<button class="save-btn" id="btnConfirmSim">SIM</button>
+<button class="close-btn" id="btnConfirmNovo" style="background-color: white; color: black;">NOVO ROMANEIO</button>
+</div>
+</div>
+</div>
+<div id="qr-container" style="display: none;">
+<div id="qr-reader" style="width:300px; margin-top:10px;"></div>
+<button class="close-btn" id="closeScannerBtn" onclick="stopQrScanner()" style="display: none;">Fechar Scanner</button>
+</div>
+<div class="table-container">
+<table id="dataTable"></table>
+</div>
+<div class="modal-overlay" id="modalOverlay">
+<div class="modal">
+<input id="editIndex" type="hidden"/>
+<label>Posição / TAG:
+            <input id="POSICAOTAG" readonly="" type="text"/>
+</label>
+<label>Identificação 1:
+            <input id="IDENTIFICACAO1" readonly="" type="text"/>
+</label>
+<label>Identificação 2:
+            <input id="IDENTIFICACAO2" readonly="" type="text"/>
+</label>
+<label>Observação:
+            <input id="OBSERVACAO" readonly="" type="text"/>
+</label>
+<label>Peso (kg):
+            <input id="PesoKg" readonly="" type="text"/>
+</label>
+<label>Data do Romaneio:
+            <input id="DATADOROMANEIO" type="date"/>
+</label>
+<div class="quantidade-container">
+<label>Qtd Enviada:
+                <input class="input-quantidade" id="QTDENVIADA" type="number"/>
+<button id="okBtnKeyboard">
+<svg fill="#28a745" height="20" viewbox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
+<path d="M9 16.17l-3.88-3.88-1.42 1.41L9 19 20.3 7.71l-1.42-1.41z"></path>
+</svg>
+</button>
+</label>
+</div>
+<label>Obs Romaneio:
+            <input id="OBSROMANEIO" type="text"/>
+</label>
+<label>Qtde:
+            <input id="Qtde" readonly="" type="text"/>
+</label>
+<label>Saldo:
+            <input class="saldo-input" id="Saldo" readonly="" type="text"/>
+</label>
+<div class="modal-footer">
+<button class="save-btn" onclick="saveEdit()">Salvar</button>
+<button class="close-btn" onclick="closeModal()">Fechar</button>
+</div>
+</div>
+</div>
+<!-- Modal de Compartilhamento -->
+<div id="shareModal">
+<div>
+<h3>Download concluído!</h3>
+<p>Deseja compartilhar este arquivo agora?</p>
+<div>
+<button onclick="shareLastFile()" style="background-color: #28a745; color: white; border: none; padding: 10px; border-radius: 5px;">Compartilhar</button>
+<button onclick="closeShareModal()" style="background-color: #dc3545; color: white; border: none; padding: 10px; border-radius: 5px;">Fechar</button>
+</div>
+</div>
+</div>
+<script>
+// ========== Variáveis Globais ==========
+let db;
+let data = [];
+let filteredData = [];
+let servicoIndex = 0;
+let columnIndexes = {};
+let editedRows = new Set();
+let qrScanner;
+let currentFileName = "Suportes.xlsx";
+const rowsPerPage = 300;
+let alertaConfirmado = false;
+let currentEventListeners = {};
+let lastDownloadedFile = null;
+
+const hiddenColumns = [
+    "desenho suporte", "informações", "isométrico", "peso (kg)", "cond. pintura",
+    "área superfície", "data corte", "data acoplamento", "data solda",
+    "data jato/pintura", "número romaneio", "data romaneio", "data recebimento",
+    "observação", "area m² unitário", "data cadastro", "rev", "executante", "linha", "spool",
+    "localização", "status", "peso unitário", "qtde enviada", "obs romaneio", "qtde", "saldo", "tipo de suporte", "tipo estrutura", "id", "serviço",
+    "identificação 2", "area m²", "peso", "peso enviado", "área enviada", "peso total", "área m² total"
+];
+
+// ========== Broadcast Channel ==========
+const canal = new BroadcastChannel("romaneio_suporte");
+let bloqueado = false;
+
+canal.onmessage = (event) => {
+  if (event.data === "ja_aberta") {
+    bloqueado = true;
+    alert("Esta página já está aberta em outra aba.");
+    window.close();
+  }
+};
+
+canal.postMessage("ja_aberta");
+
+window.addEventListener("beforeunload", () => {
+  canal.close();
+});
+
+// ========== IndexedDB Helpers ==========
+async function abrirIndexedDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open("RomaneioDB", 1);
+        request.onupgradeneeded = function(event) {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains("edicoes")) {
+                db.createObjectStore("edicoes", { keyPath: "id" });
+            }
+        };
+        request.onsuccess = function(event) {
+            db = event.target.result;
+            resolve(db);
+        };
+        request.onerror = function(event) {
+            reject(event.target.error);
+        };
+    });
+}
+
+async function salvarEdicaoIndexedDB(id, data) {
+    try {
+        if (!db) await abrirIndexedDB();
+        const tx = db.transaction("edicoes", "readwrite");
+        const store = tx.objectStore("edicoes");
+        await store.put({ id, ...data });
+    } catch(e) { 
+        console.error(e);
+    }
+}
+
+async function carregarEdicaoIndexedDB(id) {
+    try {
+        if (!db) await abrirIndexedDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction("edicoes", "readonly");
+            const store = tx.objectStore("edicoes");
+            const request = store.get(id);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    } catch(e) {
+        console.error(e);
+        return null;
+    }
+}
+
+// ========== Funções Principais ==========
+function configurarEventosQuantidade() {
+    const qtdInput = document.getElementById("QTDENVIADA");
+    const okBtn = document.getElementById("okBtnKeyboard");
+
+    // Remove listeners antigos se existirem
+    if (currentEventListeners.input) {
+        qtdInput.removeEventListener('input', currentEventListeners.input);
+    }
+    if (currentEventListeners.focus) {
+        qtdInput.removeEventListener('focus', currentEventListeners.focus);
+    }
+    if (currentEventListeners.blur) {
+        qtdInput.removeEventListener('blur', currentEventListeners.blur);
+    }
+    if (currentEventListeners.click) {
+        okBtn.removeEventListener('click', currentEventListeners.click);
+    }
+
+    // Reset estado
+    alertaConfirmado = false;
+    qtdInput.classList.remove('valido', 'invalido');
+    okBtn.style.display = 'none';
+
+    function atualizarEstado() {
+        const saldo = parseFloat(document.getElementById("Saldo").value || 0);
+        const valor = parseFloat(qtdInput.value || 0);
+
+        qtdInput.classList.remove('valido', 'invalido');
+
+        if (qtdInput.value !== "") {
+            if (valor > saldo) {
+                qtdInput.classList.add('invalido');
+                if (!alertaConfirmado) {
+                    const confirmacao = confirm("ATENÇÃO: Quantidade maior que o saldo!\nDeseja continuar mesmo assim?");
+                    if (!confirmacao) {
+                        qtdInput.value = "";
+                        qtdInput.focus();
+                        return;
+                    }
+                    alertaConfirmado = true;
+                }
+            } else {
+                qtdInput.classList.add('valido');
+                alertaConfirmado = false;
+            }
+        }
+    }
+
+    function handleFocus() {
+        okBtn.style.display = 'block';
+    }
+
+    function handleBlur(e) {
+        if (e.relatedTarget === okBtn) return;
+        const saldo = parseFloat(document.getElementById("Saldo").value || 0);
+        const valor = parseFloat(qtdInput.value || 0);
+
+        if (valor > saldo && !alertaConfirmado) {
+            e.preventDefault();
+            qtdInput.focus();
+        } else {
+            okBtn.style.display = 'none';
+        }
+    }
+
+    function handleOkClick() {
+        const saldo = parseFloat(document.getElementById("Saldo").value || 0);
+        const valor = parseFloat(qtdInput.value || 0);
+
+        if (valor > saldo && !alertaConfirmado) {
+            const confirmacao = confirm("ATENÇÃO: Quantidade maior que o saldo!\nDeseja continuar mesmo assim?");
+            if (!confirmacao) {
+                qtdInput.value = "";
+                qtdInput.focus();
+                return;
+            }
+            alertaConfirmado = true;
+        }
+
+        okBtn.style.display = 'none';
+        qtdInput.blur();
+    }
+
+    // Armazena referências aos listeners atuais
+    currentEventListeners = {
+        input: atualizarEstado,
+        focus: handleFocus,
+        blur: handleBlur,
+        click: handleOkClick
+    };
+
+    // Adiciona novos listeners
+    qtdInput.addEventListener('input', atualizarEstado);
+    qtdInput.addEventListener('focus', handleFocus);
+    qtdInput.addEventListener('blur', handleBlur);
+    okBtn.addEventListener('click', handleOkClick);
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}
+
+document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
+
+async function loadServices() {
+    const loadingOverlay = document.getElementById("loadingOverlay");
+    const progressBar = document.getElementById("progressBar");
+    loadingOverlay.style.display = "flex";
+    progressBar.style.width = "0%";
+    progressBar.textContent = "0%";
+
+    try {
+        const response = await fetch(currentFileName);
+        if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
+
+        // ✅ Mostrar overlay após confirmar que a resposta está ok
+        loadingOverlay.style.display = "flex";
+        progressBar.style.width = "0%";
+        progressBar.textContent = "0%";
+        const arrayBuffer = await response.arrayBuffer();
+        
+        clearPreviousFileData();
+
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
+
+        if (jsonData.length === 0) {
+            throw new Error("O arquivo está vazio ou não contém dados.");
+        }
+
+        window.originalData = JSON.parse(JSON.stringify(jsonData));
+        data = JSON.parse(JSON.stringify(jsonData));
+        filteredData = [];
+
+        const totalRows = data.length - 1;
+        const batchSize = Math.ceil(totalRows / 100);
+        for (let i = 1; i < data.length; i++) {
+            filteredData.push(data[i]);
+
+            if (i % batchSize === 0 || i === data.length - 1) {
+                const percent = Math.min(100, Math.round((i / totalRows) * 80));
+                progressBar.style.width = percent + "%";
+                progressBar.textContent = percent + "%";
+                await new Promise(resolve => setTimeout(resolve, 10));
+            }
+        }
+
+        findColumnIndexes();
+        mapColumnIndexes();
+        await populateServicoOptions();
+
+        progressBar.style.width = "100%";
+        progressBar.textContent = "100%";
+        setTimeout(() => {
+            loadingOverlay.style.display = "none";
+        }, 500);
+
+        const suporte_ultimoServico = await carregarEdicaoIndexedDB("suporte_ultimoServico");
+        const servicoSelect = document.getElementById("servicoSelect");
+
+        if (suporte_ultimoServico?.valor && Array.from(servicoSelect.options).some(o => o.value === suporte_ultimoServico.valor)) {
+            servicoSelect.value = suporte_ultimoServico.valor;
+            renderSelectedServico(true);
+        } else if (servicoSelect.options.length > 0) {
+            servicoSelect.value = servicoSelect.options[0].value;
+            renderSelectedServico(true);
+        }
+    } catch (error) {
+        console.error("Erro ao carregar Excel:", error);
+        alert("Não foi possível carregar o arquivo do diretório.");
+        document.getElementById("loadingOverlay").style.display = "none";
+    }
+}
+
+async function confirmLoadService() {
+    const senhaCorreta = "1234";
+    const tentativa = prompt("Digite a senha para continuar:");
+
+    if (tentativa !== senhaCorreta) {
+        alert("Senha incorreta. Ação cancelada.");
+        return;
+    }
+
+    const selectedServico = document.getElementById("servicoSelect").value;
+    if (!selectedServico) {
+        alert("Selecione um serviço da lista para carregar.");
+        return;
+    }
+
+    const stored = await carregarEdicaoIndexedDB("suporte_edicoes");
+    const parsed = stored ? JSON.parse(stored.valor || "{}") : {};
+    const temEdicoesSalvas = parsed[currentFileName] && parsed[currentFileName][selectedServico] && Object.keys(parsed[currentFileName][selectedServico]).length > 0;
+
+    if (temEdicoesSalvas) {
+        const overlay = document.getElementById("confirmModalOverlay");
+        overlay.style.display = "flex";
+
+        const simBtn = document.getElementById("btnConfirmSim");
+        const novoBtn = document.getElementById("btnConfirmNovo");
+
+        const fecharModal = () => {
+            overlay.style.display = "none";
+            simBtn.onclick = null;
+            novoBtn.onclick = null;
+        };
+
+        simBtn.onclick = () => {
+            fecharModal();
+            renderSelectedServico(true);
+        };
+
+        novoBtn.onclick = () => {
+            delete parsed[currentFileName][selectedServico];
+            salvarEdicaoIndexedDB("suporte_edicoes", { id: "suporte_edicoes", valor: JSON.stringify(parsed) });
+            fecharModal();
+            renderSelectedServico(false);
+        };
+    } else {
+        renderSelectedServico(false);
+    }
+}
+
+async function renderSelectedServico(manterEdicoes = false) {
+    const selectedServico = document.getElementById("servicoSelect").value;
+
+    if (window.originalData) {
+        data = JSON.parse(JSON.stringify(window.originalData));
+        filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
+    }
+
+    if (!manterEdicoes) {
+        editedRows.clear();
+        const stored = await carregarEdicaoIndexedDB("suporte_edicoes");
+        const parsed = stored ? JSON.parse(stored.valor || "{}") : {};
+        if (parsed[currentFileName] && parsed[currentFileName][selectedServico]) {
+            delete parsed[currentFileName][selectedServico];
+            await salvarEdicaoIndexedDB("suporte_edicoes", { id: "suporte_edicoes", valor: JSON.stringify(parsed) });
+        }
+    } else {
+        await loadSavedEdits();
+    }
+
+    await salvarEdicaoIndexedDB("suporte_ultimoServico", { id: "suporte_ultimoServico", valor: selectedServico });
+    document.getElementById("dataTable").innerHTML = "";
+    renderTable();
+
+  if (filtroInput.value.trim() !== "" && filteredData.length > 0) filtroInput.value = "";}
+
+async function loadSavedEdits() {
+    try {
+        const stored = await carregarEdicaoIndexedDB("suporte_edicoes");
+        const parsed = stored ? JSON.parse(stored.valor || "{}") : {};
+        const currentServico = document.getElementById("servicoSelect").value;
+
+        if (!parsed[currentFileName] || !parsed[currentFileName][currentServico]) {
+            return;
+        }
+
+        const servicoEdits = parsed[currentFileName][currentServico];
+
+        Object.entries(servicoEdits).forEach(([id, edit]) => {
+            const rowIndex = data.findIndex(row => row[columnIndexes["id"]] == id);
+            if (rowIndex !== -1 && data[rowIndex][servicoIndex] === currentServico) {
+                data[rowIndex][columnIndexes["data do romaneio"]] = edit.dataRomaneio || "";
+                data[rowIndex][columnIndexes["qtd enviada"]] = edit.qtdEnviada || "";
+                data[rowIndex][columnIndexes["obs romaneio"]] = edit.obsRomaneio || "";
+                editedRows.add(rowIndex);
+            }
+        });
+    } catch (e) {
+        console.error('Erro ao cargar edições salvas:', e);
+    }
+}
+
+function clearPreviousFileData() {
+    editedRows.clear();
+}
+
+function formatDate(dateString) {
+    if (!dateString) return "";
+
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
+        return dateString;
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        const [ano, mes, dia] = dateString.split("-");
+        return `${dia}/${mes}/${ano}`;
+    }
+
+    return "";
+}
+
+function formatDateForInput(dateString) {
+    if (!dateString) return "";
+
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
+        const [dia, mes, ano] = dateString.split('/');
+        return `${ano}-${mes}-${dia}`;
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        return dateString;
+    }
+
+    return "";
+}
+
+function findColumnIndexes() {
+    const headers = data[0];
+    servicoIndex = headers.findIndex(header => header.trim().toLowerCase() === "serviço");
+
+    if (servicoIndex === -1) {
+        alert("Coluna 'SERVIÇO' não encontrada no arquivo. Certifique-se de que existe uma coluna com este nome.");
+        return;
+    }
+
+    columnIndexes = {};
+    headers.forEach((name, index) => {
+        columnIndexes[name.trim().toLowerCase()] = index;
+    });
+}
+
+function mapColumnIndexes() {
+    const headers = data[0];
+    columnIndexes = {};
+    headers.forEach((name, index) => {
+        columnIndexes[name.trim().toLowerCase()] = index;
+    });
+}
+
+async function populateServicoOptions() {
+    const servicoSet = new Set();
+
+    if (servicoIndex === -1 || !data.length) {
+        return;
+    }
+
+    for (let i = 1; i < data.length; i++) {
+        const servico = data[i][servicoIndex];
+        if (servico && servico.trim() !== "") {
+            servicoSet.add(servico.trim());
+        }
+    }
+
+    const servicoSelect = document.getElementById("servicoSelect");
+    servicoSelect.innerHTML = '<option value="" disabled selected hidden>Selecione um serviço</option>';
+
+    const servicosOrdenados = Array.from(servicoSet).sort();
+
+    servicosOrdenados.forEach(servico => {
+        const option = document.createElement("option");
+        option.value = servico;
+        option.textContent = servico;
+        servicoSelect.appendChild(option);
+    });
+
+    const suporte_ultimoServico = await carregarEdicaoIndexedDB("suporte_ultimoServico");
+    if (suporte_ultimoServico?.valor && servicosOrdenados.includes(suporte_ultimoServico.valor)) {
+        servicoSelect.value = suporte_ultimoServico.valor;
+    }
+}
+
+function applyFilter() {
+  const filtroInput = document.getElementById("identificacaoFilter");
+    const filterValue = document.getElementById("identificacaoFilter").value.trim().toLowerCase();
+    const currentServico = document.getElementById("servicoSelect").value;
+
+    const colIdentificacao1 = columnIndexes["identificação 1"];
+    const colQR = columnIndexes["qr"];
+
+    filteredData = data.slice(1).filter(row => {
+        if (currentServico && row[servicoIndex] !== currentServico) {
+            return false;
+        }
+
+        const identificacao1 = String(row[colIdentificacao1] || "").toLowerCase();
+        const qr = String(row[colQR] || "").toLowerCase();
+
+        return identificacao1.includes(filterValue) || qr.includes(filterValue);
+    });
+
+    renderTable();
+
+  if (filtroInput.value.trim() !== "" && filteredData.length > 0) filtroInput.value = "";}
+
+function renderTable() {
+    const table = document.getElementById("dataTable");
+    table.innerHTML = "";
+
+    if (!data.length) return;
+
+    const fragment = document.createDocumentFragment();
+
+    const colunasExibidas = [
+        "posição / tag",
+        "identificação 1",
+        "data do romaneio",
+        "qtd enviada",
+        "prog. fab.",
+        "qr"
+    ];
+
+    const headerRow = document.createElement("tr");
+    colunasExibidas.forEach(col => {
+        const th = document.createElement("th");
+        th.textContent = col.toUpperCase();
+        headerRow.appendChild(th);
+    });
+    fragment.appendChild(headerRow);
+
+    const rowsComEdicao = [];
+    const rowsSemEdicao = [];
+
+    filteredData.forEach((row) => {
+        const originalIndex = data.indexOf(row);
+        if (editedRows.has(originalIndex)) {
+            rowsComEdicao.push(row);
+        } else {
+            rowsSemEdicao.push(row);
+        }
+    });
+
+    const rowsOrdenadas = [...rowsComEdicao, ...rowsSemEdicao];
+
+    rowsOrdenadas.slice(0, rowsPerPage).forEach((row) => {
+        const originalIndex = data.indexOf(row);
+        if (originalIndex === -1) return;
+
+        const tr = document.createElement("tr");
+        tr.onclick = () => openEditModal(originalIndex);
+
+        colunasExibidas.forEach(col => {
+            const colIndex = columnIndexes[col];
+            const td = document.createElement("td");
+            let cellValue = row[colIndex] || "";
+
+            if (col === "data do romaneio") {
+                cellValue = formatDate(cellValue);
+            }
+
+            td.textContent = cellValue;
+            tr.appendChild(td);
+        });
+
+        if (editedRows.has(originalIndex)) {
+            tr.classList.add("edited-row");
+        }
+
+        fragment.appendChild(tr);
+    });
+
+    table.appendChild(fragment);
+}
+
+function openEditModal(index) {
+    if (index < 0 || index >= data.length) return;
+
+    document.getElementById("editIndex").value = index;
+    document.getElementById("POSICAOTAG").value = data[index][columnIndexes["posição / tag"]] || "";
+    document.getElementById("IDENTIFICACAO1").value = data[index][columnIndexes["identificação 1"]] || "";
+    document.getElementById("IDENTIFICACAO2").value = data[index][columnIndexes["identificação 2"]] || "";
+    document.getElementById("OBSERVACAO").value = data[index][columnIndexes["observação"]] || "";
+    document.getElementById("PesoKg").value = data[index][columnIndexes["peso (kg)"]] || "";
+    
+    const dataRomaneio = data[index][columnIndexes["data do romaneio"]];
+    document.getElementById("DATADOROMANEIO").value = formatDateForInput(dataRomaneio);
+    
+    document.getElementById("QTDENVIADA").value = data[index][columnIndexes["qtd enviada"]] || "";
+    document.getElementById("OBSROMANEIO").value = data[index][columnIndexes["obs romaneio"]] || "";
+    document.getElementById("Qtde").value = data[index][columnIndexes["qtde"]] || "";
+
+    const saldo = parseFloat(data[index][columnIndexes["saldo"]] || 0);
+    const saldoInput = document.getElementById("Saldo");
+    saldoInput.value = saldo;
+    
+    saldoInput.className = "saldo-input";
+    if (saldo < 0) {
+        saldoInput.classList.add("saldo-negativo");
+    } else {
+        saldoInput.classList.add("saldo-positivo");
+    }
+
+    const observacaoInput = document.getElementById("OBSERVACAO");
+    const valorObs = data[index][columnIndexes["observação"]] || "";
+    observacaoInput.value = valorObs;
+
+    const corFundo = (valorObs && valorObs.trim().toUpperCase() !== "N/A" && valorObs.trim().toUpperCase() !== "NA")
+        ? "rgba(255, 193, 7, 0.2)" 
+        : "#2c2c2c";
+
+    observacaoInput.style.backgroundColor = corFundo;  
+
+    configurarEventosQuantidade();
+
+    document.getElementById("modalOverlay").style.display = "flex";
+    document.body.style.overflow = "hidden";
+}
+
+async function saveEdit() {
+    try {
+        const originalIndex = parseInt(document.getElementById("editIndex").value);
+        const selectedServico = document.getElementById("servicoSelect").value;
+
+        const dataRomaneio = document.getElementById("DATADOROMANEIO").value.trim();
+        const qtdEnviada = document.getElementById("QTDENVIADA").value.trim();
+        const obsRomaneio = document.getElementById("OBSROMANEIO").value.trim();
+
+        if (dataRomaneio && !qtdEnviada) {
+            alert("Informe a Quantidade Enviada antes de salvar.");
+            document.getElementById("QTDENVIADA").focus();
+            return;
+        }
+
+        if (qtdEnviada && !dataRomaneio) {
+            alert("Informe a Data do Romaneio antes de salvar.");
+            document.getElementById("DATADOROMANEIO").focus();
+            return;
+        }
+
+        if (data[originalIndex][servicoIndex] !== selectedServico) {
+            alert("ERRO: O item não pertence ao serviço selecionado!");
+            closeModal();
+            return;
+        }
+
+        data[originalIndex][columnIndexes["data do romaneio"]] = dataRomaneio;
+        data[originalIndex][columnIndexes["qtd enviada"]] = qtdEnviada;
+        data[originalIndex][columnIndexes["obs romaneio"]] = obsRomaneio;
+
+        const id = data[originalIndex][columnIndexes["id"]];
+        const stored = await carregarEdicaoIndexedDB("suporte_edicoes");
+        const parsed = stored ? JSON.parse(stored.valor || "{}") : {};
+
+        if (!parsed[currentFileName]) parsed[currentFileName] = {};
+        if (!parsed[currentFileName][selectedServico]) parsed[currentFileName][selectedServico] = {};
+
+        if (dataRomaneio || qtdEnviada || obsRomaneio) {
+            parsed[currentFileName][selectedServico][id] = {
+                dataRomaneio,
+                qtdEnviada,
+                obsRomaneio
+            };
+            editedRows.add(originalIndex);
+        } else {
+            delete parsed[currentFileName][selectedServico][id];
+            editedRows.delete(originalIndex);
+        }
+
+        await salvarEdicaoIndexedDB("suporte_edicoes", { id: "suporte_edicoes", valor: JSON.stringify(parsed) });
+        await salvarEdicaoIndexedDB("suporte_ultimoServico", { id: "suporte_ultimoServico", valor: selectedServico });
+
+        closeModal();
+        renderTable();
+    
+  if (filtroInput.value.trim() !== "" && filteredData.length > 0) filtroInput.value = "";} catch(e) { 
+        console.error('Erro ao salvar edição:', e); 
+        alert('Erro ao salvar edição'); 
+    }
+}
+
+function closeModal() {
+    const qtdInput = document.getElementById("QTDENVIADA");
+    const okBtn = document.getElementById("okBtnKeyboard");
+    
+    // Remove todos os listeners
+    if (currentEventListeners.input) {
+        qtdInput.removeEventListener('input', currentEventListeners.input);
+    }
+    if (currentEventListeners.focus) {
+        qtdInput.removeEventListener('focus', currentEventListeners.focus);
+    }
+    if (currentEventListeners.blur) {
+        qtdInput.removeEventListener('blur', currentEventListeners.blur);
+    }
+    if (currentEventListeners.click) {
+        okBtn.removeEventListener('click', currentEventListeners.click);
+    }
+    
+    // Reset UI
+    qtdInput.classList.remove('valido', 'invalido');
+    okBtn.style.display = 'none';
+    
+    document.getElementById("modalOverlay").style.display = "none";
+    document.body.style.overflow = "";
+}
+
+function startQrScanner() {
+    document.getElementById("qr-container").style.display = "block";
+    document.getElementById("closeScannerBtn").style.display = "block";
+
+    qrScanner = new Html5Qrcode("qr-reader");
+    qrScanner.start(
+        { facingMode: "environment" },
+        {
+            fps: 10,
+            qrbox: 250
+        },
+        (decodedText, decodedResult) => {
+            document.getElementById("identificacaoFilter").value = decodedText;
+            applyFilter();
+            stopQrScanner();
+        },
+        (errorMessage) => {
+            console.error(errorMessage);
+        }
+    ).catch((err) => {
+        console.error(err);
+    });
+}
+
+function stopQrScanner() {
+    // Esconde imediatamente para evitar atraso visual
+    document.getElementById("qr-container").style.display = "none";
+    document.getElementById("closeScannerBtn").style.display = "none";
+
+    // Para o scanner depois
+    if (qrScanner) {
+        qrScanner.stop().then(() => {
+            qrScanner.clear();
+            qrScanner = null; // limpa a referência
+        }).catch((err) => {
+            console.error("Erro ao parar o scanner:", err);
+        });
+    }
+}
+
+function downloadExcel() {
+    if (!data.length) {
+        alert("Nenhum dado carregado para exportar.");
+        return;
+    }
+
+    const currentServico = document.getElementById("servicoSelect").value;
+    
+    const editedOnlyRows = Array.from(editedRows)
+        .map(index => data[index])
+        .filter(row => row[servicoIndex] === currentServico);
+    let dataToExport = [data[0], ...editedOnlyRows.map(row => [...row])];
+
+    // Formatação de dados (original)
+    const findColumnIndex = (colName) => {
+        const lowerColName = colName.toLowerCase().replace(/\s+/g, '');
+        for (let i = 0; i < data[0].length; i++) {
+            const header = String(data[0][i]).toLowerCase().replace(/\s+/g, '');
+            if (header === lowerColName) {
+                return i;
+            }
+        }
+        return undefined;
+    };
+
+    const colIndexes = {
+        qtde: findColumnIndex("qtde"),
+        qtdEnviada: findColumnIndex("QTD ENVIADA"),
+        qtdeEnviada: findColumnIndex("Qtde Enviada"),
+        saldo: findColumnIndex("saldo"),
+        pesoKg: findColumnIndex("peso (kg)"),
+        areaSuperficie: findColumnIndex("área superfície"),
+        pesoEnviado: findColumnIndex("peso enviado"),
+        areaEnviada: findColumnIndex("área enviada"),
+        pesoUnitario: findColumnIndex("peso unitário"),
+        areaUnitario: findColumnIndex("area m² unitário"),
+        pesoTotal: findColumnIndex("peso total"),
+        areaTotal: findColumnIndex("área m² total"),
+        dataRomaneio1: findColumnIndex("DATA DO ROMANEIO"),
+        dataRomaneio2: findColumnIndex("Data Romaneio")
+    };
+
+    const formatDateBR = (value) => {
+        if (!value) return "";
+
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+            return value;
+        }
+
+        if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(value)) {
+            const [mes, dia, ano] = value.split('/');
+            let anoCorrigido = ano.length === 2 ? `20${ano}` : ano;
+            const diaFormatado = String(dia).padStart(2, '0');
+            const mesFormatado = String(mes).padStart(2, '0');
+            return `${diaFormatado}/${mesFormatado}/${anoCorrigido}`;
+        }
+
+        if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+            const [ano, mes, dia] = value.split("-");
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        return value;
+    };
+
+    dataToExport.forEach((row, rowIndex) => {
+        if (rowIndex === 0) return;
+
+        const toInt = (value) => {
+            if (value === "" || value === null || value === undefined) return "";
+            const num = Number(value);
+            return isNaN(num) ? value : Math.round(num);
+        };
+
+        const toDecimal = (value) => {
+            if (value === "" || value === null || value === undefined) return "";
+            const num = Number(value);
+            return isNaN(num) ? value : num;
+        };
+
+        if (colIndexes.qtdeEnviada !== undefined) {
+            const originalValue = row[colIndexes.qtdeEnviada];
+            row[colIndexes.qtdeEnviada] = toInt(originalValue);
+            if (originalValue !== "" && !isNaN(Number(originalValue))) {
+                row[colIndexes.qtdeEnviada] = Math.round(Number(originalValue));
+            }
+        }
+
+        if (colIndexes.qtde !== undefined) row[colIndexes.qtde] = toInt(row[colIndexes.qtde]);
+        if (colIndexes.saldo !== undefined) row[colIndexes.saldo] = toInt(row[colIndexes.saldo]);
+
+        if (colIndexes.pesoKg !== undefined) row[colIndexes.pesoKg] = toDecimal(row[colIndexes.pesoKg]);
+        if (colIndexes.areaSuperficie !== undefined) row[colIndexes.areaSuperficie] = toDecimal(row[colIndexes.areaSuperficie]);
+        if (colIndexes.pesoUnitario !== undefined) row[colIndexes.pesoUnitario] = toDecimal(row[colIndexes.pesoUnitario]);
+        if (colIndexes.areaUnitario !== undefined) row[colIndexes.areaUnitario] = toDecimal(row[colIndexes.areaUnitario]);
+        if (colIndexes.pesoTotal !== undefined) row[colIndexes.pesoTotal] = toDecimal(row[colIndexes.pesoTotal]);
+        if (colIndexes.areaTotal !== undefined) row[colIndexes.areaTotal] = toDecimal(row[colIndexes.areaTotal]);
+
+        if (colIndexes.qtdEnviada !== undefined && row[colIndexes.qtdEnviada] !== "") {
+            if (colIndexes.pesoUnitario !== undefined && colIndexes.pesoEnviado !== undefined) {
+                const pesoUnitario = toDecimal(row[colIndexes.pesoUnitario]);
+                const qtdEnviada = toInt(row[colIndexes.qtdEnviada]);
+                if (!isNaN(pesoUnitario) && !isNaN(qtdEnviada)) {
+                    row[colIndexes.pesoEnviado] = pesoUnitario * qtdEnviada;
+                }
+            }
+
+            if (colIndexes.areaUnitario !== undefined && colIndexes.areaEnviada !== undefined) {
+                const areaUnitario = toDecimal(row[colIndexes.areaUnitario]);
+                const qtdEnviada = toInt(row[colIndexes.qtdEnviada]);
+                if (!isNaN(areaUnitario) && !isNaN(qtdEnviada)) {
+                    row[colIndexes.areaEnviada] = areaUnitario * qtdEnviada;
+                }
+            }
+        } else {
+            if (colIndexes.pesoEnviado !== undefined) row[colIndexes.pesoEnviado] = "";
+            if (colIndexes.areaEnviada !== undefined) row[colIndexes.areaEnviada] = "";
+        }
+
+        if (colIndexes.dataRomaneio1 !== undefined) {
+            row[colIndexes.dataRomaneio1] = formatDateBR(row[colIndexes.dataRomaneio1]);
+        }
+        if (colIndexes.dataRomaneio2 !== undefined) {
+            row[colIndexes.dataRomaneio2] = formatDateBR(row[colIndexes.dataRomaneio2]);
+        }
+    });
+
+    const worksheet = XLSX.utils.aoa_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Romaneio");
+
+    if (worksheet["!ref"]) {
+        const range = XLSX.utils.decode_range(worksheet["!ref"]);
+
+        if (colIndexes.qtdEnviada !== undefined) {
+            for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
+                const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: colIndexes.qtdEnviada});
+                if (worksheet[cellAddress]) {
+                    worksheet[cellAddress].t = 'n';
+                    worksheet[cellAddress].z = '#,##0';
+                }
+            }
+        }
+
+        const numericColumns = {
+            inteiros: [colIndexes.qtde, colIndexes.saldo],
+            decimais: [
+                colIndexes.pesoKg, colIndexes.areaSuperficie,
+                colIndexes.pesoEnviado, colIndexes.areaEnviada,
+                colIndexes.pesoUnitario, colIndexes.areaUnitario,
+                colIndexes.pesoTotal, colIndexes.areaTotal
+            ]
+        };
+
+        numericColumns.inteiros.forEach(col => {
+            if (col !== undefined) {
+                for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
+                    const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: col});
+                    if (worksheet[cellAddress] && worksheet[cellAddress].v !== "") {
+                        worksheet[cellAddress].t = 'n';
+                        worksheet[cellAddress].z = '#,##0';
+                    }
+                }
+            }
+        });
+
+        numericColumns.decimais.forEach(col => {
+            if (col !== undefined) {
+                for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex++) {
+                    const cellAddress = XLSX.utils.encode_cell({r: rowIndex, c: col});
+                    if (worksheet[cellAddress] && worksheet[cellAddress].v !== "") {
+                        worksheet[cellAddress].t = 'n';
+                        worksheet[cellAddress].z = '#,##0.00';
+                    }
+                }
+            }
+        });
+    }
+
+    worksheet["!cols"] = data[0].map((_, i) => ({
+        wch: Math.max(...dataToExport.map(row => (row[i] ? row[i].toString().length : 10))) + 2
+    }));
+
+    const fileName = `Romaneio_Suporte_${currentServico || ''}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    lastDownloadedFile = {
+        blob: new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+        fileName: fileName
+    };
+
+    setTimeout(showShareModal, 1000);
+}
+
+function showShareModal() {
+    const modal = document.getElementById("shareModal");
+    if (modal && /Android|iPhone|iPad/i.test(navigator.userAgent)) {
+        modal.style.display = "flex";
+    }
+}
+
+function closeShareModal() {
+    const modal = document.getElementById("shareModal");
+    if (modal) {
+        modal.style.display = "none";
+        lastDownloadedFile = null;
+    }
+}
+
+function shareLastFile() {
+    if (!lastDownloadedFile) {
+        closeShareModal();
+        return;
+    }
+    try {
+        const servico = document.getElementById("servicoSelect").value || "Serviço";
+        const assunto = `Romaneio - ${servico}`;
+        const corpo = `Segue em anexo o Romaneio de Suporte referente ao serviço ${servico}.
+
+Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar.`;
+        const mailtoLink = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
+        window.location.href = mailtoLink;
+    } catch (error) {
+        alert("Erro ao tentar compartilhar via e-mail.");
+    } finally {
+        closeShareModal();
+    }
+}
+
+function voltarParaIndex() {
+    window.location.href = "index.html";
+}
+
+// Inicialização
+document.addEventListener('DOMContentLoaded', () => {
+    loadServices();
+
+document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
+
+    document.getElementById("servicoSelect").addEventListener("change", confirmLoadService);
+    });
+
+window.addEventListener('beforeunload', async function() {
+    const stored = await carregarEdicaoIndexedDB("suporte_edicoes");
+    const parsed = stored ? JSON.parse(stored.valor || "{}") : {};
+    await salvarEdicaoIndexedDB("suporte_edicoes", { id: "suporte_edicoes", valor: JSON.stringify(parsed) });
+});
+
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+        .then((registration) => {
+            console.log('Service Worker registrado com sucesso:', registration);
+        })
+        .catch((error) => {
+            console.error('Erro ao registrar o Service Worker:', error);
+        });
+}
+
+localStorage.setItem("suporte_sistemaAberto", "suporte");
+    
+</script>
+<div class="loading-overlay" id="loadingOverlay" style="display: none;">
+<div class="loading-text">Carregando sistema...</div>
+<div class="progress-container">
+<div class="progress-bar" id="progressBar">0%</div>
+</div>
+</div>
+<script>
+function iniciarReconhecimentoVoz() {
+    const campo = document.getElementById("identificacaoFilter");
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("Reconhecimento de voz não suportado neste navegador.");
+        return;
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = "pt-BR";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.start();
+
+    recognition.onresult = function(event) {
+        const resultado = event.results[0][0].transcript;
+        campo.value = resultado;
+        applyFilter();
+    };
+
+    recognition.onerror = function(event) {
+        alert("Erro no reconhecimento de voz: " + event.error);
+    };
+}
+</script>
+<script>
+function startVoiceRecognition() {
+  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = "pt-BR";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onresult = function(event) {
+    const result = event.results[0][0].transcript;
+    document.getElementById('identificacaoFilter').value = result;
+    if (typeof applyFilter === 'function') applyFilter();
+  };
+
+  recognition.onerror = function(event) {
+    console.error("Erro no reconhecimento de voz:", event.error);
+  };
+
+  recognition.start();
+}
+</script></body>
+</html>
