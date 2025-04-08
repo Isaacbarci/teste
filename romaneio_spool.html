@@ -1241,7 +1241,7 @@ function startVoiceRecognition() {
 }
 </script><script>
 function normalizarTextoFalado(texto) {
-    texto = texto.replace(/\b(tra[çc]o|trasso)\b/gi, "-");
+    texto = texto.replace(/(tra[çc]o|trasso)/gi, "-");
     texto = texto.replace(/\btra[çc]o\b/gi, "-");
     texto = texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/\s+/g, "");texto = texto.replace(/(ZERO|UM|UMA|DOIS|DUAS|TRES|TRÊS|QUATRO|CINCO|SEIS|SETE|OITO|NOVE|DEZ|ONZE|DOZE|TREZE|CATORZE|QUINZE|DEZESSEIS|DEZESSETE|DEZOITO|DEZENOVE|VINTE|TRINTA|QUARENTA|CINQUENTA|SESSENTA|SETENTA|OITENTA|NOVENTA|CEM|CENTO|DUZENTOS|TREZENTOS|QUATROCENTOS|QUINHENTOS|SEISCENTOS|SETECENTOS|OITOCENTOS|NOVECENTOS|MIL|E)/gi, function(p) {
         const mapa = {
