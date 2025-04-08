@@ -970,7 +970,7 @@ function applyFilter() {
     const currentServico = document.getElementById("servicoSelect").value;
 
     const colIdentificacao1 = columnIndexes["identificação 1"];
-    const colQR = columnIndexes["qr"];
+    const colQR = columnIndexes[];
 
     filteredData = data.slice(1).filter(row => {
         if (currentServico && row[servicoIndex] !== currentServico) {
@@ -1001,7 +1001,7 @@ function renderTable() {
         "data do romaneio",
         "qtd enviada",
         "prog. fab.",
-        "qr"
+        
     ];
 
     const headerRow = document.createElement("tr");
