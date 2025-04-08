@@ -847,7 +847,7 @@ async function renderSelectedServico(manterEdicoes = false) {
     document.getElementById("dataTable").innerHTML = "";
     renderTable();
 
-  if (filtroInput.value.trim() !== "" && filteredData.length > 0) filtroInput.value = "";}
+  }
 
 async function loadSavedEdits() {
     try {
@@ -985,7 +985,7 @@ function applyFilter() {
 
     renderTable();
 
-  if (filtroInput.value.trim() !== "" && filteredData.length > 0) filtroInput.value = "";}
+  }
 
 function renderTable() {
     const table = document.getElementById("dataTable");
@@ -1156,7 +1156,7 @@ async function saveEdit() {
         closeModal();
         renderTable();
     
-  if (filtroInput.value.trim() !== "" && filteredData.length > 0) filtroInput.value = "";} catch(e) { 
+  } catch(e) { 
         console.error('Erro ao salvar edição:', e); 
         alert('Erro ao salvar edição'); 
     }
@@ -1540,6 +1540,8 @@ function startVoiceRecognition() {
   };
 
   recognition.start();
+
+    if (filtroInput.value.trim() !== "" && filteredData.length > 0) filtroInput.value = "";
 }
 </script></body>
 </html>
