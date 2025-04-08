@@ -1,5 +1,5 @@
 const CACHE_NAME = 
-    'romaneio-cache-v17';
+    'romaneio-cache-v18';
 
 const FILES_TO_CACHE = [
     'index.html',
