@@ -8,6 +8,32 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode"></script>
 <style>
+/* Fixar cabeçalho da tabela */
+    .table-container table thead th {
+        position: sticky;
+        top: 0;
+        background-color: #007BFF;
+        z-index: 999;
+    }
+
+    /* Fixar menu de filtros e botões */
+    #mobile-container {
+        position: sticky;
+        top: 60px;
+        background-color: #000;
+        z-index: 998;
+        padding: 10px 0;
+    }
+
+    /* Fixar título h2 */
+    h2 {
+        position: sticky;
+        top: 0;
+        background-color: #000;
+        z-index: 999;
+        padding: 10px;
+    }
+
     body {
         font-family: Arial, sans-serif;
         margin: 0;
