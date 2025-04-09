@@ -5,8 +5,46 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Suporte</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
-<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
+document.getElementById("btnClearFilter").addEventListener("click", () => {
+    const filtro = document.getElementById("identificacaoFilter");
+    filtro.value = "";
+    applyFilter();
+});
+
+function confirmarVoltar() {
+    if (confirm("Tem certeza que deseja voltar para o menu principal?")) {
+        voltarParaIndex();
+    }
+}
+
+document.getElementById("identificacaoFilter").addEventListener("input", function() {
+    this.value = this.value.toUpperCase();
+});
+
+</script>
+
+
+<script src="https://unpkg.com/html5-qrcode">
+document.getElementById("btnClearFilter").addEventListener("click", () => {
+    const filtro = document.getElementById("identificacaoFilter");
+    filtro.value = "";
+    applyFilter();
+});
+
+function confirmarVoltar() {
+    if (confirm("Tem certeza que deseja voltar para o menu principal?")) {
+        voltarParaIndex();
+    }
+}
+
+document.getElementById("identificacaoFilter").addEventListener("input", function() {
+    this.value = this.value.toUpperCase();
+});
+
+</script>
+
+
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -354,7 +392,7 @@
 @media (max-width: 768px) {
     .modal-overlay#modalOverlay .modal {
         width: 100vw;
-        height: 100vh;
+        height: 100dvh;
         max-width: none;
         max-height: none;
         padding: 20px;
@@ -409,65 +447,58 @@
     margin-bottom: 10px;
     font-size: 18px;
 }
-</style>
 
-<style>
+/* Modal de confirmação padrão */
+.confirm-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 3000;
+    justify-content: center;
+    align-items: center;
+}
+
+.confirm-modal {
+    background-color: #1e1e1e;
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.confirm-modal button {
+    margin-top: 15px;
+    padding: 10px 15px;
+    border-radius: 5px;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    width: 100%;
+}
+
+.confirm-modal .btn-ok {
+    background-color: #28a745;
+    color: white;
+}
+
+.confirm-modal .btn-cancel {
+    background-color: #dc3545;
+    color: white;
+    margin-top: 10px;
+}
+
 @media (max-width: 768px) {
-    .modal-overlay#modalOverlay .modal {
-        width: 100vw !important;
-        height: 100dvh !important; /* Altura dinâmica real */
-        max-width: none !important;
-        max-height: none !important;
-        padding: 20px !important;
-        border-radius: 0 !important;
-        box-sizing: border-box !important;
-        overflow-y: auto !important;
-    }
-
-    .modal-footer {
-        flex-direction: column !important;
-        gap: 10px !important;
-    }
-
-    .modal input, .modal label {
-        font-size: 16px !important;
-    }
-
-    .modal input[type="date"] {
-        font-size: 14px !important;
+    .confirm-modal {
+        width: 95%;
+        padding: 15px;
     }
 }
+
 </style>
-
-
-<style>
-@media (max-width: 768px) {
-    .modal-overlay#modalOverlay .modal {
-        width: 100vw !important;
-        height: 100dvh !important; /* Altura dinâmica real */
-        max-width: none !important;
-        max-height: none !important;
-        padding: 20px !important;
-        border-radius: 0 !important;
-        box-sizing: border-box !important;
-        overflow-y: auto !important;
-    }
-
-    .modal-footer {
-        flex-direction: column !important;
-        gap: 10px !important;
-    }
-
-    .modal input, .modal label {
-        font-size: 16px !important;
-    }
-
-    .modal input[type="date"] {
-        font-size: 14px !important;
-    }
-}
-</style>
-
 </head>
 <body>
 <h2 style="display: flex; align-items: center;"><img alt="Logo" src="image.png" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;"/>
@@ -481,13 +512,14 @@
 <option disabled="" hidden="" selected="" value="">Selecione um serviço</option>
 </select>
 <button onclick="confirmLoadService()">Carregar Serviço</button>
-<input id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação" style="width: 255px !important;" type="text"/><button id="voiceSearchBtn" onclick="startVoiceRecognition()" style="background-color: #28a745; color: white; padding: 6px 12px; font-size: 14px; border: none; border-radius: 4px; margin-left: 5px;" title="Pesquisar por voz"><img alt="Microfone" height="20" src="https://img.icons8.com/material-rounded/24/ffffff/microphone.png" width="20"/></button>
+<input id="identificacaoFilter" style="text-transform: uppercase;" placeholder="Filtrar por QR ou Identificação" type="text"/>
+<button id="btnClearFilter" title="Limpar filtro" style="padding: 6px 8px; font-size: 12px; margin-left: 5px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; height: 36px; vertical-align: middle;">✕</button>
 <button onclick="downloadExcel()">Download Excel</button>
 <button onclick="startQrScanner()">Escanear QR Code</button>
-<button title="Voltar para o Início" onclick="voltarParaIndex()">
-    <svg fill="white" height="16" style="vertical-align: middle; margin-right: 5px;" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
-    </svg>
+<button class="close-btn" onclick="confirmarVoltar()" title="Voltar para o Início">
+<svg fill="white" height="16" style="vertical-align: middle; margin-right: 5px;" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
+<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
+</svg>
         Voltar
     </button>
 </div>
@@ -585,7 +617,7 @@ const hiddenColumns = [
     "data jato/pintura", "número romaneio", "data romaneio", "data recebimento",
     "observação", "area m² unitário", "data cadastro", "rev", "executante", "linha", "spool",
     "localização", "status", "peso unitário", "qtde enviada", "obs romaneio", "qtde", "saldo", "tipo de suporte", "tipo estrutura", "id", "serviço",
-    "identificação 2", "area m²", "peso", "peso enviado", "área enviada", "peso total", "área m² total"
+    "identificação 2", "area m²", "peso", "peso enviado", "área enviada", "peso total", "área m² total", "QR"
 ];
 
 // ========== Broadcast Channel ==========
@@ -904,8 +936,7 @@ async function renderSelectedServico(manterEdicoes = false) {
     await salvarEdicaoIndexedDB("suporte_ultimoServico", { id: "suporte_ultimoServico", valor: selectedServico });
     document.getElementById("dataTable").innerHTML = "";
     renderTable();
-
-  }
+}
 
 async function loadSavedEdits() {
     try {
@@ -1023,12 +1054,11 @@ async function populateServicoOptions() {
 }
 
 function applyFilter() {
-  const filtroInput = document.getElementById("identificacaoFilter");
     const filterValue = document.getElementById("identificacaoFilter").value.trim().toLowerCase();
     const currentServico = document.getElementById("servicoSelect").value;
 
     const colIdentificacao1 = columnIndexes["identificação 1"];
-    const colQR = columnIndexes["qr"] || columnIndexes["QR"];
+    const colQR = columnIndexes["qr"];
 
     filteredData = data.slice(1).filter(row => {
         if (currentServico && row[servicoIndex] !== currentServico) {
@@ -1042,8 +1072,7 @@ function applyFilter() {
     });
 
     renderTable();
-
-  }
+}
 
 function renderTable() {
     const table = document.getElementById("dataTable");
@@ -1059,7 +1088,7 @@ function renderTable() {
         "data do romaneio",
         "qtd enviada",
         "prog. fab."
-];
+    ];
 
     const headerRow = document.createElement("tr");
     colunasExibidas.forEach(col => {
@@ -1212,19 +1241,10 @@ async function saveEdit() {
 
         closeModal();
         renderTable();
-
-        const filtroInput = document.getElementById("identificacaoFilter");
-        if (filtroInput.value.trim() !== "") {
-            filtroInput.value = "";
-            applyFilter();
-        }
-    
-  } catch(e) { 
+    } catch(e) { 
         console.error('Erro ao salvar edição:', e); 
         alert('Erro ao salvar edição'); 
     }
-    if (filtroInput.value.trim() !== "" && filteredData.length > 0) filtroInput.value = "";
-        if (filtroInput.value.trim() !== "" && filteredData.length > 0) filtroInput.value = "";
 }
 
 function closeModal() {
@@ -1524,10 +1544,7 @@ Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar
 }
 
 function voltarParaIndex() {
-    const confirmacao = confirm("Deseja realmente voltar para a página inicial?");
-    if (confirmacao) {
-        window.location.href = "index.html";
-    }
+    window.location.href = "index.html";
 }
 
 // Inicialização
@@ -1557,202 +1574,66 @@ if ('serviceWorker' in navigator) {
 
 localStorage.setItem("suporte_sistemaAberto", "suporte");
     
+
+document.getElementById("btnClearFilter").addEventListener("click", () => {
+    const filtro = document.getElementById("identificacaoFilter");
+    filtro.value = "";
+    applyFilter();
+});
+
+function confirmarVoltar() {
+    if (confirm("Tem certeza que deseja voltar para o menu principal?")) {
+        voltarParaIndex();
+    }
+}
+
+document.getElementById("identificacaoFilter").addEventListener("input", function() {
+    this.value = this.value.toUpperCase();
+});
+
+
+function showGenericConfirm(message, onConfirm) {
+    const overlay = document.getElementById("genericConfirmOverlay");
+    const text = document.getElementById("confirmText");
+    const yesBtn = document.getElementById("confirmYes");
+    const noBtn = document.getElementById("confirmNo");
+
+    text.textContent = message;
+    overlay.style.display = "flex";
+
+    const closeModal = () => {
+        overlay.style.display = "none";
+        yesBtn.onclick = null;
+        noBtn.onclick = null;
+    };
+
+    yesBtn.onclick = () => {
+        closeModal();
+        if (onConfirm) onConfirm();
+    };
+
+    noBtn.onclick = closeModal;
+}
+
 </script>
+
+
+
 <div class="loading-overlay" id="loadingOverlay" style="display: none;">
 <div class="loading-text">Carregando sistema...</div>
 <div class="progress-container">
 <div class="progress-bar" id="progressBar">0%</div>
 </div>
 </div>
-<script>
-function iniciarReconhecimentoVoz() {
-    const campo = document.getElementById("identificacaoFilter");
-    if (!('webkitSpeechRecognition' in window)) {
-        alert("Reconhecimento de voz não suportado neste navegador.");
-        return;
-    }
 
-    const recognition = new webkitSpeechRecognition();
-    recognition.lang = "pt-BR";
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.start();
-
-    recognition.onresult = function(event) {
-        const resultado = event.results[0][0].transcript;
-        campo.value = resultado;
-        applyFilter();
-    };
-
-    recognition.onerror = function(event) {
-        alert("Erro no reconhecimento de voz: " + event.error);
-    };
-}
-</script>
-<script>
-function normalizarTextoFalado(texto) {
-    texto = texto.replace(/(tra[çc]o|trasso)/gi, "-");
-    texto = texto.replace(/\btra[çc]o\b/gi, "-");
-    texto = texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/\s+/g, "");texto = texto.replace(/(ZERO|UM|UMA|DOIS|DUAS|TRES|TRÊS|QUATRO|CINCO|SEIS|SETE|OITO|NOVE|DEZ|ONZE|DOZE|TREZE|CATORZE|QUINZE|DEZESSEIS|DEZESSETE|DEZOITO|DEZENOVE|VINTE|TRINTA|QUARENTA|CINQUENTA|SESSENTA|SETENTA|OITENTA|NOVENTA|CEM|CENTO|DUZENTOS|TREZENTOS|QUATROCENTOS|QUINHENTOS|SEISCENTOS|SETECENTOS|OITOCENTOS|NOVECENTOS|MIL|E)/gi, function(p) {
-        const mapa = {
-            "ZERO": "0", "UM": "1", "UMA": "1", "DOIS": "2", "DUAS": "2", "TRES": "3", "TRÊS": "3", "QUATRO": "4", "CINCO": "5",
-            "SEIS": "6", "SETE": "7", "OITO": "8", "NOVE": "9", "DEZ": "10", "ONZE": "11", "DOZE": "12", "TREZE": "13",
-            "CATORZE": "14", "QUINZE": "15", "DEZESSEIS": "16", "DEZESSETE": "17", "DEZOITO": "18", "DEZENOVE": "19",
-            "VINTE": "20", "TRINTA": "30", "QUARENTA": "40", "CINQUENTA": "50", "SESSENTA": "60", "SETENTA": "70",
-            "OITENTA": "80", "NOVENTA": "90", "CEM": "100", "CENTO": "100", "DUZENTOS": "200", "TREZENTOS": "300",
-            "QUATROCENTOS": "400", "QUINHENTOS": "500", "SEISCENTOS": "600", "SETECENTOS": "700",
-            "OITOCENTOS": "800", "NOVECENTOS": "900", "MIL": "1000", "TRAÇO": "-", "TRACO": "-", "TRAÇO": "-", "E": "-", " ": "-"
-        };
-        return mapa[p.toUpperCase()] || p;
-    });
-    texto = texto.replace(/([A-Z])(\d)/g, '$1-$2');
-    return texto;
-}
-
-function interpretarEAplicarFiltroVoz(transcript) {
-    const input = document.getElementById("identificacaoFilter");
-    const valor = normalizarTextoFalado(transcript.trim());
-    input.value = valor;
-    applyFilter();
-}
-</script><script>
-document.addEventListener("DOMContentLoaded", function () {
-    const filtroInput = document.getElementById("identificacaoFilter");
-    if (filtroInput) {
-        filtroInput.addEventListener("input", function () {
-            let valor = filtroInput.value.toUpperCase();
-            filtroInput.value = valor.toUpperCase();
-        });
-    }
-});
- 
-    </script>
-
-
-
-<script>
-document.getElementById("identificacaoFilter").addEventListener("input", function() {
-    this.value = this.value.toUpperCase();
-});
-</script>
-
-
-
-
-<style>
-/* Efeito visual quando estiver ouvindo */
-#voiceSearchBtn.listening {
-    animation: pulse 1s infinite;
-    background-color: #ffc107 !important; /* amarelo */
-}
-
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(255,193,7, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(255,193,7, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(255,193,7, 0); }
-}
-</style>
-
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const filtro = document.getElementById("identificacaoFilter");
-    if (filtro) {
-        filtro.addEventListener("input", function() {
-            this.value = this.value.toUpperCase();
-        });
-    }
-});
-</script>
-
-
-
-
-<style>
-#voiceSearchBtn.listening {
-    animation: pulse 1s infinite;
-    background-color: #ffc107 !important;
-}
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(255,193,7, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(255,193,7, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(255,193,7, 0); }
-}
-</style>
-
-
-<script>
-function startVoiceRecognition() {
-    if (!('webkitSpeechRecognition' in window)) {
-        alert("Reconhecimento de voz não é suportado neste navegador.");
-        return;
-    }
-
-    const btn = document.getElementById("voiceSearchBtn");
-    if (btn.disabled) return;
-
-    btn.disabled = true;
-    btn.classList.add("listening");
-    btn.title = "Ouvindo...";
-
-    const recognition = new webkitSpeechRecognition();
-    recognition.lang = "pt-BR";
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.onresult = function(event) {
-        let texto = event.results[0][0].transcript || "";
-        texto = texto.normalize("NFD").replace(/[̀-ͯ]/g, "");
-
-        const palavrasComTraco = [
-            "traco", "trasso", "traso", "tras", "traço", "trás", "trazu",
-            "braço", "braco", "brasso", "brasu", "braso", "bráço",
-            "tiras", "tira", "tirasso", "tirazo", "trassu", "traçol"
-        ];
-
-        palavrasComTraco.forEach(palavra => {
-            const regex = new RegExp("\b" + palavra + "\b", "gi");
-            texto = texto.replace(regex, "-");
-        });
-
-        texto = texto.replace(/\s+/g, "");
-        texto = texto.toUpperCase();
-
-        document.getElementById("identificacaoFilter").value = texto;
-        applyFilter();
-    };
-
-    recognition.onerror = function(event) {
-        console.error("Erro no reconhecimento de voz:", event.error);
-        if (event.error === "aborted") {
-            alert("O reconhecimento foi interrompido. Tente novamente.");
-        } else {
-            alert("Erro no reconhecimento de voz: " + event.error);
-        }
-    };
-
-    recognition.onend = function() {
-        btn.disabled = false;
-        btn.classList.remove("listening");
-        btn.title = "Pesquisar por voz";
-    };
-
-    recognition.start();
-}
-</script>
-
-<style>
-#voiceSearchBtn.listening {
-    animation: pulse 1s infinite;
-    background-color: #ffc107 !important;
-}
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(255,193,7, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(255,193,7, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(255,193,7, 0); }
-}
-</style>
+<!-- Modal de confirmação padrão -->
+<div class="confirm-overlay" id="genericConfirmOverlay">
+    <div class="confirm-modal">
+        <p id="confirmText">Tem certeza que deseja continuar?</p>
+        <button class="btn-ok" id="confirmYes">Sim</button>
+        <button class="btn-cancel" id="confirmNo">Cancelar</button>
+    </div>
+</div>
 
 </body>
 </html>
