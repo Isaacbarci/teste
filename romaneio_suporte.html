@@ -703,6 +703,8 @@ let alertaConfirmado = false;
 let currentRenderIndex = 0;
 const BATCH_SIZE = 100;
 
+let linhasNaoEditadas = [];
+
 const itemsPerPage = 100;
 let currentEventListeners = {};
 let lastDownloadedFile = null;
@@ -1208,7 +1210,9 @@ function renderTable() {
     const rowsComEdicao = [];
     const rowsSemEdicao = [];
 
-    filteredData.forEach((row) => {
+    linhasNaoEditadas = filteredData.filter((row) => !editedRows.has(data.indexOf(row)));
+
+filteredData.forEach((row) => {
         const originalIndex = data.indexOf(row);
         if (editedRows.has(originalIndex)) {
             rowsComEdicao.push(row);
