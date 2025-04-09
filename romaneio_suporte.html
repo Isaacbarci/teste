@@ -5,8 +5,38 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Suporte</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
-<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
+// === Scroll para carregar mais linhas dinamicamente ===
+window.addEventListener("load", () => {
+    const container = document.querySelector(".table-container");
+
+    if (container) {
+        container.addEventListener("scroll", () => {
+            const nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 50;
+            if (nearBottom) {
+                renderNextBatch();
+            }
+        });
+    }
+});
+
+</script>
+<script src="https://unpkg.com/html5-qrcode">
+// === Scroll para carregar mais linhas dinamicamente ===
+window.addEventListener("load", () => {
+    const container = document.querySelector(".table-container");
+
+    if (container) {
+        container.addEventListener("scroll", () => {
+            const nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 50;
+            if (nearBottom) {
+                renderNextBatch();
+            }
+        });
+    }
+});
+
+</script>
 <style>
 /* Fixar cabeçalho da tabela */
     
@@ -558,6 +588,16 @@ th, td {
     overflow-y: auto;
     position: relative;
 }
+
+table, th {
+    box-sizing: border-box;
+}
+
+table {
+    width: 100%;
+    table-layout: fixed;
+}
+
 </style>
 </head>
 <body>
@@ -1696,6 +1736,21 @@ function showGenericConfirm(message, onConfirm) {
     noBtn.onclick = closeModal;
 }
 
+
+// === Scroll para carregar mais linhas dinamicamente ===
+window.addEventListener("load", () => {
+    const container = document.querySelector(".table-container");
+
+    if (container) {
+        container.addEventListener("scroll", () => {
+            const nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 50;
+            if (nearBottom) {
+                renderNextBatch();
+            }
+        });
+    }
+});
+
 </script>
 <div class="loading-overlay" id="loadingOverlay" style="display: none;">
 <div class="loading-text">Carregando sistema...</div>
@@ -1731,6 +1786,21 @@ window.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+
+// === Scroll para carregar mais linhas dinamicamente ===
+window.addEventListener("load", () => {
+    const container = document.querySelector(".table-container");
+
+    if (container) {
+        container.addEventListener("scroll", () => {
+            const nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 50;
+            if (nearBottom) {
+                renderNextBatch();
+            }
+        });
+    }
+});
+
 </script>
 <script>
 document.querySelector(".table-container").addEventListener("scroll", function () {
@@ -1741,6 +1811,21 @@ renderNextBatch();
 renderNextBatch();
     }
 });
+
+// === Scroll para carregar mais linhas dinamicamente ===
+window.addEventListener("load", () => {
+    const container = document.querySelector(".table-container");
+
+    if (container) {
+        container.addEventListener("scroll", () => {
+            const nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 50;
+            if (nearBottom) {
+                renderNextBatch();
+            }
+        });
+    }
+});
+
 </script>
 <script>
 
@@ -1775,6 +1860,21 @@ document.querySelector(".table-container").onscroll = () => {
         renderNextBatch();
     }
 };
+
+
+// === Scroll para carregar mais linhas dinamicamente ===
+window.addEventListener("load", () => {
+    const container = document.querySelector(".table-container");
+
+    if (container) {
+        container.addEventListener("scroll", () => {
+            const nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 50;
+            if (nearBottom) {
+                renderNextBatch();
+            }
+        });
+    }
+});
 
 </script>
 <script>
@@ -1817,6 +1917,21 @@ function renderNextBatch() {
     table.appendChild(fragment);
     currentRenderIndex += itemsPerPage;
 }
+
+// === Scroll para carregar mais linhas dinamicamente ===
+window.addEventListener("load", () => {
+    const container = document.querySelector(".table-container");
+
+    if (container) {
+        container.addEventListener("scroll", () => {
+            const nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 50;
+            if (nearBottom) {
+                renderNextBatch();
+            }
+        });
+    }
+});
+
 </script>
 </body>
 </html>
