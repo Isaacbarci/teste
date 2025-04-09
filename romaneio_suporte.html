@@ -641,8 +641,11 @@ let columnIndexes = {};
 let editedRows = new Set();
 let qrScanner;
 let currentFileName = "Suportes.xlsx";
-const rowsPerPage = 300;
+
 let alertaConfirmado = false;
+let currentRenderIndex = 0;
+const BATCH_SIZE = 100;
+
 let currentEventListeners = {};
 let lastDownloadedFile = null;
 
@@ -656,7 +659,7 @@ const hiddenColumns = [
 ];
 
 // ========== Broadcast Channel ==========
-const canal = new BroadcastChannel("romaneio_suporte");
+if ("BroadcastChannel" in window) canal = new BroadcastChannel("romaneio_suporte");
 let bloqueado = false;
 
 canal.onmessage = (event) => {
@@ -969,7 +972,11 @@ async function renderSelectedServico(manterEdicoes = false) {
     }
 
     await salvarEdicaoIndexedDB("suporte_ultimoServico", { id: "suporte_ultimoServico", valor: selectedServico });
-    document.getElementById("dataTable").innerHTML = "";
+    currentRenderIndex = 0;
+    const table = document.getElementById("dataTable");
+    while (table.firstChild) {
+        table.removeChild(table.firstChild);
+    }
     renderTable();
 }
 
@@ -1100,6 +1107,7 @@ function applyFilter() {
             return false;
         }
 
+        if (typeof colIdentificacao1 !== "number") return false;
         const identificacao1 = String(row[colIdentificacao1] || "").toLowerCase();
         const qr = String(row[colQR] || "").toLowerCase();
 
@@ -1125,13 +1133,15 @@ function renderTable() {
         "prog. fab."
     ];
 
+    const thead = document.createElement("thead");
     const headerRow = document.createElement("tr");
     colunasExibidas.forEach(col => {
         const th = document.createElement("th");
         th.textContent = col.toUpperCase();
         headerRow.appendChild(th);
     });
-    fragment.appendChild(headerRow);
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
 
     const rowsComEdicao = [];
     const rowsSemEdicao = [];
@@ -1273,6 +1283,7 @@ async function saveEdit() {
 
         await salvarEdicaoIndexedDB("suporte_edicoes", { id: "suporte_edicoes", valor: JSON.stringify(parsed) });
         await salvarEdicaoIndexedDB("suporte_ultimoServico", { id: "suporte_ultimoServico", valor: selectedServico });
+    currentRenderIndex = 0;
 
         closeModal();
         renderTable();
@@ -1665,7 +1676,6 @@ function showGenericConfirm(message, onConfirm) {
 <button class="btn-cancel" id="confirmNo">Cancelar</button>
 </div>
 </div>
-
 <script>
 window.addEventListener("DOMContentLoaded", function () {
     const filtro = document.getElementById("identificacaoFilter");
@@ -1687,6 +1697,13 @@ window.addEventListener("DOMContentLoaded", function () {
     }
 });
 </script>
-
+<script>
+document.querySelector(".table-container").addEventListener("scroll", function () {
+    const container = this;
+    if (container.scrollTop + container.clientHeight >= container.scrollHeight - 5) {
+        renderTable();
+    }
+});
+</script>
 </body>
 </html>
