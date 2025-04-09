@@ -9,12 +9,16 @@
 <script src="https://unpkg.com/html5-qrcode"></script>
 <style>
 /* Fixar cabeçalho da tabela */
-    .table-container table thead th {
-        position: sticky;
-        top: 0;
-        background-color: #007BFF;
-        z-index: 999;
-    }
+    
+.table-container table thead th {
+    position: sticky;
+    top: 0;
+    background-color: #007BFF;
+    z-index: 10;
+    border-bottom: 2px solid #ffffff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
 
     /* Fixar menu de filtros e botões */
     #mobile-container {
@@ -1205,6 +1209,8 @@ function renderTable() {
         }
     };
 
+
+    document.querySelector(".table-container").scrollTop = 0;
 }
 
 function openEditModal(index) {
