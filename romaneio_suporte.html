@@ -10,14 +10,19 @@
 <style>
 /* Fixar cabeçalho da tabela */
     
+
 .table-container table thead th {
     position: sticky;
     top: 0;
     background-color: #007BFF;
     z-index: 10;
-    border-bottom: 2px solid #ffffff;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    border: none;
+    border-bottom: 1px solid #007BFF;
+    box-shadow: none;
+    padding: 10px;
+    white-space: nowrap;
 }
+
 
 
     /* Fixar menu de filtros e botões */
@@ -123,13 +128,15 @@
         border: 2px solid black;
     }
     
-    th, td {
-        border: none;
-        padding: 10px;
-        font-size: 14px;
-        text-align: left;
-        white-space: nowrap;
-    }
+    
+th, td {
+    border: none;
+    padding: 10px;
+    font-size: 14px;
+    text-align: left;
+    white-space: nowrap;
+}
+
     
     th {
         background-color: #28a745;
