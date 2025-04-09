@@ -585,6 +585,25 @@ table {
     margin-bottom: 10px;
     font-size: 18px;
 }
+    </style><style>
+input[type="date"]::-webkit-calendar-picker-indicator {
+    display: none;
+}
+input[type="date"]::-moz-calendar-picker-indicator {
+    display: none;
+}
+
+    </style><style>
+input[type="date"] {
+    padding: 10px;
+    background-color: #2c2c2c;
+    color: #fff;
+    border: 1px solid #555;
+    font-size: 14px;
+    border-radius: 5px;
+    width: 100%;
+    box-sizing: border-box;
+}
     </style></head>
 <body>
 <h2><img alt="Logo" src="image.png" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;"/>
@@ -1065,7 +1084,14 @@ const mapUnicos = new Map();
         mapUnicos.set(id, row);
     }
 });
+
+const mapUnicos = new Map();
+[...rowsSemEdicao, ...rowsComEdicao].forEach(row => {
+    const id = row[columnIndexes["id_spool"]];
+    mapUnicos.set(id, row);
+});
 const rowsOrdenadas = Array.from(mapUnicos.values());
+                
                 
                     
 
