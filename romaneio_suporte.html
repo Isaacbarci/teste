@@ -705,6 +705,8 @@ const BATCH_SIZE = 100;
 
 let linhasNaoEditadas = [];
 
+let linhasNaoEditadas = [];
+
 const itemsPerPage = 100;
 let currentEventListeners = {};
 let lastDownloadedFile = null;
@@ -1039,7 +1041,6 @@ async function renderSelectedServico(manterEdicoes = false) {
     }
     renderTable();
 renderNextBatch();
-renderNextBatch();
 }
 
 async function loadSavedEdits() {
@@ -1178,7 +1179,6 @@ function applyFilter() {
 
     renderTable();
 renderNextBatch();
-renderNextBatch();
 }
 
 function renderTable() {
@@ -1211,6 +1211,8 @@ function renderTable() {
     const rowsSemEdicao = [];
 
     linhasNaoEditadas = filteredData.filter((row) => !editedRows.has(data.indexOf(row)));
+
+linhasNaoEditadas = filteredData.filter((row) => !editedRows.has(data.indexOf(row)));
 
 filteredData.forEach((row) => {
         const originalIndex = data.indexOf(row);
@@ -1364,7 +1366,6 @@ async function saveEdit() {
 
         closeModal();
         renderTable();
-renderNextBatch();
 renderNextBatch();
     } catch(e) { 
         console.error('Erro ao salvar edição:', e); 
@@ -1811,7 +1812,6 @@ document.querySelector(".table-container").addEventListener("scroll", function (
     const container = this;
     if (container.scrollTop + container.clientHeight >= container.scrollHeight - 5) {
         renderTable();
-renderNextBatch();
 renderNextBatch();
     }
 });

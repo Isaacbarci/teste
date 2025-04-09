@@ -43,6 +43,9 @@ window.addEventListener("load", () => {
     border: none !important;
     box-shadow: none !important;
     margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
         position: sticky;
         top: 0;
         background-color: #007BFF;
@@ -985,6 +988,10 @@ function renderTable() {
     const rowsSemEdicao = [];
 
     linhasNaoEditadas = filteredData.filter((row) => !editedRows.has(data.indexOf(row)));
+
+linhasNaoEditadas = filteredData.filter((row) => !editedRows.has(data.indexOf(row)));
+
+linhasNaoEditadas = filteredData.filter((row) => !editedRows.has(data.indexOf(row)));
 
 filteredData.forEach((row) => {
         const originalIndex = data.indexOf(row);
