@@ -5,70 +5,9 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Spool</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
-// === Scroll para carregar mais linhas dinamicamente ===
-window.addEventListener("load", () => {
-    const container = document.querySelector(".table-container");
-
-    if (container) {
-        container.addEventListener("scroll", () => {
-            const nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 50;
-            if (nearBottom) {
-                renderNextBatch();
-            }
-        });
-    }
-});
-
-</script>
-<script src="https://unpkg.com/html5-qrcode">
-// === Scroll para carregar mais linhas dinamicamente ===
-window.addEventListener("load", () => {
-    const container = document.querySelector(".table-container");
-
-    if (container) {
-        container.addEventListener("scroll", () => {
-            const nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 50;
-            if (nearBottom) {
-                renderNextBatch();
-            }
-        });
-    }
-});
-
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
 <style>
-/* Fixar cabeçalho da tabela */
-    .table-container table thead th {
-    position: sticky;
-    top: 0;
-    background-color: #007BFF !important;
-    z-index: 999;
-    color: white;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 10px;
-    white-space: nowrap;
-}
-
-    /* Fixar menu de filtros e botões */
-    #mobile-container {
-        position: sticky;
-        top: 60px;
-        background-color: #000;
-        z-index: 998;
-        padding: 10px 0;
-    }
-
-    /* Fixar título h2 */
-    h2 {
-        position: sticky;
-        top: 0;
-        background-color: #000;
-        z-index: 999;
-        padding: 10px;
-    }
-
     body {
         font-family: Arial, sans-serif;
         margin: 0;
@@ -107,7 +46,7 @@ window.addEventListener("load", () => {
         border-radius: 5px;
         border: 1px solid #ccc;
         font-size: 12px;
-        width: 225px;
+        width: 205px;
         height: 25px;
     }
     
@@ -140,18 +79,18 @@ window.addEventListener("load", () => {
     }
     
     .table-container {
-        min-width: max-content;
+        width: 100%;
         overflow-x: auto;
         margin-top: 20px;
     }
     
     table {
         border-collapse: collapse;
-        min-width: max-content;
+        width: 100%;
         background-color: #000;
         color: white;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        border: none;
+        border: 2px solid black;
     }
     
     th, td {
@@ -207,7 +146,7 @@ window.addEventListener("load", () => {
     }
     
     .modal input {
-        min-width: max-content;
+        width: 100%;
         padding: 10px;
         margin-top: 5px;
         border-radius: 5px;
@@ -218,57 +157,47 @@ window.addEventListener("load", () => {
         box-sizing: border-box;
     }
     
-    .modal 
-input[type="date"] {
-    padding: 10px;
-    background-color: #2c2c2c;
-    color: #fff;
-    border: 1px solid #555;
-    font-size: 14px;
-    border-radius: 5px;
-    width: 100%;
-    box-sizing: border-box;
-}
-                
+    .modal input[type="date"] {
+        padding: 9px;
+        background-color: #2c2c2c;
+        color: #fff;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        position: relative;
+        padding-right: 30px;
+    }
     
-    .modal 
-input[type="date"] {
-    padding: 10px;
-    background-color: #2c2c2c;
-    color: #fff;
-    border: 1px solid #555;
-    font-size: 14px;
-    border-radius: 5px;
-    width: 100%;
-    box-sizing: border-box;
-}
-                
+    .modal input[type="date"]::after {
+        content: "";
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 20px;
+        height: 20px;
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm-8 4H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg>');
+        background-repeat: no-repeat;
+        pointer-events: none;
+    }
     
-    .modal 
-input[type="date"] {
-    padding: 10px;
-    background-color: #2c2c2c;
-    color: #fff;
-    border: 1px solid #555;
-    font-size: 14px;
-    border-radius: 5px;
-    width: 100%;
-    box-sizing: border-box;
-}
-                
+    .modal input[type="date"]::-webkit-calendar-picker-indicator {
+        opacity: 0;
+        position: absolute;
+        right: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
     
-    .modal 
-input[type="date"] {
-    padding: 10px;
-    background-color: #2c2c2c;
-    color: #fff;
-    border: 1px solid #555;
-    font-size: 14px;
-    border-radius: 5px;
-    width: 100%;
-    box-sizing: border-box;
-}
-                
+    .modal input[type="date"]::-moz-calendar-picker-indicator {
+        opacity: 0;
+        position: absolute;
+        right: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
     
     .modal input[readonly] {
         background-color: #333;
@@ -325,7 +254,7 @@ input[type="date"] {
         position: fixed;
         top: 0;
         left: 0;
-        min-width: max-content;
+        width: 100%;
         height: 100%;
         background: rgba(0,0,0,0.8);
         z-index: 2000;
@@ -385,134 +314,35 @@ input[type="date"] {
     }
 }
 
-/* Modal de confirmação padrão */
-.confirm-overlay {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(0, 0, 0, 0.7);
-    z-index: 3000;
-    justify-content: center;
-    align-items: center;
-}
-
-.confirm-modal {
-    background-color: #1e1e1e;
-    color: white;
-    padding: 20px;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 400px;
-    text-align: center;
-    animation: fadeIn 0.2s ease-out;
-}
-
-.confirm-modal button {
-    margin-top: 15px;
-    padding: 10px 15px;
-    border-radius: 5px;
-    border: none;
-    font-size: 14px;
-    cursor: pointer;
-    min-width: max-content;
-}
-
-.confirm-modal .btn-ok {
-    background-color: #28a745;
-    color: white;
-}
-
-.confirm-modal .btn-cancel {
-    background-color: #dc3545;
-    color: white;
-    margin-top: 10px;
-}
-
 @media (max-width: 768px) {
-    .confirm-modal {
-        width: 95%;
-        padding: 15px;
+    .mobile-layout-wrapper {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+        margin-left: 5px !important;
+    }
+    .mobile-layout-wrapper > div {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+        align-items: center !important;
     }
 }
-
-
-    @media (max-width: 768px) {
-        #mobile-container {
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 8px !important;
-            margin-left: 5px !important;
-        }
-        #mobile-container > div {
-            display: flex !important;
-            flex-wrap: wrap !important;
-            gap: 6px !important;
-            align-items: center !important;
-        }
+@media (min-width: 769px) {
+    .mobile-layout-wrapper {
+        display: block !important;
     }
-    
-    @media (max-width: 768px) {
-        .mobile-layout-wrapper {
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 8px !important;
-        }
-        .mobile-layout-wrapper > div {
-            display: flex !important;
-            flex-wrap: wrap !important;
-            gap: 6px !important;
-            align-items: center !important;
-        }
+    .mobile-layout-wrapper > div {
+        display: inline-block !important;
     }
-    
-    @media (max-width: 768px) {
-        .mobile-layout-wrapper {
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 8px !important;
-            margin-left: 5px !important;
-        }
-
-        .mobile-layout-wrapper > div {
-            display: flex !important;
-            flex-wrap: wrap !important;
-            gap: 6px !important;
-            align-items: center !important;
-        }
-    }
-
-    @media (min-width: 769px) {
-        .mobile-layout-wrapper {
-            display: block !important;
-        }
-
-        .mobile-layout-wrapper > div {
-            display: inline-block !important;
-        }
-    }
-    
-.table-container {
-    max-height: calc(100vh - 180px);
-    overflow-y: auto;
-    position: relative;
 }
-
-table, th {
-    box-sizing: border-box;
-}
-
-table {
-    min-width: max-content;
-    table-layout: auto;
-}
-
 </style>
 <style>
     .loading-overlay {
         position: fixed;
         top: 0;
         left: 0;
-        min-width: max-content;
+        width: 100%;
         height: 100%;
         background-color: rgba(0, 0, 0, 0.8);
         display: flex;
@@ -545,81 +375,14 @@ table {
         font-size: 18px;
     }
 </style>
-<style>
-.loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.8);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-}
-
-.progress-container {
-    width: 80%;
-    max-width: 400px;
-    background-color: #333;
-    border-radius: 5px;
-    padding: 3px;
-    margin-top: 20px;
-}
-
-.progress-bar {
-    height: 20px;
-    background-color: #007BFF;
-    border-radius: 3px;
-    width: 0%;
-    transition: width 0.3s ease;
-    text-align: center;
-    color: white;
-    font-weight: bold;
-}
-
-.loading-text {
-    color: white;
-    margin-bottom: 10px;
-    font-size: 18px;
-}
-    </style><style>
-input[type="date"]::-webkit-calendar-picker-indicator {
-    display: none;
-}
-input[type="date"]::-moz-calendar-picker-indicator {
-    display: none;
-}
-
-    </style><style>
-input[type="date"] {
-    padding: 10px;
-    background-color: #2c2c2c;
-    color: #fff;
-    border: 1px solid #555;
-    font-size: 14px;
-    border-radius: 5px;
-    width: 100%;
-    box-sizing: border-box;
-}
-    </style></head>
+</head>
 <body>
 <h2><img alt="Logo" src="image.png" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;"/>
     ROMANEIO DE SPOOL
 </h2>
-<p style="font-size: 6px; color: white; margin-left: 17px; margin-top: -14px;">
+<div class="mobile-layout-wrapper" id="mobile-container"><div><select id="serviceList"><option disabled="True" hidden="True" selected="True" value="">Selecione um serviço</option></select><button onclick="confirmLoadService()">Carregar Serviço</button></div><div><input id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code" style="text-transform: uppercase;" type="text"/><button id="btnClearFilter" onclick="document.getElementById('identificacaoFilter').value = ''; applyFilter();" title="Limpar filtro">✕</button></div><div><button onclick="startQrScanner()">Escanear QR Code</button><button onclick="downloadExcel()">Download Excel</button><button class="close-btn" onclick="voltarParaIndex()" title="Voltar para o Início"><svg fill="white" height="16" style="vertical-align: middle; margin-right: 5px;" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg>Voltar</button></div></div><p style="font-size: 6px; color: white; margin-left: 17px; margin-top: -14px;">
     Developed by Isaac Dutra
 </p>
-<div class="mobile-layout-wrapper" id="mobile-container"><div><select id="serviceList">
-<option disabled="" hidden="" selected="" value="">Selecione um serviço</option>
-</select><button onclick="confirmLoadService()">Carregar Serviço</button></div><div><input id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code" style="text-transform: uppercase;" type="text"/><button id="btnClearFilter" style="padding: 6px 8px; font-size: 12px; margin-left: 5px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; height: 36px; vertical-align: middle;" title="Limpar filtro">✕</button></div><div><button onclick="startQrScanner()">Escanear QR Code</button><button onclick="downloadExcel()">Download Excel</button><button class="close-btn" onclick="confirmarVoltar()" title="Voltar para o Início">
-<svg fill="white" height="16" style="vertical-align: middle; margin-right: 5px;" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
-<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
-</svg>
-        Voltar
-    </button></div></div>
 <div class="modal-overlay" id="confirmModalOverlay" style="z-index: 2000;">
 <div class="modal" style="text-align: center;">
 <p id="confirmModalMessage" style="font-size: 16px;">
@@ -681,7 +444,7 @@ input[type="date"] {
 </div>
 <script>
 // ========== Variáveis Globais ==========
-if ("BroadcastChannel" in window) canal = new BroadcastChannel("romaneio_spool");
+const canal = new BroadcastChannel("romaneio_spool");
 let bloqueado = false;
 let db;
 let data = [];
@@ -690,14 +453,8 @@ let columnIndexes = {};
 let editedRows = new Set();
 let qrScanner;
 let currentFileName = "Spools.xlsx";
-
+const itemsPerPage = 300;
 let servicoIndex = -1;
-let currentRenderIndex = 0;
-const BATCH_SIZE = 100;
-
-let linhasNaoEditadas = [];
-
-const itemsPerPage = 100;
 let originalData = [];
 let lastDownloadedFile = null;
 
@@ -931,13 +688,8 @@ async function renderSelectedServico(manterEdicoes = false) {
     }
 
     await salvarEdicaoIndexedDB("spool_ultimoServico", { id: "spool_ultimoServico", valor: selectedServico });
-    currentRenderIndex = 0;
-    const table = document.getElementById("dataTable");
-    while (table.firstChild) {
-        table.removeChild(table.firstChild);
-    }
+    document.getElementById("dataTable").innerHTML = "";
     renderTable();
-renderNextBatch();
 }
 
 async function loadSavedEdits() {
@@ -1042,22 +794,18 @@ function renderTable() {
 
     const fragment = document.createDocumentFragment();
 
-    const thead = document.createElement("thead");
     const headerRow = document.createElement("tr");
     ordemColunasExibidas.forEach(col => {
         const th = document.createElement("th");
         th.textContent = col.toUpperCase();
         headerRow.appendChild(th);
     });
-    thead.appendChild(headerRow);
-    table.appendChild(thead);
+    fragment.appendChild(headerRow);
 
     const rowsComEdicao = [];
     const rowsSemEdicao = [];
 
-    linhasNaoEditadas = filteredData.filter((row) => !editedRows.has(data.indexOf(row)));
-
-filteredData.forEach((row) => {
+    filteredData.forEach((row) => {
         const originalIndex = data.indexOf(row);
         if (editedRows.has(originalIndex)) {
             rowsComEdicao.push(row);
@@ -1066,34 +814,7 @@ filteredData.forEach((row) => {
         }
     });
 
-    const editedIndexes = new Set(rowsComEdicao.map(r => data.indexOf(r)));
-const rowsSemRepetidos = rowsSemEdicao.filter(r => !editedIndexes.has(data.indexOf(r)));
-
-const idSet = new Set();
-const rowsUnicas = [...rowsComEdicao, ...rowsSemEdicao].filter(row => {
-    const id = row[columnIndexes["id_spool"]];
-    if (idSet.has(id)) return false;
-    idSet.add(id);
-    return true;
-});
-
-const mapUnicos = new Map();
-[...rowsComEdicao, ...rowsSemEdicao].forEach(row => {
-    const id = row[columnIndexes["id_spool"]];
-    if (!mapUnicos.has(id)) {
-        mapUnicos.set(id, row);
-    }
-});
-
-const mapUnicos = new Map();
-[...rowsSemEdicao, ...rowsComEdicao].forEach(row => {
-    const id = row[columnIndexes["id_spool"]];
-    mapUnicos.set(id, row);
-});
-const rowsOrdenadas = Array.from(mapUnicos.values());
-                
-                
-                    
+    const rowsOrdenadas = [...rowsComEdicao, ...rowsSemEdicao];
 
     const filtroAtivo = document.getElementById("identificacaoFilter").value.trim() !== "";
 
@@ -1198,11 +919,9 @@ async function saveEdit() {
 
         await salvarEdicaoIndexedDB("spool_edicoes", { id: "spool_edicoes", valor: JSON.stringify(parsed) });
         await salvarEdicaoIndexedDB("spool_ultimoServico", { id: "spool_ultimoServico", valor: selectedServico });
-    currentRenderIndex = 0;
 
         closeModal();
         renderTable();
-renderNextBatch();
     } catch(e) { 
         console.error('Erro ao salvar edição:', e); 
         alert('Erro ao salvar edição'); 
@@ -1266,7 +985,6 @@ function applyFilter() {
             return false;
         }
 
-        if (typeof colIdentificacao1 !== "number") return false;
         const identificacao1 = String(row[colIdentificacao1] || "").toLowerCase();
         const qr = String(row[colQR] || "").toLowerCase();
 
@@ -1274,7 +992,6 @@ function applyFilter() {
     });
 
     renderTable();
-renderNextBatch();
 }
 
 function formatDate(dateValue) {
@@ -1463,62 +1180,6 @@ if ('serviceWorker' in navigator) {
 }
 
 localStorage.setItem("spool_sistemaAberto", "spool");
-
-document.getElementById("btnClearFilter").addEventListener("click", () => {
-    const filtro = document.getElementById("identificacaoFilter");
-    filtro.value = "";
-    applyFilter();
-});
-
-function confirmarVoltar() {
-    if (confirm("Tem certeza que deseja voltar para o menu principal?")) {
-        voltarParaIndex();
-    }
-}
-
-document.getElementById("identificacaoFilter").addEventListener("input", function() {
-    this.value = this.value.toUpperCase();
-});
-
-
-function showGenericConfirm(message, onConfirm) {
-    const overlay = document.getElementById("genericConfirmOverlay");
-    const text = document.getElementById("confirmText");
-    const yesBtn = document.getElementById("confirmYes");
-    const noBtn = document.getElementById("confirmNo");
-
-    text.textContent = message;
-    overlay.style.display = "flex";
-
-    const closeModal = () => {
-        overlay.style.display = "none";
-        yesBtn.onclick = null;
-        noBtn.onclick = null;
-    };
-
-    yesBtn.onclick = () => {
-        closeModal();
-        if (onConfirm) onConfirm();
-    };
-
-    noBtn.onclick = closeModal;
-}
-
-
-// === Scroll para carregar mais linhas dinamicamente ===
-window.addEventListener("load", () => {
-    const container = document.querySelector(".table-container");
-
-    if (container) {
-        container.addEventListener("scroll", () => {
-            const nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 50;
-            if (nearBottom) {
-                renderNextBatch();
-            }
-        });
-    }
-});
-
 </script>
 <div class="loading-overlay" id="loadingOverlay">
 <div class="loading-text">Carregando sistema...</div>
@@ -1526,151 +1187,5 @@ window.addEventListener("load", () => {
 <div class="progress-bar" id="progressBar"></div>
 </div>
 </div>
-<!-- Modal de confirmação padrão -->
-<div class="confirm-overlay" id="genericConfirmOverlay">
-<div class="confirm-modal">
-<p id="confirmText">Tem certeza que deseja continuar?</p>
-<button class="btn-ok" id="confirmYes">Sim</button>
-<button class="btn-cancel" id="confirmNo">Cancelar</button>
-</div>
-</div>
-<script>
-window.addEventListener("DOMContentLoaded", function () {
-    const filtro = document.getElementById("identificacaoFilter");
-    const btnClear = document.getElementById("btnClearFilter");
-
-    if (filtro) {
-        filtro.addEventListener("input", function () {
-            this.value = this.value.toUpperCase();
-        });
-    }
-
-    if (btnClear) {
-        btnClear.addEventListener("click", () => {
-            filtro.value = "";
-            if (typeof applyFilter === "function") {
-                applyFilter();
-            }
-        });
-    }
-});
-
-// === Scroll para carregar mais linhas dinamicamente ===
-window.addEventListener("load", () => {
-    const container = document.querySelector(".table-container");
-
-    if (container) {
-        container.addEventListener("scroll", () => {
-            const nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 50;
-            if (nearBottom) {
-                renderNextBatch();
-            }
-        });
-    }
-});
-
-</script>
-<script>
-document.querySelector(".table-container").addEventListener("scroll", function () {
-    const container = this;
-    if (container.scrollTop + container.clientHeight >= container.scrollHeight - 5) {
-        renderTable();
-renderNextBatch();
-    }
-});
-
-// === Scroll para carregar mais linhas dinamicamente ===
-window.addEventListener("load", () => {
-    const container = document.querySelector(".table-container");
-
-    if (container) {
-        container.addEventListener("scroll", () => {
-            const nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 50;
-            if (nearBottom) {
-                renderNextBatch();
-            }
-        });
-    }
-});
-
-</script>
-<script>
-function renderNextBatch() {
-    const table = document.getElementById("dataTable");
-    const fragment = document.createDocumentFragment();
-
-    const ordemColunasExibidas = [
-        "ISOMÉTRICO",
-        "SPOOL",
-        "DATA DO ROMANEIO",
-        "PROG FAB"
-    ];
-
-    for (let i = currentRenderIndex; i < currentRenderIndex + itemsPerPage && i < filteredData.length; i++) {
-        const row = filteredData[i];
-        const originalIndex = data.indexOf(row);
-        if (originalIndex === -1) continue;
-
-        const progFab = (row[columnIndexes["prog fab"]] || "").trim();
-        const dataRomaneio = (row[columnIndexes["data do romaneio"]] || "").trim();
-        const isEditado = editedRows.has(originalIndex);
-
-        const tr = document.createElement("tr");
-
-        if (isEditado) {
-            tr.classList.add("edited-row");
-            tr.onclick = () => openEditModal(originalIndex);
-        } else if (!progFab) {
-            tr.style.backgroundColor = "rgba(255, 193, 7, 0.2)";
-            tr.onclick = () => alert("SPOOL NÃO PROGRAMADO");
-        } else if (dataRomaneio) {
-            tr.style.backgroundColor = "rgba(255, 107, 107, 0.2)";
-            tr.onclick = () => alert("SPOOL JÁ ROMANEADO");
-        } else {
-            tr.onclick = () => openEditModal(originalIndex);
-        }
-
-        ordemColunasExibidas.forEach(col => {
-            const colIndex = columnIndexes[col.toLowerCase()];
-            const td = document.createElement("td");
-            let cellValue = row[colIndex] || "";
-            if (col.toLowerCase() === "data do romaneio") {
-                cellValue = formatDate(cellValue);
-            }
-            td.textContent = cellValue;
-            tr.appendChild(td);
-        });
-
-        fragment.appendChild(tr);
-    }
-
-    table.appendChild(fragment);
-    currentRenderIndex += itemsPerPage;
-}
-
-
-document.querySelector(".table-container").onscroll = () => {
-    const container = document.querySelector(".table-container");
-    const nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 50;
-    if (nearBottom) {
-        renderNextBatch();
-    }
-};
-
-// === Scroll para carregar mais linhas dinamicamente ===
-window.addEventListener("load", () => {
-    const container = document.querySelector(".table-container");
-
-    if (container) {
-        container.addEventListener("scroll", () => {
-            const nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 50;
-            if (nearBottom) {
-                renderNextBatch();
-            }
-        });
-    }
-});
-
-</script>
 </body>
 </html>
