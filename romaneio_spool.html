@@ -6,8 +6,9 @@
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Spool</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
-function tratarErro(erro, mensagem = 'Erro inesperado') {
-    tratarErro(mensagem, erro, mensagem);
+function tratarErro(mensagem, erro = null, alerta = null) {
+    console.error(mensagem, erro || "");
+    if (alerta) alert(alerta);
 }
 
 const App = {
@@ -135,26 +136,7 @@ function debounce(func, wait) {
 
 
 
-async function loadServices() {
-    const loadingOverlay = document.getElementById("loadingOverlay");
-    const progressBar = document.getElementById("progressBar");
-    iniciarCarregamentoVisual(loadingOverlay, progressBar);
 
-    fetch(currentFileName)
-        .then(response => {
-            if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
-            return response.arrayBuffer();
-        })
-        .then(processarArquivoExcel)
-        .then(() => {
-            finalizarCarregamentoVisual(loadingOverlay, progressBar);
-            carregarUltimoServico();
-        })
-        .catch(error => {
-            tratarErro("Erro ao carregar Excel:", error, "Não foi possível carregar o arquivo do diretório.");
-            loadingOverlay.style.display = "none";
-        });
-}
 
 function iniciarCarregamentoVisual(overlay, progressBar) {
     overlay.style.display = "flex";
@@ -863,9 +845,7 @@ Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar
     }
 }
 
-function voltarParaIndex() {
-    window.location.href = "index.html";
-}
+
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
@@ -960,6 +940,19 @@ function indexarPorServico() {
         App.servicoMap[servico].push(row);
     });
 }
+
+
+function ativarMaiusculasDigitadas() {
+    document.querySelectorAll("input[type='text']").forEach(input => {
+        input.addEventListener("input", function () {
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            this.value = this.value.toUpperCase();
+            this.setSelectionRange(start, end);
+        });
+    });
+}
+document.addEventListener("DOMContentLoaded", ativarMaiusculasDigitadas);
 
 </script>
 <script src="https://unpkg.com/html5-qrcode"></script>
@@ -1330,6 +1323,52 @@ function indexarPorServico() {
 }
 </style>
 
+
+<style>
+button[onclick*="confirmarSaida"] {
+    background-color: #dc3545 !important;
+}
+button[onclick*="confirmarSaida"]:hover {
+    background-color: #c82333 !important;
+}
+</style>
+
+
+<style>
+button[id*="senha"], button.senha-btn, button:contains("SENHA") {
+    background-color: #dc3545 !important;
+}
+button[id*="senha"]:hover, button.senha-btn:hover, button:contains("SENHA"):hover {
+    background-color: #c82333 !important;
+}
+</style>
+
+
+<style>
+.table-container {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+.table-container table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.table-container thead th {
+    position: sticky;
+    top: 0;
+    background-color: #111;
+    z-index: 10;
+}
+.header-bar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background-color: #000;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+}
+</style>
+
 </head>
 <body>
 <h2><img alt="Logo" src="image.png" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;"/>
@@ -1346,7 +1385,7 @@ function indexarPorServico() {
 <input id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code" style="width: 255px !important;" type="text"/> <button onclick="limparFiltro()" style="padding: 4px 8px; margin-left: 6px; font-size: 12px;">Limpar</button><!-- Botão de microfone desativado -->
 <button onclick="downloadExcel()">Download Excel</button>
 <button onclick="startQrScanner()">Escanear QR Code</button>
-<button onclick="voltarParaIndex()" title="Voltar para o Início">
+<button onclick="confirmarSaida()" title="Voltar para o Início">
 <svg fill="white" height="16" style="vertical-align: middle; margin-right: 5px;" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
 <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
 </svg>
@@ -2193,9 +2232,7 @@ Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar
     }
 }
 
-function voltarParaIndex() {
-    window.location.href = "index.html";
-}
+
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {

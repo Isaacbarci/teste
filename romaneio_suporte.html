@@ -6,8 +6,9 @@
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Suporte</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
-function tratarErro(erro, mensagem = 'Erro inesperado') {
-    tratarErro(mensagem, erro, mensagem);
+function tratarErro(mensagem, erro = null, alerta = null) {
+    console.error(mensagem, erro || "");
+    if (alerta) alert(alerta);
 }
 
 const App = {
@@ -120,6 +121,15 @@ async function carregarEdicaoIndexedDB(id) {
     }
 }
 
+
+function confirmarVolta() {
+    const confirmacao = confirm("Deseja voltar à tela inicial?\nAlterações não salvas serão perdidas.");
+    if (confirmacao) {
+        window.location.href = "index.html";
+    }
+}
+
+
 // ========== Funções Principais ==========
 function configurarEventosQuantidade() {
     const qtdInput = document.getElementById("QTDENVIADA");
@@ -226,8 +236,6 @@ function debounce(func, wait) {
         timeout = setTimeout(() => func.apply(this, args), wait);
     };
 }
-
-document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
 
 async function loadServices() {
     const loadingOverlay = document.getElementById("loadingOverlay");
@@ -504,7 +512,7 @@ function applyFilter() {
     const currentServico = document.getElementById("servicoSelect").value;
 
     const colIdentificacao1 = columnIndexes["identificação 1"];
-    const colQR = columnIndexes[];
+    const colQR = columnIndexes["qr"];
 
     filteredData = data.slice(1).filter(row => {
         if (currentServico && row[servicoIndex] !== currentServico) {
@@ -1108,15 +1116,11 @@ Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar
     }
 }
 
-function voltarParaIndex() {
-    window.location.href = "index.html";
-}
+
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
     loadServices();
-
-document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
 
     document.getElementById("servicoSelect").addEventListener("change", confirmLoadService);
     });
@@ -1207,6 +1211,19 @@ function indexarPorServico() {
         App.servicoMap[servico].push(row);
     });
 }
+
+
+function ativarMaiusculasDigitadas() {
+    document.querySelectorAll("input[type='text']").forEach(input => {
+        input.addEventListener("input", function () {
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            this.value = this.value.toUpperCase();
+            this.setSelectionRange(start, end);
+        });
+    });
+}
+document.addEventListener("DOMContentLoaded", ativarMaiusculasDigitadas);
 
 </script>
 <script src="https://unpkg.com/html5-qrcode"></script>
@@ -1635,6 +1652,52 @@ function indexarPorServico() {
 }
 </style>
 
+
+<style>
+button[id*="senha"], button.senha-btn, button:contains("SENHA") {
+    background-color: #dc3545 !important;
+}
+button[id*="senha"]:hover, button.senha-btn:hover, button:contains("SENHA"):hover {
+    background-color: #c82333 !important;
+}
+</style>
+
+
+<style>
+button[onclick*="confirmarSaida"] {
+    background-color: #dc3545 !important;
+}
+button[onclick*="confirmarSaida"]:hover {
+    background-color: #c82333 !important;
+}
+</style>
+
+
+<style>
+.table-container {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+.table-container table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.table-container thead th {
+    position: sticky;
+    top: 0;
+    background-color: #111;
+    z-index: 10;
+}
+.header-bar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background-color: #000;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+}
+</style>
+
 </head>
 <body>
 <h2 style="display: flex; align-items: center;"><img alt="Logo" src="image.png" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;"/>
@@ -1651,7 +1714,7 @@ function indexarPorServico() {
 <input id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação" style="width: 255px !important;" type="text"/> <button onclick="limparFiltro()" style="padding: 4px 8px; margin-left: 6px; font-size: 12px;">Limpar</button><!-- Botão de microfone desativado -->
 <button onclick="downloadExcel()">Download Excel</button>
 <button onclick="startQrScanner()">Escanear QR Code</button>
-<button onclick="voltarParaIndex()" title="Voltar para o Início">
+<button onclick="confirmarSaida()" title="Voltar para o Início">
 <svg fill="white" height="16" style="vertical-align: middle; margin-right: 5px;" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
 <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
 </svg>
@@ -1790,20 +1853,6 @@ function abrirModalConfirmacao(mensagem, callbackConfirmar) {
 }
 
 
-// ========== Variáveis Globais ==========
-let db;
-let data = [];
-let filteredData = [];
-let servicoIndex = 0;
-let columnIndexes = {};
-let editedRows = new Set();
-let qrScanner;
-let currentFileName = "Suportes.xlsx";
-const rowsPerPage = 300;
-let alertaConfirmado = false;
-let currentEventListeners = {};
-let lastDownloadedFile = null;
-
 const hiddenColumns = [
     "desenho suporte", "informações", "isométrico", "peso (kg)", "cond. pintura",
     "área superfície", "data corte", "data acoplamento", "data solda",
@@ -1877,6 +1926,15 @@ async function carregarEdicaoIndexedDB(id) {
         return null;
     }
 }
+
+
+function confirmarVolta() {
+    const confirmacao = confirm("Deseja voltar à tela inicial?\nAlterações não salvas serão perdidas.");
+    if (confirmacao) {
+        window.location.href = "index.html";
+    }
+}
+
 
 // ========== Funções Principais ==========
 function configurarEventosQuantidade() {
@@ -1990,72 +2048,22 @@ document.getElementById("identificacaoFilter").addEventListener("input", debounc
 async function loadServices() {
     const loadingOverlay = document.getElementById("loadingOverlay");
     const progressBar = document.getElementById("progressBar");
-    loadingOverlay.style.display = "flex";
-    progressBar.style.width = "0%";
-    progressBar.textContent = "0%";
+    iniciarCarregamentoVisual(loadingOverlay, progressBar);
 
-    try {
-        const response = await fetch(currentFileName);
-        if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
-
-        // ✅ Mostrar overlay após confirmar que a resposta está ok
-        loadingOverlay.style.display = "flex";
-        progressBar.style.width = "0%";
-        progressBar.textContent = "0%";
-        const arrayBuffer = await response.arrayBuffer();
-        
-        clearPreviousFileData();
-
-        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
-
-        if (jsonData.length === 0) {
-            throw new Error("O arquivo está vazio ou não contém dados.");
-        }
-
-        window.originalData = JSON.parse(JSON.stringify(jsonData));
-        data = JSON.parse(JSON.stringify(jsonData));
-        filteredData = [];
-
-        const totalRows = data.length - 1;
-        const batchSize = Math.ceil(totalRows / 100);
-        for (let i = 1; i < data.length; i++) {
-            filteredData.push(data[i]);
-
-            if (i % batchSize === 0 || i === data.length - 1) {
-                const percent = Math.min(100, Math.round((i / totalRows) * 80));
-                progressBar.style.width = percent + "%";
-                progressBar.textContent = percent + "%";
-                await new Promise(resolve => setTimeout(resolve, 10));
-            }
-        }
-
-        findColumnIndexes();
-        mapColumnIndexes();
-        await populateServicoOptions();
-
-        progressBar.style.width = "100%";
-        progressBar.textContent = "100%";
-        setTimeout(() => {
+    fetch(currentFileName)
+        .then(response => {
+            if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
+            return response.arrayBuffer();
+        })
+        .then(processarArquivoExcel)
+        .then(() => {
+            finalizarCarregamentoVisual(loadingOverlay, progressBar);
+            carregarUltimoServico();
+        })
+        .catch(error => {
+            tratarErro("Erro ao carregar Excel:", error, "Não foi possível carregar o arquivo do diretório.");
             loadingOverlay.style.display = "none";
-        }, 500);
-
-        const suporte_ultimoServico = await carregarEdicaoIndexedDB("suporte_ultimoServico");
-        const servicoSelect = document.getElementById("servicoSelect");
-
-        if (suporte_ultimoServico?.valor && Array.from(servicoSelect.options).some(o => o.value === suporte_ultimoServico.valor)) {
-            servicoSelect.value = suporte_ultimoServico.valor;
-            renderSelectedServico(true);
-        } else if (servicoSelect.options.length > 0) {
-            servicoSelect.value = servicoSelect.options[0].value;
-            renderSelectedServico(true);
-        }
-    } catch (error) {
-        console.error("Erro ao carregar Excel:", error);
-        abrirModalAlerta("Não foi possível carregar o arquivo do diretório.");
-        document.getElementById("loadingOverlay").style.display = "none";
-    }
+        });
 }
 
 async function confirmLoadService() {
@@ -2253,7 +2261,7 @@ function applyFilter() {
     const currentServico = document.getElementById("servicoSelect").value;
 
     const colIdentificacao1 = columnIndexes["identificação 1"];
-    const colQR = columnIndexes[];
+    const colQR = columnIndexes["qr"];
 
     filteredData = data.slice(1).filter(row => {
         if (currentServico && row[servicoIndex] !== currentServico) {
@@ -2748,9 +2756,7 @@ Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar
     }
 }
 
-function voltarParaIndex() {
-    window.location.href = "index.html";
-}
+
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
