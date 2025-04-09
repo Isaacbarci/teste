@@ -45,9 +45,10 @@ window.addEventListener("load", () => {
     background-color: #007BFF !important;
     z-index: 999;
     color: white;
+    border: none !important;
+    box-shadow: none !important;
     padding: 10px;
     white-space: nowrap;
-    border: none !important;
 }
 
     /* Fixar menu de filtros e botões */
@@ -217,47 +218,57 @@ window.addEventListener("load", () => {
         box-sizing: border-box;
     }
     
-    .modal input[type="date"] {
-        padding: 9px;
-        background-color: #2c2c2c;
-        color: #fff;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-        position: relative;
-        padding-right: 30px;
-    }
+    .modal 
+input[type="date"] {
+    padding: 10px;
+    background-color: #2c2c2c;
+    color: #fff;
+    border: 1px solid #555;
+    font-size: 14px;
+    border-radius: 5px;
+    width: 100%;
+    box-sizing: border-box;
+}
+                
     
-    .modal input[type="date"]::after {
-        content: "";
-        position: absolute;
-        right: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 20px;
-        height: 20px;
-        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm-8 4H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg>');
-        background-repeat: no-repeat;
-        pointer-events: none;
-    }
+    .modal 
+input[type="date"] {
+    padding: 10px;
+    background-color: #2c2c2c;
+    color: #fff;
+    border: 1px solid #555;
+    font-size: 14px;
+    border-radius: 5px;
+    width: 100%;
+    box-sizing: border-box;
+}
+                
     
-    .modal input[type="date"]::-webkit-calendar-picker-indicator {
-        opacity: 0;
-        position: absolute;
-        right: 0;
-        min-width: max-content;
-        height: 100%;
-        cursor: pointer;
-    }
+    .modal 
+input[type="date"] {
+    padding: 10px;
+    background-color: #2c2c2c;
+    color: #fff;
+    border: 1px solid #555;
+    font-size: 14px;
+    border-radius: 5px;
+    width: 100%;
+    box-sizing: border-box;
+}
+                
     
-    .modal input[type="date"]::-moz-calendar-picker-indicator {
-        opacity: 0;
-        position: absolute;
-        right: 0;
-        min-width: max-content;
-        height: 100%;
-        cursor: pointer;
-    }
+    .modal 
+input[type="date"] {
+    padding: 10px;
+    background-color: #2c2c2c;
+    color: #fff;
+    border: 1px solid #555;
+    font-size: 14px;
+    border-radius: 5px;
+    width: 100%;
+    box-sizing: border-box;
+}
+                
     
     .modal input[readonly] {
         background-color: #333;
@@ -534,7 +545,47 @@ table {
         font-size: 18px;
     }
 </style>
-</head>
+<style>
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.progress-container {
+    width: 80%;
+    max-width: 400px;
+    background-color: #333;
+    border-radius: 5px;
+    padding: 3px;
+    margin-top: 20px;
+}
+
+.progress-bar {
+    height: 20px;
+    background-color: #007BFF;
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.3s ease;
+    text-align: center;
+    color: white;
+    font-weight: bold;
+}
+
+.loading-text {
+    color: white;
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+    </style></head>
 <body>
 <h2><img alt="Logo" src="image.png" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;"/>
     ROMANEIO DE SPOOL
@@ -1006,7 +1057,16 @@ const rowsUnicas = [...rowsComEdicao, ...rowsSemEdicao].filter(row => {
     idSet.add(id);
     return true;
 });
-const rowsOrdenadas = rowsUnicas;
+
+const mapUnicos = new Map();
+[...rowsComEdicao, ...rowsSemEdicao].forEach(row => {
+    const id = row[columnIndexes["id_spool"]];
+    if (!mapUnicos.has(id)) {
+        mapUnicos.set(id, row);
+    }
+});
+const rowsOrdenadas = Array.from(mapUnicos.values());
+                
                     
 
     const filtroAtivo = document.getElementById("identificacaoFilter").value.trim() !== "";
