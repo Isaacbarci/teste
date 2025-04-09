@@ -5,42 +5,8 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Spool</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
-document.getElementById("btnClearFilter").addEventListener("click", () => {
-    const filtro = document.getElementById("identificacaoFilter");
-    filtro.value = "";
-    applyFilter();
-});
-
-function confirmarVoltar() {
-    if (confirm("Tem certeza que deseja voltar para o menu principal?")) {
-        voltarParaIndex();
-    }
-}
-
-document.getElementById("identificacaoFilter").addEventListener("input", function() {
-    this.value = this.value.toUpperCase();
-});
-
-</script>
-<script src="https://unpkg.com/html5-qrcode">
-document.getElementById("btnClearFilter").addEventListener("click", () => {
-    const filtro = document.getElementById("identificacaoFilter");
-    filtro.value = "";
-    applyFilter();
-});
-
-function confirmarVoltar() {
-    if (confirm("Tem certeza que deseja voltar para o menu principal?")) {
-        voltarParaIndex();
-    }
-}
-
-document.getElementById("identificacaoFilter").addEventListener("input", function() {
-    this.value = this.value.toUpperCase();
-});
-
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -1361,5 +1327,28 @@ function showGenericConfirm(message, onConfirm) {
 <button class="btn-cancel" id="confirmNo">Cancelar</button>
 </div>
 </div>
+
+<script>
+window.addEventListener("DOMContentLoaded", function () {
+    const filtro = document.getElementById("identificacaoFilter");
+    const btnClear = document.getElementById("btnClearFilter");
+
+    if (filtro) {
+        filtro.addEventListener("input", function () {
+            this.value = this.value.toUpperCase();
+        });
+    }
+
+    if (btnClear) {
+        btnClear.addEventListener("click", () => {
+            filtro.value = "";
+            if (typeof applyFilter === "function") {
+                applyFilter();
+            }
+        });
+    }
+});
+</script>
+
 </body>
 </html>
