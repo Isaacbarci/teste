@@ -1168,7 +1168,7 @@ function renderTable() {
 
     const rowsOrdenadas = [...rowsComEdicao, ...rowsSemEdicao];
 
-    rowsOrdenadas.slice(0, rowsPerPage).forEach((row) => {
+    rowsOrdenadas.slice(0, itemsPerPage).forEach((row) => {
         const originalIndex = data.indexOf(row);
         if (originalIndex === -1) return;
 
@@ -1741,59 +1741,7 @@ document.querySelector(".table-container").onscroll = () => {
     }
 };
 
- else {
-            rowsSemEdicao.push(row);
-        }
-    });
 
-    const rowsOrdenadas = [...rowsComEdicao, ...rowsSemEdicao];
-
-    const filtroAtivo = document.getElementById("identificacaoFilter").value.trim() !== "";
-
-    rowsOrdenadas.slice(0, itemsPerPage).forEach((row) => {
-        const originalIndex = data.indexOf(row);
-        if (originalIndex === -1) return;
-
-        const progFab = (row[columnIndexes["prog fab"]] || "").trim();
-        const dataRomaneio = (row[columnIndexes["data do romaneio"]] || "").trim();
-        const isEditado = editedRows.has(originalIndex);
-
-        if (!filtroAtivo && !isEditado && (!progFab || dataRomaneio)) return;
-
-        const tr = document.createElement("tr");
-
-        if (isEditado) {
-            tr.classList.add("edited-row");
-            tr.onclick = () => openEditModal(originalIndex);
-        } else if (!progFab) {
-            tr.style.backgroundColor = "rgba(255, 193, 7, 0.2)";
-            tr.onclick = () => alert("SPOOL NÃO PROGRAMADO");
-        } else if (dataRomaneio) {
-            tr.style.backgroundColor = "rgba(255, 107, 107, 0.2)";
-            tr.onclick = () => alert("SPOOL JÁ ROMANEADO");
-        } else {
-            tr.onclick = () => openEditModal(originalIndex);
-        }
-
-        ordemColunasExibidas.forEach(col => {
-            const colIndex = columnIndexes[col.toLowerCase()];
-            const td = document.createElement("td");
-            let cellValue = row[colIndex] || "";
-
-            if (col.toLowerCase() === "data do romaneio") {
-                cellValue = formatDate(cellValue);
-            }
-
-            td.textContent = cellValue;
-            tr.appendChild(td);
-        });
-
-        fragment.appendChild(tr);
-    });
-
-    table.appendChild(fragment);
-    document.querySelector(".table-container").scrollTop = 0;
-}
 
 
 
