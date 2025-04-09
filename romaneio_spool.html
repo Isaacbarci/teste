@@ -46,7 +46,7 @@
         border-radius: 5px;
         border: 1px solid #ccc;
         font-size: 12px;
-        width: 205px;
+        width: 206px;
         height: 25px;
     }
     
@@ -298,7 +298,7 @@
 @media (max-width: 768px) {
     .modal-overlay#modalOverlay .modal {
         width: 100vw;
-        height: 100dvh;
+        height: 100vh;
         max-width: none;
         max-height: none;
         padding: 20px;
@@ -311,29 +311,6 @@
     }
     input[type="text"] {
         width: calc(100% - 20px);
-    }
-}
-
-@media (max-width: 768px) {
-    .mobile-layout-wrapper {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 8px !important;
-        margin-left: 5px !important;
-    }
-    .mobile-layout-wrapper > div {
-        display: flex !important;
-        flex-wrap: wrap !important;
-        gap: 6px !important;
-        align-items: center !important;
-    }
-}
-@media (min-width: 769px) {
-    .mobile-layout-wrapper {
-        display: block !important;
-    }
-    .mobile-layout-wrapper > div {
-        display: inline-block !important;
     }
 }
 </style>
@@ -380,9 +357,24 @@
 <h2><img alt="Logo" src="image.png" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;"/>
     ROMANEIO DE SPOOL
 </h2>
-<div class="mobile-layout-wrapper" id="mobile-container"><div><select id="serviceList"><option disabled="True" hidden="True" selected="True" value="">Selecione um serviço</option></select><button onclick="confirmLoadService()">Carregar Serviço</button></div><div><input id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code" style="text-transform: uppercase;" type="text"/><button id="btnClearFilter" onclick="document.getElementById('identificacaoFilter').value = ''; applyFilter();" title="Limpar filtro">✕</button></div><div><button onclick="startQrScanner()">Escanear QR Code</button><button onclick="downloadExcel()">Download Excel</button><button class="close-btn" onclick="voltarParaIndex()" title="Voltar para o Início"><svg fill="white" height="16" style="vertical-align: middle; margin-right: 5px;" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg>Voltar</button></div></div><p style="font-size: 6px; color: white; margin-left: 17px; margin-top: -14px;">
+<p style="font-size: 6px; color: white; margin-left: 17px; margin-top: -14px;">
     Developed by Isaac Dutra
 </p>
+<div style="margin-left: 5px;">
+<select id="serviceList" style="; width: 229px;">
+<option disabled="" hidden="" selected="" value="">Selecione um serviço</option>
+</select>
+<button onclick="confirmLoadService()" style="height: 38px; border-radius: 4px; padding: 6px 10px; font-size: 14px; border: none; cursor: pointer; vertical-align: middle; background-color: #007bff; color: white; margin-left: 5px; 6px;">Carregar Serviço</button>
+<div style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px;"><input id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code" style=" text-transform: uppercase;" type="text"/><button id="btnClearFilter" onclick="document.getElementById('identificacaoFilter').value = ''; applyFilter();" style="height: 38px; border-radius: 4px; padding: 6px 10px; font-size: 14px; border: none; cursor: pointer; vertical-align: middle; background-color: #6c757d; color: white; min-width: 38px; margin-left: 5px; 2px;" title="Limpar filtro">✕</button></div>
+<button onclick="downloadExcel()">Download Excel</button>
+<button onclick="startQrScanner()">Escanear QR Code</button>
+<button onclick="confirmarVoltar()" style="background-color: #dc3545; color: white; height: 38px; border-radius: 4px; padding: 6px 12px; font-size: 14px; border: none; cursor: pointer;" title="Voltar para o Início">
+<svg fill="white" height="16" style="vertical-align: middle; margin-right: 5px;" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
+<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
+</svg>
+        Voltar
+    </button>
+</div>
 <div class="modal-overlay" id="confirmModalOverlay" style="z-index: 2000;">
 <div class="modal" style="text-align: center;">
 <p id="confirmModalMessage" style="font-size: 16px;">
@@ -461,14 +453,15 @@ let lastDownloadedFile = null;
 const hiddenColumns = [
     "ÁREA", "REV", "MATERIAL", "EXECUTANTE FAB",
     "PESO", "LINHA", "COND PINT", "DIÂM. NOMINAL",
-    "ÁREA SUPERF.", "OBS ROMANEIO", "ID_SPOOL", "SERVIÇO", "ROMANEIOS", "QR"
+    "ÁREA SUPERF.", "OBS ROMANEIO", "ID_SPOOL", "SERVIÇO", "ROMANEIOS"
 ];
 
 const ordemColunasExibidas = [
     "ISOMÉTRICO",
     "SPOOL",
     "DATA DO ROMANEIO",
-    "PROG FAB"
+    "PROG FAB",
+    "QR"
 ];
 
 // ========== Broadcast Channel ==========
@@ -1187,5 +1180,11 @@ localStorage.setItem("spool_sistemaAberto", "spool");
 <div class="progress-bar" id="progressBar"></div>
 </div>
 </div>
-</body>
+<script>
+function confirmarVoltar() {
+    if (confirm("Tem certeza que deseja voltar? Os dados não salvos serão perdidos.")) {
+        window.location.href = "index.html";
+    }
+}
+</script></body>
 </html>
