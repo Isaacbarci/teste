@@ -5,7 +5,963 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Spool</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
+function tratarErro(erro, mensagem = 'Erro inesperado') {
+    tratarErro(mensagem, erro, mensagem);
+}
+
+const App = {
+    servicoMap: {},
+    totalCarregado: 0,
+    data: [],
+    filteredData: [],
+    servicoIndex: 0,
+    columnIndexes: {},
+    editedRows: new Set(),
+    qrScanner: null,
+    currentFileName: 'Suportes.xlsx',
+    rowsPerPage: 300,
+    alertaConfirmado: false,
+    currentEventListeners: {},
+    lastDownloadedFile: null,
+    canal: new BroadcastChannel('romaneio_suporte'),
+    bloqueado: false,
+    db: null
+};
+
+
+
+
+// ========== Variáveis Globais ==========
+const canal = new BroadcastChannel("romaneio_spool");
+App.bloqueado = false;
+App.db;
+App.data = [];
+App.filteredData = [];
+App.columnIndexes = {};
+App.editedRows = new Set();
+App.qrScanner;
+App.currentFileName = "Spools.xlsx";
+const itemsPerPage = 300;
+App.servicoIndex = -1;
+let originalData = [];
+App.lastDownloadedFile = null;
+
+const hiddenColumns = [
+    "ÁREA", "REV", "MATERIAL", "EXECUTANTE FAB",
+    "PESO", "LINHA", "COND PINT", "DIÂM. NOMINAL",
+    "ÁREA SUPERF.", "OBS ROMANEIO", "ID_SPOOL", "SERVIÇO", "ROMANEIOS"
+];
+
+const ordemColunasExibidas = [
+    "ISOMÉTRICO",
+    "SPOOL",
+    "DATA DO ROMANEIO",
+    "PROG FAB",
+    
+];
+
+// ========== Broadcast Channel ==========
+canal.onmessage = (event) => {
+  if (event.data === "ja_aberta") {
+    bloqueado = true;
+    abrirModalAlerta("Esta página já está aberta em outra aba.");
+    window.close();
+  }
+};
+
+canal.postMessage("ja_aberta");
+
+window.addEventListener("beforeunload", () => {
+  canal.close();
+});
+
+// ========== IndexedDB Helpers ==========
+async function abrirIndexedDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open("RomaneioDB", 1);
+        request.onupgradeneeded = function(event) {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains("edicoes")) {
+                db.createObjectStore("edicoes", { keyPath: "id" });
+            }
+        };
+        request.onsuccess = function(event) {
+            db = event.target.result;
+            resolve(db);
+        };
+        request.onerror = function(event) {
+            reject(event.target.error);
+        };
+    });
+}
+
+async function salvarEdicaoIndexedDB(id, data) {
+    try {
+        if (!db) await abrirIndexedDB();
+        const tx = db.transaction("edicoes", "readwrite");
+        const store = tx.objectStore("edicoes");
+        await store.put({ id, ...data });
+    } catch(e) { 
+        tratarErro(e);
+    }
+}
+
+async function carregarEdicaoIndexedDB(id) {
+    try {
+        if (!db) await abrirIndexedDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction("edicoes", "readonly");
+            const store = tx.objectStore("edicoes");
+            const request = store.get(id);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    } catch(e) {
+        tratarErro(e);
+        return null;
+    }
+}
+
+// ========== Funções Principais ==========
+function debounce(func, wait) {
+    let timeout;
+    return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}
+
+
+
+
+async function loadServices() {
+    const loadingOverlay = document.getElementById("loadingOverlay");
+    const progressBar = document.getElementById("progressBar");
+    iniciarCarregamentoVisual(loadingOverlay, progressBar);
+
+    fetch(currentFileName)
+        .then(response => {
+            if (!response.ok) throw new Error("Erro ao carregar o arquivo local.");
+            return response.arrayBuffer();
+        })
+        .then(processarArquivoExcel)
+        .then(() => {
+            finalizarCarregamentoVisual(loadingOverlay, progressBar);
+            carregarUltimoServico();
+        })
+        .catch(error => {
+            tratarErro("Erro ao carregar Excel:", error, "Não foi possível carregar o arquivo do diretório.");
+            loadingOverlay.style.display = "none";
+        });
+}
+
+function iniciarCarregamentoVisual(overlay, progressBar) {
+    overlay.style.display = "flex";
+    progressBar.style.width = "0%";
+    progressBar.textContent = "0%";
+}
+
+async function processarArquivoExcel(arrayBuffer) {
+    clearPreviousFileData();
+    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
+
+    if (!jsonData.length) throw new Error("O arquivo está vazio ou não contém dados.");
+
+    window.originalData = jsonData;
+    data = jsonData;
+    filteredData = [];
+
+    const totalRows = data.length - 1;
+    const batchSize = Math.ceil(totalRows / 100);
+    const progressBar = document.getElementById("progressBar");
+
+    for (const i = 1; i < data.length; i++) {
+        filteredData.push(data[i]);
+        if (i % batchSize === 0 || i === data.length - 1) {
+            const percent = Math.min(100, Math.round((i / totalRows) * 80));
+            progressBar.style.width = percent + "%";
+            progressBar.textContent = percent + "%";
+            await new Promise(resolve => setTimeout(resolve, 10));
+        }
+    }
+
+    findColumnIndexes();
+    mapColumnIndexes();
+    await populateServicoOptions();
+    indexarPorServico();
+}
+
+function finalizarCarregamentoVisual(overlay, progressBar) {
+    progressBar.style.width = "100%";
+    progressBar.textContent = "100%";
+    setTimeout(() => {
+        overlay.style.display = "none";
+    }, 500);
+}
+
+async function carregarUltimoServico() {
+    const suporte_ultimoServico = await carregarEdicaoIndexedDB("suporte_ultimoServico");
+    const servicoSelect = document.getElementById("servicoSelect");
+
+    if (suporte_ultimoServico?.valor && Array.from(servicoSelect.options).some(o => o.value === suporte_ultimoServico.valor)) {
+        servicoSelect.value = suporte_ultimoServico.valor;
+        renderSelectedServico(true);
+    } else if (servicoSelect.options.length > 0) {
+        servicoSelect.value = servicoSelect.options[0].value;
+        renderSelectedServico(true);
+    }
+}
+
+
+
+
+async function confirmLoadService() {
+    const senhaCorreta = "1234";
+    const tentativa = prompt("Digite a senha para continuar:");
+
+    if (tentativa !== senhaCorreta) {
+        abrirModalAlerta("Senha incorreta. Ação cancelada.");
+        return;
+    }
+
+    const selectedServico = document.getElementById("serviceList").value;
+    if (!selectedServico) {
+        abrirModalAlerta("Selecione um serviço da lista para carregar.");
+        return;
+    }
+
+    const stored = await carregarEdicaoIndexedDB("spool_edicoes");
+    const parsed = stored ? JSON.parse(stored.valor || "{}") : {};
+    const temEdicoesSalvas = parsed[currentFileName] && parsed[currentFileName][selectedServico] && Object.keys(parsed[currentFileName][selectedServico]).length > 0;
+
+    if (temEdicoesSalvas) {
+        const overlay = document.getElementById("confirmModalOverlay");
+        overlay.style.display = "flex";
+
+        const simBtn = document.getElementById("btnConfirmSim");
+        const novoBtn = document.getElementById("btnConfirmNovo");
+
+        const fecharModal = () => {
+            overlay.style.display = "none";
+            simBtn.onclick = null;
+            novoBtn.onclick = null;
+        };
+
+        simBtn.onclick = () => {
+            fecharModal();
+            renderSelectedServico(true);
+        };
+
+        novoBtn.onclick = () => {
+            delete parsed[currentFileName][selectedServico];
+            salvarEdicaoIndexedDB("spool_edicoes", { id: "spool_edicoes", valor: JSON.stringify(parsed) });
+            fecharModal();
+            renderSelectedServico(false);
+        };
+    } else {
+        renderSelectedServico(false);
+    }
+}
+
+async function renderSelectedServico(manterEdicoes = false) {
+    const selectedServico = document.getElementById("serviceList").value;
+
+    if (window.originalData) {
+        data = window.originalData;
+        filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
+    }
+
+    if (!manterEdicoes) {
+        editedRows.clear();
+        const stored = await carregarEdicaoIndexedDB("spool_edicoes");
+        const parsed = stored ? JSON.parse(stored.valor || "{}") : {};
+        if (parsed[currentFileName] && parsed[currentFileName][selectedServico]) {
+            delete parsed[currentFileName][selectedServico];
+            await salvarEdicaoIndexedDB("spool_edicoes", { id: "spool_edicoes", valor: JSON.stringify(parsed) });
+        }
+    } else {
+        await loadSavedEdits();
+    }
+
+    await salvarEdicaoIndexedDB("spool_ultimoServico", { id: "spool_ultimoServico", valor: selectedServico });
+    document.getElementById("dataTable").innerHTML = "";
+    renderTable();
+
+  }
+
+async function loadSavedEdits() {
+    try {
+        const stored = await carregarEdicaoIndexedDB("spool_edicoes");
+        const parsed = stored ? JSON.parse(stored.valor || "{}") : {};
+        const currentServico = document.getElementById("serviceList").value;
+
+        if (!parsed[currentFileName] || !parsed[currentFileName][currentServico]) {
+            return;
+        }
+
+        const servicoEdits = parsed[currentFileName][currentServico];
+
+        Object.entries(servicoEdits).forEach(([idSpool, edit]) => {
+            const rowIndex = data.findIndex(row => row[columnIndexes["id_spool"]] == idSpool);
+            if (rowIndex !== -1 && data[rowIndex][servicoIndex] === currentServico) {
+                data[rowIndex][columnIndexes["data do romaneio"]] = edit.dataRomaneio || "";
+                data[rowIndex][columnIndexes["obs romaneio"]] = edit.obsRomaneio || "";
+                editedRows.add(rowIndex);
+            }
+        });
+    } catch (e) {
+        tratarErro('Erro ao cargar edições salvas:', e);
+    }
+}
+
+function clearPreviousFileData() {
+    editedRows.clear();
+}
+
+function findColumnIndexes() {
+    const headers = data[0];
+    servicoIndex = headers.findIndex(header => header.trim().toLowerCase() === "serviço");
+
+    if (servicoIndex === -1) {
+        abrirModalAlerta("Coluna 'SERVIÇO' não encontrada no arquivo. Certifique-se de que existe uma coluna com este nome.");
+        return;
+    }
+
+    columnIndexes = {};
+    headers.forEach((name, index) => {
+        columnIndexes[name.trim().toLowerCase()] = index;
+    });
+}
+
+function mapColumnIndexes() {
+    const headers = data[0];
+    columnIndexes = {};
+    headers.forEach((name, index) => {
+        columnIndexes[name.trim().toLowerCase()] = index;
+    });
+}
+
+
+async function populateServicoOptions() {
+    const servicoSet = new Set();
+
+    if (servicoIndex === -1 || !data.length) {
+        return;
+    }
+
+    for (const i = 1; i < data.length; i++) {
+        const servico = data[i][servicoIndex];
+        if (servico && servico.trim() !== "") {
+            servicoSet.add(servico.trim());
+        }
+    }
+
+    const servicoSelect = document.getElementById("serviceList");
+    servicoSelect.innerHTML = '<option value="" disabled selected hidden>Selecione um serviço</option>';
+
+    const servicosOrdenados = Array.from(servicoSet).sort();
+
+    servicosOrdenados.forEach(servico => {
+        const option = document.createElement("option");
+        option.value = servico;
+        option.textContent = servico;
+        servicoSelect.appendChild(option);
+    });
+
+    const progressBar = document.getElementById("progressBar");
+    progressBar.style.width = "100%";
+    progressBar.textContent = "100%";
+
+    setTimeout(() => {
+        document.getElementById("loadingOverlay").style.display = "none";
+    }, 500);
+
+    const spool_ultimoServico = await carregarEdicaoIndexedDB("spool_ultimoServico");
+    if (spool_ultimoServico?.valor && servicosOrdenados.includes(spool_ultimoServico.valor)) {
+        servicoSelect.value = spool_ultimoServico.valor;
+    }
+}
+
+
+function renderTable() {
+    const table = document.getElementById("dataTable");
+    table.innerHTML = "";
+
+    if (!data.length) return;
+
+    const fragment = document.createDocumentFragment();
+    const headerRow = gerarCabecalho();
+    fragment.appendChild(headerRow);
+
+    const rowsOrdenadas = ordenarLinhas();
+    const filtroAtivo = document.getElementById("identificacaoFilter").value.trim() !== "";
+
+    rowsOrdenadas.slice(0, itemsPerPage || rowsPerPage).forEach((row) => {
+        const originalIndex = data.indexOf(row);
+        if (originalIndex === -1) return;
+
+        const tr = gerarLinhaTabela(row, originalIndex, filtroAtivo);
+        fragment.appendChild(tr);
+    });
+
+    table.appendChild(fragment);
+    document.querySelector(".table-container").scrollTop = 0;
+}
+
+function gerarCabecalho() {
+    const headerRow = document.createElement("tr");
+    const colunas = ordemColunasExibidas || [
+        "posição / tag",
+        "identificação 1",
+        "data do romaneio",
+        "qtd enviada",
+        "prog. fab."
+    ];
+    colunas.forEach(col => {
+        const th = document.createElement("th");
+        th.textContent = col.toUpperCase();
+        headerRow.appendChild(th);
+    });
+    return headerRow;
+}
+
+function ordenarLinhas() {
+    const comEdicao = [];
+    const semEdicao = [];
+
+    filteredData.forEach((row) => {
+        const index = data.indexOf(row);
+        if (editedRows.has(index)) comEdicao.push(row);
+        else semEdicao.push(row);
+    });
+
+    return [...comEdicao, ...semEdicao];
+}
+
+function gerarLinhaTabela(row, originalIndex, filtroAtivo) {
+    const tr = document.createElement("tr");
+
+    const progFab = (row[columnIndexes["prog fab"]] || "").trim();
+    const dataRomaneio = (row[columnIndexes["data do romaneio"]] || "").trim();
+    const isEditado = editedRows.has(originalIndex);
+
+    if (isEditado) {
+        tr.classList.add("edited-row");
+        tr.onclick = () => openEditModal(originalIndex);
+    } else if (!progFab) {
+        tr.style.backgroundColor = "rgba(255, 193, 7, 0.2)";
+        tr.onclick = () => abrirModalAlerta("SPOOL NÃO PROGRAMADO");
+    } else if (dataRomaneio) {
+        tr.style.backgroundColor = "rgba(255, 107, 107, 0.2)";
+        tr.onclick = () => abrirModalAlerta("SPOOL JÁ ROMANEADO");
+    } else {
+        tr.onclick = () => openEditModal(originalIndex);
+    }
+
+    const colunas = ordemColunasExibidas || [
+        "posição / tag",
+        "identificação 1",
+        "data do romaneio",
+        "qtd enviada",
+        "prog. fab."
+    ];
+    colunas.forEach(col => {
+        const colIndex = columnIndexes[col.toLowerCase()];
+        const td = document.createElement("td");
+        let cellValue = row[colIndex] || "";
+
+        if (col.toLowerCase() === "data do romaneio") {
+            cellValue = formatDate(cellValue);
+        }
+
+        td.textContent = cellValue;
+        tr.appendChild(td);
+    });
+
+    return tr;
+}
+
+function openEditModal(index) {
+    if (index < 0 || index >= data.length) return;
+
+    document.getElementById("editIndex").value = index;
+    document.getElementById("ISOMETRICO").value = data[index][columnIndexes["isométrico"]] || "";
+    document.getElementById("SPOOL").value = data[index][columnIndexes["spool"]] || "";
+    document.getElementById("AREA").value = data[index][columnIndexes["área"]] || "";
+    document.getElementById("PROGFAB").value = data[index][columnIndexes["prog fab"]] || "";
+    document.getElementById("PESO").value = data[index][columnIndexes["peso"]] || "";
+
+    const dataRomaneio = data[index][columnIndexes["data do romaneio"]];
+    document.getElementById("DATADOROMANEIO").value = formatDateForInput(dataRomaneio);
+
+    document.getElementById("OBSROMANEIO").value = data[index][columnIndexes["obs romaneio"]] || "";
+
+    document.getElementById("modalOverlay").style.display = "flex";
+    document.body.style.overflow = "hidden";
+}
+
+async function saveEdit() {
+    try {
+        const originalIndex = parseInt(document.getElementById("editIndex").value);
+        const selectedServico = document.getElementById("serviceList")?.value || document.getElementById("servicoSelect")?.value;
+
+        const dados = lerDadosEdicao();
+
+        if (!validarEdicao(dados, originalIndex, selectedServico)) return;
+
+        aplicarEdicao(originalIndex, dados);
+
+        salvarEdicaoPersistente(originalIndex, selectedServico, dados);
+
+        fecharModal();
+        renderTable();
+
+        limparFiltroSeAtivo();
+    } catch(e) {
+        tratarErro('Erro ao salvar edição:', e, 'Erro ao salvar edição');
+    }
+}
+
+function lerDadosEdicao() {
+    return {
+        dataRomaneio: document.getElementById("DATADOROMANEIO").value.trim(),
+        qtdEnviada: document.getElementById("QTDENVIADA")?.value.trim() || "",
+        obsRomaneio: document.getElementById("OBSROMANEIO").value.trim()
+    };
+}
+
+function validarEdicao(dados, index, servico) {
+    if (!servico || data[index][servicoIndex] !== servico) {
+        abrirModalAlerta("ERRO: O item não pertence ao serviço selecionado!");
+        closeModal();
+        return false;
+    }
+
+    if (dados.dataRomaneio && !dados.qtdEnviada && document.getElementById("QTDENVIADA")) {
+        abrirModalAlerta("Informe a Quantidade Enviada antes de salvar.");
+        document.getElementById("QTDENVIADA").focus();
+        return false;
+    }
+
+    if (dados.qtdEnviada && !dados.dataRomaneio) {
+        abrirModalAlerta("Informe a Data do Romaneio antes de salvar.");
+        document.getElementById("DATADOROMANEIO").focus();
+        return false;
+    }
+
+    return true;
+}
+
+function aplicarEdicao(index, dados) {
+    data[index][columnIndexes["data do romaneio"]] = dados.dataRomaneio;
+    if ("qtd enviada" in columnIndexes) {
+        data[index][columnIndexes["qtd enviada"]] = dados.qtdEnviada;
+    }
+    data[index][columnIndexes["obs romaneio"]] = dados.obsRomaneio;
+    editedRows.add(index);
+}
+
+async function salvarEdicaoPersistente(index, servico, dados) {
+    const id = data[index][columnIndexes["id_spool"]] || data[index][columnIndexes["id"]];
+    const edicaoKey = id.includes("SPL") ? "spool_edicoes" : "suporte_edicoes";
+    const stored = await carregarEdicaoIndexedDB(edicaoKey);
+    const parsed = stored ? JSON.parse(stored.valor || "{}") : {};
+
+    if (!parsed[currentFileName]) parsed[currentFileName] = {};
+    if (!parsed[currentFileName][servico]) parsed[currentFileName][servico] = {};
+
+    if (dados.dataRomaneio || dados.qtdEnviada || dados.obsRomaneio) {
+        parsed[currentFileName][servico][id] = dados;
+    } else {
+        delete parsed[currentFileName][servico][id];
+        editedRows.delete(index);
+    }
+
+    await salvarEdicaoIndexedDB(edicaoKey, {
+        id: edicaoKey,
+        valor: JSON.stringify(parsed)
+    });
+    await salvarEdicaoIndexedDB(edicaoKey.replace("_edicoes", "_ultimoServico"), {
+        id: edicaoKey.replace("_edicoes", "_ultimoServico"),
+        valor: servico
+    });
+}
+
+function limparFiltroSeAtivo() {
+    const filtroInput = document.getElementById("identificacaoFilter");
+    if (filtroInput?.value.trim() !== "" && filteredData.length > 0) {
+        filtroInput.value = "";
+        applyFilter();
+    }
+}
+
+        data[originalIndex][columnIndexes["data do romaneio"]] = dataRomaneio;
+        data[originalIndex][columnIndexes["obs romaneio"]] = obsRomaneio;
+
+        const idSpool = data[originalIndex][columnIndexes["id_spool"]];
+        const stored = await carregarEdicaoIndexedDB("spool_edicoes");
+        const parsed = stored ? JSON.parse(stored.valor || "{}") : {};
+
+        if (!parsed[currentFileName]) parsed[currentFileName] = {};
+        if (!parsed[currentFileName][selectedServico]) parsed[currentFileName][selectedServico] = {};
+
+        if (dataRomaneio || obsRomaneio) {
+            parsed[currentFileName][selectedServico][idSpool] = {
+                dataRomaneio,
+                obsRomaneio
+            };
+            editedRows.add(originalIndex);
+        } else {
+            delete parsed[currentFileName][selectedServico][idSpool];
+            editedRows.delete(originalIndex);
+        }
+
+        await salvarEdicaoIndexedDB("spool_edicoes", { id: "spool_edicoes", valor: JSON.stringify(parsed) });
+        await salvarEdicaoIndexedDB("spool_ultimoServico", { id: "spool_ultimoServico", valor: selectedServico });
+
+        closeModal();
+        renderTable();
+
+        const filtroInput = document.getElementById("identificacaoFilter");
+        if (filtroInput.value.trim() !== "") {
+            filtroInput.value = "";
+            applyFilter();
+        }
+    
+  } catch(e) { 
+        tratarErro('Erro ao salvar edição:', e, 'Erro ao salvar edição'); 
+    }
+    if (filtroInput.value.trim() !== "" && filteredData.length > 0) filtroInput.value = "";
+        if (filtroInput.value.trim() !== "" && filteredData.length > 0) filtroInput.value = "";
+}
+
+function closeModal() {
+    document.getElementById("modalOverlay").style.display = "none";
+    document.body.style.overflow = "";
+}
+
+function startQrScanner() {
+    document.getElementById("qr-container").style.display = "block";
+    document.getElementById("closeScannerBtn").style.display = "block";
+
+    qrScanner = new Html5Qrcode("qr-reader");
+    qrScanner.start(
+        { facingMode: "environment" },
+        {
+            fps: 10,
+            qrbox: 250
+        },
+        (decodedText, decodedResult) => {
+            document.getElementById("identificacaoFilter").value = decodedText;
+            applyFilter();
+            stopQrScanner();
+        },
+        (errorMessage) => {
+            tratarErro(errorMessage);
+        }
+    ).catch((err) => {
+        tratarErro(err);
+    });
+}
+
+function stopQrScanner() {
+    // Esconde imediatamente para evitar atraso visual
+    document.getElementById("qr-container").style.display = "none";
+    document.getElementById("closeScannerBtn").style.display = "none";
+
+    // Para o scanner depois
+    if (qrScanner) {
+        qrScanner.stop().then(() => {
+            qrScanner.clear();
+            qrScanner = null; // limpa a referência
+        }).catch((err) => {
+            tratarErro("Erro ao parar o scanner:", err);
+        });
+    }
+}
+
+function applyFilter() {
+  const filtroInput = document.getElementById("identificacaoFilter");
+    const filterValue = document.getElementById("identificacaoFilter").value.trim().toLowerCase();
+    const currentServico = document.getElementById("serviceList").value;
+
+    const colIdentificacao1 = columnIndexes["isométrico"];
+    const colQR = columnIndexes["qr"];
+
+    filteredData = data.slice(1).filter(row => {
+        if (currentServico && row[servicoIndex] !== currentServico) {
+            return false;
+        }
+
+        const identificacao1 = String(row[colIdentificacao1] || "").toLowerCase();
+        const qr = String(row[colQR] || "").toLowerCase();
+
+        return identificacao1.includes(filterValue) || qr.includes(filterValue);
+    });
+
+    renderTable();
+
+  }
+
+function formatDate(dateValue) {
+    const date = parseDateValue(dateValue);
+    if (!date) return "";
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
+function formatDateForInput(dateValue) {
+    const date = parseDateValue(dateValue);
+    if (!date) return "";
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${year}-${month}-${day}`;
+}
+
+function parseDateValue(dateValue) {
+    if (!dateValue) return null;
+    
+    if (dateValue instanceof Date) return dateValue;
+
+    if (!isNaN(dateValue)) {
+        const excelEpoch = new Date(1899, 11, 30);
+        const dias = Math.floor(dateValue);
+        const msExtra = (dateValue - dias) * 86400000;
+        return new Date(excelEpoch.getTime() + dias * 86400000 + msExtra);
+    }
+
+    if (typeof dateValue === "string") {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+            const [y, m, d] = dateValue.split("-");
+            return new Date(y, m - 1, d);
+        }
+        if (dateValue.includes("/")) {
+            const parts = dateValue.split("/");
+            if (parts.length === 3) {
+                return new Date(parts[2], parts[1] - 1, parts[0]);
+            }
+        }
+    }
+
+    const parsed = new Date(dateValue);
+    return isNaN(parsed.getTime()) ? null : parsed;
+}
+
+async function downloadExcel() {
+    try {
+        if (data.length === 0) {
+            abrirModalAlerta("Nenhum dado disponível para exportar.");
+            return;
+        }
+
+        const selectedService = document.getElementById("serviceList").value;
+        if (!selectedService) {
+            abrirModalAlerta("Selecione um serviço para exportar.");
+            return;
+        }
+
+        const headerRow = data[0];
+        const filteredRows = Array.from(editedRows)
+            .map(index => data[index])
+            .filter(row => row[servicoIndex] === selectedService);
+
+        if (filteredRows.length === 0) {
+            abrirModalAlerta("Nenhum item editado para exportar.");
+            return;
+        }
+
+        const dataToExport = [headerRow, ...filteredRows];
+        const formattedData = dataToExport.map((row, rowIndex) => {
+            if (rowIndex === 0) return row;
+            return row.map((cell, colIndex) => {
+                let header = dataToExport[0][colIndex].trim().toLowerCase();
+                if (header === "data do romaneio") return formatDate(cell);
+                if (header === "peso" || header === "área superf.") {
+                    if (cell === "" || cell === null || cell === undefined) return "";
+                    const numericValue = parseFloat(cell.toString().replace(",", "."));
+                    return isNaN(numericValue) ? "" : numericValue;
+                }
+                return cell;
+            });
+        });
+
+        const worksheet = XLSX.utils.aoa_to_sheet(formattedData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, selectedService || "Romaneio");
+
+        const romaneiosIndex = headerRow.findIndex(
+            header => header.trim().toLowerCase() === "romaneios"
+        );
+
+        const colWidths = formattedData[0].map((_, i) => {
+            const width = Math.max(...formattedData.map(row => (row[i] ? row[i].toString().length : 10))) + 2;
+            return {
+                wch: width,
+                hidden: i === romaneiosIndex
+            };
+        });
+
+        worksheet["!cols"] = colWidths;
+
+        const fileName = `Romaneio_Spool_${selectedService.replace(/[\/\?%*:|"<>]/g, '_')}.xlsx`;
+        
+        // Gera o buffer do Excel e salva para compartilhamento
+        const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+        lastDownloadedFile = {
+            blob: new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+            fileName: fileName
+        };
+
+        // Faz o download
+        XLSX.writeFile(workbook, fileName);
+
+        // Mostra o modal de compartilhamento após 1 segundo
+        setTimeout(showShareModal, 1000);
+    } catch (error) {
+        tratarErro("Erro ao exportar Excel:", error, "Erro ao exportar o arquivo.");
+    }
+}
+
+function showShareModal() {
+    const modal = document.getElementById("shareModal");
+    if (modal && /Android|iPhone|iPad/i.test(navigator.userAgent)) {
+        modal.style.display = "flex";
+    }
+}
+
+function closeShareModal() {
+    const modal = document.getElementById("shareModal");
+    if (modal) {
+        modal.style.display = "none";
+        lastDownloadedFile = null;
+    }
+}
+
+function shareLastFile() {
+    if (!lastDownloadedFile) {
+        closeShareModal();
+        return;
+    }
+    try {
+        const servico = document.getElementById("serviceList").value || "Serviço";
+        const assunto = `Romaneio - ${servico}`;
+        const corpo = `Segue em anexo o Romaneio de Spool referente ao serviço ${servico}.
+
+Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar.`;
+        const mailtoLink = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
+        window.location.href = mailtoLink;
+    } catch (error) {
+        abrirModalAlerta("Erro ao tentar compartilhar via e-mail.");
+    } finally {
+        closeShareModal();
+    }
+}
+
+function voltarParaIndex() {
+    window.location.href = "index.html";
+}
+
+// Inicialização
+document.addEventListener('DOMContentLoaded', () => {
+    loadServices();
+    document.getElementById("identificacaoFilter").addEventListener("input", debounce(applyFilter, 300));
+    document.getElementById("serviceList").addEventListener("change", confirmLoadService);
+});
+
+window.addEventListener('beforeunload', async function() {
+    const stored = await carregarEdicaoIndexedDB("spool_edicoes");
+    const parsed = stored ? JSON.parse(stored.valor || "{}") : {};
+    await salvarEdicaoIndexedDB("spool_edicoes", { id: "spool_edicoes", valor: JSON.stringify(parsed) });
+});
+
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+        .then((registration) => {
+            })
+        .catch((error) => {
+            tratarErro('Erro ao registrar o Service Worker:', error);
+        });
+}function iniciarReconhecimentoVoz() {
+    const campo = document.getElementById("identificacaoFilter");
+    if (!('webkitSpeechRecognition' in window)) {
+        abrirModalAlerta("Reconhecimento de voz não suportado neste navegador.");
+        return;
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = "pt-BR";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.start();
+
+    recognition.onresult = function(event) {
+        const resultado = event.results[0][0].transcript;
+        campo.value = resultado;
+        applyFilter();
+    };
+
+    recognition.onerror = function(event) {
+        abrirModalAlerta("Erro no reconhecimento de voz: " + event.error);
+    };
+}
+
+
+/* function startVoiceRecognition() {
+  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = "pt-BR";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onresult = function(event) {
+    const result = event.results[0][0].transcript;
+    document.getElementById('identificacaoFilter').value = result;
+    if (typeof applyFilter === 'function') applyFilter();
+  };
+
+  recognition.onerror = function(event) {
+    tratarErro("Erro no reconhecimento de voz:", event.error);
+  };
+
+  recognition.start();
+
+    if (filtroInput.value.trim() !== "" && filteredData.length > 0) filtroInput.value = "";
+} */
+
+function carregarMaisLinhas(qtd = 150) {
+    const limite = Math.min(App.totalCarregado + qtd, App.data.length - 1);
+    for (let i = App.totalCarregado + 1; i <= limite; i++) {
+        App.filteredData.push(App.data[i]);
+    }
+    App.totalCarregado = limite;
+    renderTable();
+}
+
+
+document.querySelector(".table-container").addEventListener("scroll", function () {
+    const scrollBottom = this.scrollTop + this.clientHeight >= this.scrollHeight - 20;
+    if (scrollBottom) carregarMaisLinhas();
+});
+
+function indexarPorServico() {
+    App.servicoMap = {};
+    const servicoIndex = App.columnIndexes["serviço"];
+    App.data.forEach((row, index) => {
+        const servico = row[servicoIndex] || "";
+        if (!App.servicoMap[servico]) {
+            App.servicoMap[servico] = [];
+        }
+        App.servicoMap[servico].push(row);
+    });
+}
+
+</script>
 <script src="https://unpkg.com/html5-qrcode"></script>
 <style>
     body {
@@ -354,59 +1310,23 @@
 </style>
 
 <style>
-@media (max-width: 768px) {
-    .modal-overlay#modalOverlay .modal {
-        width: 100vw !important;
-        height: 100dvh !important; /* Altura dinâmica real */
-        max-width: none !important;
-        max-height: none !important;
-        padding: 20px !important;
-        border-radius: 0 !important;
-        box-sizing: border-box !important;
-        overflow-y: auto !important;
-    }
-
-    .modal-footer {
-        flex-direction: column !important;
-        gap: 10px !important;
-    }
-
-    .modal input, .modal label {
-        font-size: 16px !important;
-    }
-
-    .modal input[type="date"] {
-        font-size: 14px !important;
-    }
+/* Aplica aos modais genéricos, sem afetar o modal de edição */
+.modal:not(#editModal) {
+    max-width: 90vw;
+    min-width: 280px;
+    width: auto;
+    margin: auto;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2);
 }
-</style>
 
-
-<style>
-@media (max-width: 768px) {
-    .modal-overlay#modalOverlay .modal {
-        width: 100vw !important;
-        height: 100dvh !important; /* Altura dinâmica real */
-        max-width: none !important;
-        max-height: none !important;
-        padding: 20px !important;
-        border-radius: 0 !important;
-        box-sizing: border-box !important;
-        overflow-y: auto !important;
-    }
-
-    .modal-footer {
-        flex-direction: column !important;
-        gap: 10px !important;
-    }
-
-    .modal input, .modal label {
-        font-size: 16px !important;
-    }
-
-    .modal input[type="date"] {
-        font-size: 14px !important;
-    }
+/* Centraliza no meio da tela */
+.modal:not(#editModal) {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 </style>
 
@@ -423,13 +1343,13 @@
 <option disabled="" hidden="" selected="" value="">Selecione um serviço</option>
 </select>
 <button onclick="confirmLoadService()">Carregar Serviço</button>
-<input id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code" style="width: 255px !important;" type="text"/><button id="voiceSearchBtn" onclick="startVoiceRecognition()" style="background-color: #007bff; color: white; padding: 6px 12px; font-size: 14px; border: none; border-radius: 4px; margin-left: 5px;" title="Pesquisar por voz"><img alt="Microfone" height="20" src="https://img.icons8.com/material-rounded/24/ffffff/microphone.png" width="20"/></button>
+<input id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code" style="width: 255px !important;" type="text"/> <button onclick="limparFiltro()" style="padding: 4px 8px; margin-left: 6px; font-size: 12px;">Limpar</button><!-- Botão de microfone desativado -->
 <button onclick="downloadExcel()">Download Excel</button>
 <button onclick="startQrScanner()">Escanear QR Code</button>
-<button title="Voltar para o Início" type="button" onclick="voltarParaIndex()">
-    <svg fill="white" height="16" style="vertical-align: middle; margin-right: 5px;" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
-    </svg>
+<button onclick="voltarParaIndex()" title="Voltar para o Início">
+<svg fill="white" height="16" style="vertical-align: middle; margin-right: 5px;" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
+<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
+</svg>
         Voltar
     </button>
 </div>
@@ -493,6 +1413,64 @@
 </div>
 </div>
 <script>
+function limparFiltro() {
+  const input = document.getElementById('identificacaoFilter');
+  if (input) input.value = "";
+  applyFilter();
+}
+
+
+function confirmarSaida() {
+  abrirModalConfirmacao('Deseja realmente sair?', () => {
+    window.location.href = 'index.html';
+  });
+}
+
+
+function abrirModalAlerta(mensagem) {
+    document.getElementById("alertMessage").textContent = mensagem;
+    document.getElementById("alertModal").style.display = "block";
+    document.getElementById("alertBackdrop").style.display = "block";
+
+    const okBtn = document.getElementById("alertOk");
+
+    function fechar() {
+        document.getElementById("alertModal").style.display = "none";
+        document.getElementById("alertBackdrop").style.display = "none";
+        okBtn.onclick = null;
+    }
+
+    okBtn.onclick = () => {
+        fechar();
+    };
+}
+
+
+function abrirModalConfirmacao(mensagem, callbackConfirmar) {
+    document.getElementById("confirmMessage").textContent = mensagem;
+    document.getElementById("confirmModal").style.display = "block";
+    document.getElementById("modalBackdrop").style.display = "block";
+
+    const okBtn = document.getElementById("confirmOk");
+    const cancelBtn = document.getElementById("confirmCancel");
+
+    function fechar() {
+        document.getElementById("confirmModal").style.display = "none";
+        document.getElementById("modalBackdrop").style.display = "none";
+        okBtn.onclick = null;
+        cancelBtn.onclick = null;
+    }
+
+    okBtn.onclick = () => {
+        fechar();
+        callbackConfirmar();
+    };
+    cancelBtn.onclick = () => {
+        fechar();
+    };
+}
+
+
 // ========== Variáveis Globais ==========
 const canal = new BroadcastChannel("romaneio_spool");
 let bloqueado = false;
@@ -526,7 +1504,7 @@ const ordemColunasExibidas = [
 canal.onmessage = (event) => {
   if (event.data === "ja_aberta") {
     bloqueado = true;
-    alert("Esta página já está aberta em outra aba.");
+    abrirModalAlerta("Esta página já está aberta em outra aba.");
     window.close();
   }
 };
@@ -662,7 +1640,7 @@ async function loadServices() {
         }
     } catch (error) {
         console.error("Erro ao carregar Excel:", error);
-        alert("Não foi possível carregar o arquivo do diretório.");
+        abrirModalAlerta("Não foi possível carregar o arquivo do diretório.");
         document.getElementById("loadingOverlay").style.display = "none";
     }
 }
@@ -675,13 +1653,13 @@ async function confirmLoadService() {
     const tentativa = prompt("Digite a senha para continuar:");
 
     if (tentativa !== senhaCorreta) {
-        alert("Senha incorreta. Ação cancelada.");
+        abrirModalAlerta("Senha incorreta. Ação cancelada.");
         return;
     }
 
     const selectedServico = document.getElementById("serviceList").value;
     if (!selectedServico) {
-        alert("Selecione um serviço da lista para carregar.");
+        abrirModalAlerta("Selecione um serviço da lista para carregar.");
         return;
     }
 
@@ -778,7 +1756,7 @@ function findColumnIndexes() {
     servicoIndex = headers.findIndex(header => header.trim().toLowerCase() === "serviço");
 
     if (servicoIndex === -1) {
-        alert("Coluna 'SERVIÇO' não encontrada no arquivo. Certifique-se de que existe uma coluna com este nome.");
+        abrirModalAlerta("Coluna 'SERVIÇO' não encontrada no arquivo. Certifique-se de que existe uma coluna com este nome.");
         return;
     }
 
@@ -887,10 +1865,10 @@ function renderTable() {
             tr.onclick = () => openEditModal(originalIndex);
         } else if (!progFab) {
             tr.style.backgroundColor = "rgba(255, 193, 7, 0.2)";
-            tr.onclick = () => alert("SPOOL NÃO PROGRAMADO");
+            tr.onclick = () => abrirModalAlerta("SPOOL NÃO PROGRAMADO");
         } else if (dataRomaneio) {
             tr.style.backgroundColor = "rgba(255, 107, 107, 0.2)";
-            tr.onclick = () => alert("SPOOL JÁ ROMANEADO");
+            tr.onclick = () => abrirModalAlerta("SPOOL JÁ ROMANEADO");
         } else {
             tr.onclick = () => openEditModal(originalIndex);
         }
@@ -943,7 +1921,7 @@ async function saveEdit() {
         const obsRomaneio = document.getElementById("OBSROMANEIO").value.trim();
 
         if (data[originalIndex][servicoIndex] !== selectedServico) {
-            alert("ERRO: O item não pertence ao serviço selecionado!");
+            abrirModalAlerta("ERRO: O item não pertence ao serviço selecionado!");
             closeModal();
             return;
         }
@@ -983,7 +1961,7 @@ async function saveEdit() {
     
   } catch(e) { 
         console.error('Erro ao salvar edição:', e); 
-        alert('Erro ao salvar edição'); 
+        abrirModalAlerta('Erro ao salvar edição'); 
     }
     if (filtroInput.value.trim() !== "" && filteredData.length > 0) filtroInput.value = "";
         if (filtroInput.value.trim() !== "" && filteredData.length > 0) filtroInput.value = "";
@@ -1107,13 +2085,13 @@ function parseDateValue(dateValue) {
 async function downloadExcel() {
     try {
         if (data.length === 0) {
-            alert("Nenhum dado disponível para exportar.");
+            abrirModalAlerta("Nenhum dado disponível para exportar.");
             return;
         }
 
         const selectedService = document.getElementById("serviceList").value;
         if (!selectedService) {
-            alert("Selecione um serviço para exportar.");
+            abrirModalAlerta("Selecione um serviço para exportar.");
             return;
         }
 
@@ -1123,7 +2101,7 @@ async function downloadExcel() {
             .filter(row => row[servicoIndex] === selectedService);
 
         if (filteredRows.length === 0) {
-            alert("Nenhum item editado para exportar.");
+            abrirModalAlerta("Nenhum item editado para exportar.");
             return;
         }
 
@@ -1176,7 +2154,7 @@ async function downloadExcel() {
         setTimeout(showShareModal, 1000);
     } catch (error) {
         console.error("Erro ao exportar Excel:", error);
-        alert("Erro ao exportar o arquivo.");
+        abrirModalAlerta("Erro ao exportar o arquivo.");
     }
 }
 
@@ -1209,7 +2187,7 @@ Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar
         const mailtoLink = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
         window.location.href = mailtoLink;
     } catch (error) {
-        alert("Erro ao tentar compartilhar via e-mail.");
+        abrirModalAlerta("Erro ao tentar compartilhar via e-mail.");
     } finally {
         closeShareModal();
     }
@@ -1235,14 +2213,17 @@ window.addEventListener('beforeunload', async function() {
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js')
         .then((registration) => {
-            console.log('Service Worker registrado com sucesso:', registration);
-        })
+            })
         .catch((error) => {
             console.error('Erro ao registrar o Service Worker:', error);
         });
 }
 
 localStorage.setItem("spool_sistemaAberto", "spool");
+
+
+
+
 </script>
 <div class="loading-overlay" id="loadingOverlay">
 <div class="loading-text">Carregando sistema...</div>
@@ -1254,7 +2235,7 @@ localStorage.setItem("spool_sistemaAberto", "spool");
 function iniciarReconhecimentoVoz() {
     const campo = document.getElementById("identificacaoFilter");
     if (!('webkitSpeechRecognition' in window)) {
-        alert("Reconhecimento de voz não suportado neste navegador.");
+        abrirModalAlerta("Reconhecimento de voz não suportado neste navegador.");
         return;
     }
 
@@ -1272,192 +2253,51 @@ function iniciarReconhecimentoVoz() {
     };
 
     recognition.onerror = function(event) {
-        alert("Erro no reconhecimento de voz: " + event.error);
+        abrirModalAlerta("Erro no reconhecimento de voz: " + event.error);
     };
 }
 </script>
 <script>
-function normalizarTextoFalado(texto) {
-    texto = texto.replace(/(tra[çc]o|trasso)/gi, "-");
-    texto = texto.replace(/\btra[çc]o\b/gi, "-");
-    texto = texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/\s+/g, "");texto = texto.replace(/(ZERO|UM|UMA|DOIS|DUAS|TRES|TRÊS|QUATRO|CINCO|SEIS|SETE|OITO|NOVE|DEZ|ONZE|DOZE|TREZE|CATORZE|QUINZE|DEZESSEIS|DEZESSETE|DEZOITO|DEZENOVE|VINTE|TRINTA|QUARENTA|CINQUENTA|SESSENTA|SETENTA|OITENTA|NOVENTA|CEM|CENTO|DUZENTOS|TREZENTOS|QUATROCENTOS|QUINHENTOS|SEISCENTOS|SETECENTOS|OITOCENTOS|NOVECENTOS|MIL|E)/gi, function(p) {
-        const mapa = {
-            "ZERO": "0", "UM": "1", "UMA": "1", "DOIS": "2", "DUAS": "2", "TRES": "3", "TRÊS": "3", "QUATRO": "4", "CINCO": "5",
-            "SEIS": "6", "SETE": "7", "OITO": "8", "NOVE": "9", "DEZ": "10", "ONZE": "11", "DOZE": "12", "TREZE": "13",
-            "CATORZE": "14", "QUINZE": "15", "DEZESSEIS": "16", "DEZESSETE": "17", "DEZOITO": "18", "DEZENOVE": "19",
-            "VINTE": "20", "TRINTA": "30", "QUARENTA": "40", "CINQUENTA": "50", "SESSENTA": "60", "SETENTA": "70",
-            "OITENTA": "80", "NOVENTA": "90", "CEM": "100", "CENTO": "100", "DUZENTOS": "200", "TREZENTOS": "300",
-            "QUATROCENTOS": "400", "QUINHENTOS": "500", "SEISCENTOS": "600", "SETECENTOS": "700",
-            "OITOCENTOS": "800", "NOVECENTOS": "900", "MIL": "1000", "TRAÇO": "-", "TRACO": "-", "TRAÇO": "-", "E": "-", " ": "-"
-        };
-        return mapa[p.toUpperCase()] || p;
-    });
-    texto = texto.replace(/([A-Z])(\d)/g, '$1-$2');
-    return texto;
-}
+/* function startVoiceRecognition() {
+  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = "pt-BR";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
 
-function interpretarEAplicarFiltroVoz(transcript) {
-    const input = document.getElementById("identificacaoFilter");
-    const valor = normalizarTextoFalado(transcript.trim());
-    input.value = valor;
-    applyFilter();
-}
-</script><script>
-document.addEventListener("DOMContentLoaded", function () {
-    const filtroInput = document.getElementById("identificacaoFilter");
-    if (filtroInput) {
-        filtroInput.addEventListener("input", function () {
-            let valor = filtroInput.value.toUpperCase();
-            filtroInput.value = valor.toUpperCase();
-        });
-    }
-});
+  recognition.onresult = function(event) {
+    const result = event.results[0][0].transcript;
+    document.getElementById('identificacaoFilter').value = result;
+    if (typeof applyFilter === 'function') applyFilter();
+  };
 
-function confirmarVoltar() {
-    if (confirm("Deseja realmente voltar para a página inicial?)) {
-        voltarParaIndex();
-    }
-}
+  recognition.onerror = function(event) {
+    console.error("Erro no reconhecimento de voz:", event.error);
+  };
 
-// Substitua o onclick do botão Voltar
-document.querySelector('button[onclick*="voltarParaIndex()"]').onclick = confirmarVoltar;
-    
-    </script>
+  recognition.start();
 
-
-
-<script>
-document.getElementById("identificacaoFilter").addEventListener("input", function() {
-    this.value = this.value.toUpperCase();
-});
+    if (filtroInput.value.trim() !== "" && filteredData.length > 0) filtroInput.value = "";
+} */
 </script>
+<!-- Modal de confirmação genérico -->
+<div id="confirmModal" class="modal" style="display:none; background-color: white; z-index: 1000;">
+  <p id="confirmMessage" style="margin-bottom: 16px; font-weight: bold;"></p>
+  <div style="display: flex; justify-content: center; gap: 12px;">
+    <button id="confirmOk" style="background-color: #28a745; color: white; padding: 8px 16px; border-radius: 6px;">OK</button>
+    <button id="confirmCancel" style="background-color: #dc3545; color: white; padding: 8px 16px; border-radius: 6px;">Cancelar</button>
+  </div>
+</div>
+<div id="modalBackdrop" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 999;"></div>
 
 
-<script>
-function voltarParaIndex() {
-    const confirmacao = confirm("Deseja realmente voltar para a página inicial?");
-    if (confirmacao) {
-        window.location.href = "index.html";
-    }
-}
-</script>
-
-
-
-<style>
-/* Efeito visual quando estiver ouvindo */
-#voiceSearchBtn.listening {
-    animation: pulse 1s infinite;
-    background-color: #ffc107 !important; /* amarelo */
-}
-
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(255,193,7, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(255,193,7, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(255,193,7, 0); }
-}
-</style>
-
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const filtro = document.getElementById("identificacaoFilter");
-    if (filtro) {
-        filtro.addEventListener("input", function() {
-            this.value = this.value.toUpperCase();
-        });
-    }
-});
-</script>
-
-
-
-
-<style>
-#voiceSearchBtn.listening {
-    animation: pulse 1s infinite;
-    background-color: #ffc107 !important;
-}
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(255,193,7, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(255,193,7, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(255,193,7, 0); }
-}
-</style>
-
-
-<script>
-function startVoiceRecognition() {
-    if (!('webkitSpeechRecognition' in window)) {
-        alert("Reconhecimento de voz não é suportado neste navegador.");
-        return;
-    }
-
-    const btn = document.getElementById("voiceSearchBtn");
-    if (btn.disabled) return;
-
-    btn.disabled = true;
-    btn.classList.add("listening");
-    btn.title = "Ouvindo...";
-
-    const recognition = new webkitSpeechRecognition();
-    recognition.lang = "pt-BR";
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.onresult = function(event) {
-        let texto = event.results[0][0].transcript || "";
-        texto = texto.normalize("NFD").replace(/[̀-ͯ]/g, "");
-
-        const palavrasComTraco = [
-            "traco", "trasso", "traso", "tras", "traço", "trás", "trazu",
-            "braço", "braco", "brasso", "brasu", "braso", "bráço",
-            "tiras", "tira", "tirasso", "tirazo", "trassu", "traçol"
-        ];
-
-        palavrasComTraco.forEach(palavra => {
-            const regex = new RegExp("\b" + palavra + "\b", "gi");
-            texto = texto.replace(regex, "-");
-        });
-
-        texto = texto.replace(/\s+/g, "");
-        texto = texto.toUpperCase();
-
-        document.getElementById("identificacaoFilter").value = texto;
-        applyFilter();
-    };
-
-    recognition.onerror = function(event) {
-        console.error("Erro no reconhecimento de voz:", event.error);
-        if (event.error === "aborted") {
-            alert("O reconhecimento foi interrompido. Tente novamente.");
-        } else {
-            alert("Erro no reconhecimento de voz: " + event.error);
-        }
-    };
-
-    recognition.onend = function() {
-        btn.disabled = false;
-        btn.classList.remove("listening");
-        btn.title = "Pesquisar por voz";
-    };
-
-    recognition.start();
-}
-</script>
-
-<style>
-#voiceSearchBtn.listening {
-    animation: pulse 1s infinite;
-    background-color: #ffc107 !important;
-}
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(255,193,7, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(255,193,7, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(255,193,7, 0); }
-}
-</style>
+<!-- Modal de alerta personalizado -->
+<div id="alertModal" class="modal" style="display:none; background-color: white; z-index: 1000;">
+  <p id="alertMessage" style="margin-bottom: 16px; font-weight: bold;"></p>
+  <div style="text-align: center;">
+    <button id="alertOk" style="background-color: #007bff; color: white; padding: 8px 16px; border-radius: 6px;">OK</button>
+  </div>
+</div>
+<div id="alertBackdrop" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 999;"></div>
 
 </body>
-
 </html>
