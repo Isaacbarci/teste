@@ -44,7 +44,16 @@ window.addEventListener("load", () => {
 .table-container table thead th {
     position: sticky;
     top: 0;
-    background-color: #007BFF;
+    background-color: #007BFF !important;
+    z-index: 999;
+    color: white;
+    border-bottom: 1px solid #007BFF !important;
+    box-shadow: none !important;
+    padding: 10px;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    background-color: #28a745;
     z-index: 10;
     border: none;
     border-bottom: 1px solid #007BFF;
@@ -705,8 +714,6 @@ const BATCH_SIZE = 100;
 
 let linhasNaoEditadas = [];
 
-let linhasNaoEditadas = [];
-
 const itemsPerPage = 100;
 let currentEventListeners = {};
 let lastDownloadedFile = null;
@@ -1041,6 +1048,7 @@ async function renderSelectedServico(manterEdicoes = false) {
     }
     renderTable();
 renderNextBatch();
+renderNextBatch();
 }
 
 async function loadSavedEdits() {
@@ -1179,6 +1187,7 @@ function applyFilter() {
 
     renderTable();
 renderNextBatch();
+renderNextBatch();
 }
 
 function renderTable() {
@@ -1212,8 +1221,6 @@ function renderTable() {
 
     linhasNaoEditadas = filteredData.filter((row) => !editedRows.has(data.indexOf(row)));
 
-linhasNaoEditadas = filteredData.filter((row) => !editedRows.has(data.indexOf(row)));
-
 filteredData.forEach((row) => {
         const originalIndex = data.indexOf(row);
         if (editedRows.has(originalIndex)) {
@@ -1223,7 +1230,9 @@ filteredData.forEach((row) => {
         }
     });
 
-    const rowsOrdenadas = [...rowsComEdicao, ...rowsSemEdicao];
+    const editedIndexes = new Set(rowsComEdicao.map(r => data.indexOf(r)));
+const rowsSemRepetidos = rowsSemEdicao.filter(r => !editedIndexes.has(data.indexOf(r)));
+const rowsOrdenadas = [...rowsComEdicao, ...rowsSemRepetidos];
 
     rowsOrdenadas.slice(0, itemsPerPage).forEach((row) => {
         const originalIndex = data.indexOf(row);
@@ -1366,6 +1375,7 @@ async function saveEdit() {
 
         closeModal();
         renderTable();
+renderNextBatch();
 renderNextBatch();
     } catch(e) { 
         console.error('Erro ao salvar edição:', e); 
@@ -1812,6 +1822,7 @@ document.querySelector(".table-container").addEventListener("scroll", function (
     const container = this;
     if (container.scrollTop + container.clientHeight >= container.scrollHeight - 5) {
         renderTable();
+renderNextBatch();
 renderNextBatch();
     }
 });

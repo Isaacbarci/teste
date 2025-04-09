@@ -40,9 +40,15 @@ window.addEventListener("load", () => {
 <style>
 /* Fixar cabeçalho da tabela */
     .table-container table thead th {
-    border: none !important;
+    position: sticky;
+    top: 0;
+    background-color: #007BFF !important;
+    z-index: 999;
+    color: white;
+    border-bottom: 1px solid #007BFF !important;
     box-shadow: none !important;
-    margin: 0 !important;
+    padding: 10px;
+    white-space: nowrap;
     border: none !important;
     box-shadow: none !important;
     margin: 0 !important;
@@ -989,10 +995,6 @@ function renderTable() {
 
     linhasNaoEditadas = filteredData.filter((row) => !editedRows.has(data.indexOf(row)));
 
-linhasNaoEditadas = filteredData.filter((row) => !editedRows.has(data.indexOf(row)));
-
-linhasNaoEditadas = filteredData.filter((row) => !editedRows.has(data.indexOf(row)));
-
 filteredData.forEach((row) => {
         const originalIndex = data.indexOf(row);
         if (editedRows.has(originalIndex)) {
@@ -1002,7 +1004,9 @@ filteredData.forEach((row) => {
         }
     });
 
-    const rowsOrdenadas = [...rowsComEdicao, ...rowsSemEdicao];
+    const editedIndexes = new Set(rowsComEdicao.map(r => data.indexOf(r)));
+const rowsSemRepetidos = rowsSemEdicao.filter(r => !editedIndexes.has(data.indexOf(r)));
+const rowsOrdenadas = [...rowsComEdicao, ...rowsSemRepetidos];
 
     const filtroAtivo = document.getElementById("identificacaoFilter").value.trim() !== "";
 
