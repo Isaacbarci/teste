@@ -23,8 +23,6 @@ document.getElementById("identificacaoFilter").addEventListener("input", functio
 });
 
 </script>
-
-
 <script src="https://unpkg.com/html5-qrcode">
 document.getElementById("btnClearFilter").addEventListener("click", () => {
     const filtro = document.getElementById("identificacaoFilter");
@@ -43,8 +41,6 @@ document.getElementById("identificacaoFilter").addEventListener("input", functio
 });
 
 </script>
-
-
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -498,7 +494,62 @@ document.getElementById("identificacaoFilter").addEventListener("input", functio
     }
 }
 
-</style>
+
+    @media (max-width: 768px) {
+        #mobile-container {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 8px !important;
+            margin-left: 5px !important;
+        }
+        #mobile-container > div {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 6px !important;
+            align-items: center !important;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .mobile-layout-wrapper {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 8px !important;
+        }
+        .mobile-layout-wrapper > div {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 6px !important;
+            align-items: center !important;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .mobile-layout-wrapper {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 8px !important;
+            margin-left: 5px !important;
+        }
+
+        .mobile-layout-wrapper > div {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 6px !important;
+            align-items: center !important;
+        }
+    }
+
+    @media (min-width: 769px) {
+        .mobile-layout-wrapper {
+            display: block !important;
+        }
+
+        .mobile-layout-wrapper > div {
+            display: inline-block !important;
+        }
+    }
+    </style>
 </head>
 <body>
 <h2 style="display: flex; align-items: center;"><img alt="Logo" src="image.png" style="height: 40px; width: 95px; margin-right: 5px; margin-left: -15px;"/>
@@ -507,22 +558,14 @@ document.getElementById("identificacaoFilter").addEventListener("input", functio
 <p style="font-size: 6px; color: white; margin-left: 17px; margin-top: -14px;">
     Developed by Isaac Dutra
 </p>
-<div style="margin-left: 5px;">
-<select id="servicoSelect">
+<div class="mobile-layout-wrapper" id="mobile-container"><div><select id="servicoSelect">
 <option disabled="" hidden="" selected="" value="">Selecione um serviço</option>
-</select>
-<button onclick="confirmLoadService()">Carregar Serviço</button>
-<input id="identificacaoFilter" style="text-transform: uppercase;" placeholder="Filtrar por QR ou Identificação" type="text"/>
-<button id="btnClearFilter" title="Limpar filtro" style="padding: 6px 8px; font-size: 12px; margin-left: 5px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; height: 36px; vertical-align: middle;">✕</button>
-<button onclick="downloadExcel()">Download Excel</button>
-<button onclick="startQrScanner()">Escanear QR Code</button>
-<button class="close-btn" onclick="confirmarVoltar()" title="Voltar para o Início">
+</select><button onclick="confirmLoadService()">Carregar Serviço</button></div><div><input id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação" style="text-transform: uppercase;" type="text"/><button id="btnClearFilter" style="padding: 6px 8px; font-size: 12px; margin-left: 5px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; height: 36px; vertical-align: middle;" title="Limpar filtro">✕</button></div><div><button onclick="startQrScanner()">Escanear QR Code</button><button onclick="downloadExcel()">Download Excel</button><button class="close-btn" onclick="confirmarVoltar()" title="Voltar para o Início">
 <svg fill="white" height="16" style="vertical-align: middle; margin-right: 5px;" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
 <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
 </svg>
         Voltar
-    </button>
-</div>
+    </button></div></div>
 <div class="modal-overlay" id="confirmModalOverlay" style="z-index: 2000;">
 <div class="modal" style="text-align: center;">
 <p id="confirmModalMessage" style="font-size: 16px;">Existem dados salvos para este serviço.<br/>Deseja continuar o Romaneio existente? </p>
@@ -1616,24 +1659,19 @@ function showGenericConfirm(message, onConfirm) {
 }
 
 </script>
-
-
-
 <div class="loading-overlay" id="loadingOverlay" style="display: none;">
 <div class="loading-text">Carregando sistema...</div>
 <div class="progress-container">
 <div class="progress-bar" id="progressBar">0%</div>
 </div>
 </div>
-
 <!-- Modal de confirmação padrão -->
 <div class="confirm-overlay" id="genericConfirmOverlay">
-    <div class="confirm-modal">
-        <p id="confirmText">Tem certeza que deseja continuar?</p>
-        <button class="btn-ok" id="confirmYes">Sim</button>
-        <button class="btn-cancel" id="confirmNo">Cancelar</button>
-    </div>
+<div class="confirm-modal">
+<p id="confirmText">Tem certeza que deseja continuar?</p>
+<button class="btn-ok" id="confirmYes">Sim</button>
+<button class="btn-cancel" id="confirmNo">Cancelar</button>
 </div>
-
+</div>
 </body>
 </html>
