@@ -986,6 +986,7 @@ async function renderSelectedServico(manterEdicoes = false) {
     }
     renderTable();
 renderNextBatch();
+renderNextBatch();
 }
 
 async function loadSavedEdits() {
@@ -1123,6 +1124,7 @@ function applyFilter() {
     });
 
     renderTable();
+renderNextBatch();
 renderNextBatch();
 }
 
@@ -1305,6 +1307,7 @@ async function saveEdit() {
 
         closeModal();
         renderTable();
+renderNextBatch();
 renderNextBatch();
     } catch(e) { 
         console.error('Erro ao salvar edição:', e); 
@@ -1721,6 +1724,7 @@ document.querySelector(".table-container").addEventListener("scroll", function (
     const container = this;
     if (container.scrollTop + container.clientHeight >= container.scrollHeight - 5) {
         renderTable();
+renderNextBatch();
 renderNextBatch();
     }
 });
