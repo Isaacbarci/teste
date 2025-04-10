@@ -5,8 +5,10 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Suporte</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
-<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">atualizarResponsavelNaTela();
+</script>
+<script src="https://unpkg.com/html5-qrcode">atualizarResponsavelNaTela();
+</script>
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -1518,6 +1520,18 @@ function downloadExcel() {
         .map(index => data[index])
         .filter(row => row[servicoIndex] === currentServico);
     let dataToExport = [data[0], ...editedOnlyRows.map(row => [...row])];
+    // ===== Adiciona coluna RESPONSÁVEL =====
+    if (nomeResponsavelSelecionado && Array.isArray(dataToExport) && dataToExport.length > 1) {
+        const headers = dataToExport[0];
+        if (!headers.includes("RESPONSÁVEL")) {
+            headers.push("RESPONSÁVEL");
+            for (let i = 1; i < dataToExport.length; i++) {
+                dataToExport[i].push(nomeResponsavelSelecionado);
+            }
+        }
+    }
+    // ========================================
+
 
     // Formatação de dados (original)
     const findColumnIndex = (colName) => {
@@ -1767,6 +1781,7 @@ if ('serviceWorker' in navigator) {
 
 localStorage.setItem("suporte_sistemaAberto", "suporte");
     
+atualizarResponsavelNaTela();
 </script>
 <div class="loading-overlay" id="loadingOverlay" style="display: none;">
 <div class="loading-text">Carregando sistema...</div>
@@ -1780,6 +1795,7 @@ function confirmarVoltar() {
         window.location.href = "index.html";
     }
 }
+atualizarResponsavelNaTela();
 </script>
 <!-- Modal de Seleção de Responsável -->
 
@@ -1839,6 +1855,17 @@ function confirmarResponsavel() {
 function fecharResponsavelModal() {
   const modal = document.getElementById("responsavelModal");
   modal.style.display = "none";
+}
+atualizarResponsavelNaTela();
+</script>
+
+
+<script>
+function atualizarResponsavelNaTela() {
+  const info = document.getElementById("nomeResponsavelInfo");
+  if (info && nomeResponsavelSelecionado) {
+    info.textContent = "Responsável: " + nomeResponsavelSelecionado;
+  }
 }
 </script>
 

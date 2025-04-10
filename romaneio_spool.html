@@ -5,8 +5,10 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Spool</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
-<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">atualizarResponsavelNaTela();
+</script>
+<script src="https://unpkg.com/html5-qrcode">atualizarResponsavelNaTela();
+</script>
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -1422,6 +1424,7 @@ if ('serviceWorker' in navigator) {
 }
 
 localStorage.setItem("spool_sistemaAberto", "spool");
+atualizarResponsavelNaTela();
 </script>
 <div class="loading-overlay" id="loadingOverlay">
 <div class="loading-text">Carregando sistema...</div>
@@ -1435,6 +1438,7 @@ function confirmarVoltar() {
         window.location.href = "index.html";
     }
 }
+atualizarResponsavelNaTela();
 </script>
 <!-- Modal de Seleção de Responsável -->
 
@@ -1494,6 +1498,17 @@ function confirmarResponsavel() {
 function fecharResponsavelModal() {
   const modal = document.getElementById("responsavelModal");
   modal.style.display = "none";
+}
+atualizarResponsavelNaTela();
+</script>
+
+
+<script>
+function atualizarResponsavelNaTela() {
+  const info = document.getElementById("nomeResponsavelInfo");
+  if (info && nomeResponsavelSelecionado) {
+    info.textContent = "Responsável: " + nomeResponsavelSelecionado;
+  }
 }
 </script>
 
