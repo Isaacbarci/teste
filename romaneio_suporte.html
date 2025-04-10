@@ -527,7 +527,7 @@ const hiddenColumns = [
     "data jato/pintura", "número romaneio", "data romaneio", "data recebimento",
     "observação", "area m² unitário", "data cadastro", "rev", "executante", "linha", "spool",
     "localização", "status", "peso unitário", "qtde enviada", "obs romaneio", "qtde", "saldo", "tipo de suporte", "tipo estrutura", "id", "serviço",
-    "identificação 2", "area m²", "peso", "peso enviado", "área enviada", "peso total", "área m² total"
+    "identificação 2", "area m²", "peso", "peso enviado", "área enviada", "peso total", "área m² total", "QR"
 ];
 
 // ========== Broadcast Channel ==========
@@ -997,8 +997,7 @@ function renderTable() {
         "identificação 1",
         "data do romaneio",
         "qtd enviada",
-        "prog. fab.",
-        "qr"
+        "prog. fab."
     ];
 
     const headerRow = document.createElement("tr");
@@ -1494,7 +1493,7 @@ localStorage.setItem("suporte_sistemaAberto", "suporte");
 </div>
 <script>
 function confirmarVoltar() {
-    if (confirm("Tem certeza que deseja voltar? Os dados não salvos serão perdidos.")) {
+    if (confirm("Tem certeza que deseja voltar ao menu principal?")) {
         window.location.href = "index.html";
     }
 }
