@@ -5,8 +5,19 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Spool</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
-<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
+
+function atualizarResponsavelNaTela() {
+  const info = document.getElementById("nomeResponsavelInfo");
+  if (info && nomeResponsavelSelecionado) {
+    info.textContent = "Responsável: " + nomeResponsavelSelecionado;
+  }
+}
+
+</script>
+
+<script src="https://unpkg.com/html5-qrcode">
+</script>
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -594,7 +605,7 @@
 </div>
 <h2 style="margin: 0; font-size: 20px;">ROMANEIO DE SPOOL</h2>
 </div>
-<div style="margin: auto; width: fit-content; text-align: center;"><div class="linha-superior"><div class="linha-servico"><select id="responsavelSelect" onchange="nomeResponsavelSelecionado = this.value;" style="padding: 10px; font-size: 16px; width: 100%; margin-bottom: 15px;">
+<div style="margin: auto; width: fit-content; text-align: center;"><div class="linha-superior"><div class="linha-servico"><select id="serviceList">
 <option disabled="" hidden="" selected="" value="">Selecione um serviço</option>
 </select><button onclick="confirmLoadService()">Carregar Serviço</button></div><div style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px;"><input id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code" style=" text-transform: uppercase;" type="text"/><button id="btnClearFilter" onclick="document.getElementById('identificacaoFilter').value = ''; applyFilter();" style="height: 38px; border-radius: 4px; padding: 6px 10px; font-size: 14px; border: none; cursor: pointer; vertical-align: middle; background-color: #6c757d; color: white; min-width: 38px; margin-left: 5px; 2px;" title="Limpar filtro">✕</button></div><button onclick="downloadExcel()">Download Excel</button><button onclick="startQrScanner()">Escanear QR Code</button><button onclick="confirmarVoltar()" style="background-color: #dc3545; color: white; height: 38px; border-radius: 4px; padding: 6px 12px; font-size: 14px; border: none; cursor: pointer;" title="Voltar para o Início">
 <svg fill="white" height="16" style="vertical-align: middle; margin-right: 5px;" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
@@ -695,7 +706,7 @@ const ordemColunasExibidas = [
 canal.onmessage = (event) => {
   if (event.data === "ja_aberta") {
     bloqueado = true;
-    
+    alert("Esta página já está aberta em outra aba.");
     window.close();
   }
 };
@@ -831,7 +842,7 @@ async function loadServices() {
         }
     } catch (error) {
         console.error("Erro ao carregar Excel:", error);
-        
+        alert("Não foi possível carregar o arquivo do diretório.");
         document.getElementById("loadingOverlay").style.display = "none";
     }
 }
@@ -844,13 +855,13 @@ async function confirmLoadService() {
     const tentativa = prompt("Digite a senha para continuar:");
 
     if (tentativa !== senhaCorreta) {
-        
+        alert("Senha incorreta. Ação cancelada.");
         return;
     }
 
     const selectedServico = document.getElementById("serviceList").value;
     if (!selectedServico) {
-        
+        alert("Selecione um serviço da lista para carregar.");
         return;
     }
 
@@ -956,7 +967,7 @@ function findColumnIndexes() {
     servicoIndex = headers.findIndex(header => header.trim().toLowerCase() === "serviço");
 
     if (servicoIndex === -1) {
-        
+        alert("Coluna 'SERVIÇO' não encontrada no arquivo. Certifique-se de que existe uma coluna com este nome.");
         return;
     }
 
@@ -1065,10 +1076,10 @@ function renderTable() {
             tr.onclick = () => openEditModal(originalIndex);
         } else if (!progFab) {
             tr.style.backgroundColor = "rgba(255, 193, 7, 0.2)";
-            tr.onclick = () => 
+            tr.onclick = () => alert("SPOOL NÃO PROGRAMADO");
         } else if (dataRomaneio) {
             tr.style.backgroundColor = "rgba(255, 107, 107, 0.2)";
-            tr.onclick = () => 
+            tr.onclick = () => alert("SPOOL JÁ ROMANEADO");
         } else {
             tr.onclick = () => openEditModal(originalIndex);
         }
@@ -1121,7 +1132,7 @@ async function saveEdit() {
         const obsRomaneio = document.getElementById("OBSROMANEIO").value.trim();
 
         if (data[originalIndex][servicoIndex] !== selectedServico) {
-            
+            alert("ERRO: O item não pertence ao serviço selecionado!");
             closeModal();
             return;
         }
@@ -1154,7 +1165,7 @@ async function saveEdit() {
         renderTable();
     } catch(e) { 
         console.error('Erro ao salvar edição:', e); 
-         
+        alert('Erro ao salvar edição'); 
     }
 }
 
@@ -1274,13 +1285,13 @@ function parseDateValue(dateValue) {
 async function downloadExcel() {
     try {
         if (data.length === 0) {
-            
+            alert("Nenhum dado disponível para exportar.");
             return;
         }
 
         const selectedService = document.getElementById("serviceList").value;
         if (!selectedService) {
-            
+            alert("Selecione um serviço para exportar.");
             return;
         }
 
@@ -1290,7 +1301,7 @@ async function downloadExcel() {
             .filter(row => row[servicoIndex] === selectedService);
 
         if (filteredRows.length === 0) {
-            
+            alert("Nenhum item editado para exportar.");
             return;
         }
 
@@ -1355,7 +1366,7 @@ async function downloadExcel() {
         setTimeout(showShareModal, 1000);
     } catch (error) {
         console.error("Erro ao exportar Excel:", error);
-        
+        alert("Erro ao exportar o arquivo.");
     }
 }
 
@@ -1388,7 +1399,7 @@ Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar
         const mailtoLink = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
         window.location.href = mailtoLink;
     } catch (error) {
-        
+        alert("Erro ao tentar compartilhar via e-mail.");
     } finally {
         closeShareModal();
     }
@@ -1422,6 +1433,7 @@ if ('serviceWorker' in navigator) {
 }
 
 localStorage.setItem("spool_sistemaAberto", "spool");
+
 </script>
 <div class="loading-overlay" id="loadingOverlay">
 <div class="loading-text">Carregando sistema...</div>
@@ -1435,6 +1447,7 @@ function confirmarVoltar() {
         window.location.href = "index.html";
     }
 }
+
 </script>
 <!-- Modal de Seleção de Responsável -->
 
@@ -1447,7 +1460,7 @@ function confirmarVoltar() {
 <div id="responsavelModal" class="modal-overlay" style="z-index: 3000; display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); justify-content: center; align-items: center;">
   <div class="modal" style="background-color: #000; color: #fff; padding: 30px; border-radius: 10px; text-align: center; width: 90%; max-width: 400px;">
     <p style="font-size: 18px; margin-bottom: 15px;">Quem está fazendo o romaneio?</p>
-    <select id="responsavelSelect" onchange="nomeResponsavelSelecionado = this.value;" style="padding: 10px; font-size: 16px; width: 100%; margin-bottom: 15px;">
+    <select id="responsavelSelect" style="margin-bottom: 20px; padding: 10px; font-size: 16px; width: 100%; background-color: #111; color: #fff; border: 1px solid #555;">
       <option value="" disabled selected hidden>Selecione um nome</option>
       <option>Wanderson</option>
       <option>Richard</option>
@@ -1466,10 +1479,18 @@ function confirmarVoltar() {
 <script>
 let nomeResponsavelSelecionado = "";
 
+function atualizarResponsavelNaTela() {
+  const info = document.getElementById("nomeResponsavelInfo");
+  if (info && nomeResponsavelSelecionado) {
+    info.textContent = "Responsável: " + nomeResponsavelSelecionado;
+  }
+}
+
+
 function abrirResponsavelModal(callback) {
   const modal = document.getElementById("responsavelModal");
   modal.style.display = "flex";
-  document.getElementById("responsavelSelect").selectedIndex = 0;
+  
   window._responsavelCallback = callback;
 }
 
@@ -1478,15 +1499,15 @@ function confirmarResponsavel() {
   const nome = select.value;
 
   if (!nome) {
-    
+    alert("Selecione um nome.");
     return;
   }
 
   nomeResponsavelSelecionado = nome;
-document.getElementById('responsavelSelect').value = nome;
   fecharResponsavelModal();
 
-  if (typeof window._responsavelCallback === "function") {
+  atualizarResponsavelNaTela();
+if (typeof window._responsavelCallback === "function") {
     window._responsavelCallback(nome);
     window._responsavelCallback = null;
   }
@@ -1495,6 +1516,26 @@ document.getElementById('responsavelSelect').value = nome;
 function fecharResponsavelModal() {
   const modal = document.getElementById("responsavelModal");
   modal.style.display = "none";
+}
+
+</script>
+
+
+<script>
+function atualizarResponsavelNaTela() {
+  const info = document.getElementById("nomeResponsavelInfo");
+  if (info && nomeResponsavelSelecionado) {
+    info.textContent = "Responsável: " + nomeResponsavelSelecionado;
+  }
+}
+</script>
+
+
+<script>
+function atualizarResponsavelSelecionado() {
+    const select = document.getElementById("selectResponsavel");
+    nomeResponsavelSelecionado = select.value;
+    atualizarResponsavelNaTela();
 }
 </script>
 
