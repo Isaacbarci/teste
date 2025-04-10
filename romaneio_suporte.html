@@ -1097,6 +1097,10 @@ async function confirmLoadService() {
 }
 
 async function renderSelectedServico(manterEdicoes = false) {
+    abrirResponsavelModal((nomeSelecionado) => {
+        alert("Responsável: " + nomeSelecionado);
+    });
+
     const selectedServico = document.getElementById("servicoSelect").value;
 
     if (window.originalData) {
