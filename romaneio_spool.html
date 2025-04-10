@@ -888,21 +888,11 @@ async function confirmLoadService() {
 }
 
 async function renderSelectedServico(manterEdicoes = false) {
-    abrirResponsavelModal((nomeSelecionado) => {
-        alert("Responsável: " + nomeSelecionado);
-    });
-
     const selectedServico = document.getElementById("serviceList").value;
 
     if (window.originalData) {
         data = JSON.parse(JSON.stringify(window.originalData));
         filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
-    if (filteredData.length === 0) {
-        abrirResponsavelModal((nomeSelecionado) => {
-            alert("Responsável: " + nomeSelecionado);
-        });
-    }
-
     }
 
     if (!manterEdicoes) {
@@ -1295,18 +1285,6 @@ async function downloadExcel() {
         }
 
         const dataToExport = [headerRow, ...filteredRows];
-        // ===== Adiciona coluna RESPONSÁVEL =====
-        if (nomeResponsavelSelecionado && Array.isArray(dataToExport) && dataToExport.length > 1) {
-            const headers = dataToExport[0];
-            if (!headers.includes("RESPONSÁVEL")) {
-                headers.push("RESPONSÁVEL");
-                for (let i = 1; i < dataToExport.length; i++) {
-                    dataToExport[i].push(nomeResponsavelSelecionado);
-                }
-            }
-        }
-        // ========================================
-
         const formattedData = dataToExport.map((row, rowIndex) => {
             if (rowIndex === 0) return row;
             return row.map((cell, colIndex) => {
@@ -1437,10 +1415,10 @@ function confirmarVoltar() {
 }
 </script>
 <!-- Modal de Seleção de Responsável -->
-<div id="responsavelModal" class="modal-overlay" style="z-index: 3000; display: none;">
-  <div class="modal" style="text-align: center; background-color: white; color: black; padding: 20px; border-radius: 8px;">
-    <p style="font-size: 16px;">Quem está fazendo o romaneio?</p>
-    <select id="responsavelSelect" style="margin-top: 10px; padding: 10px; font-size: 16px; width: 100%;">
+<div id="responsavelModal" class="modal-overlay" style="z-index: 3000; display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); justify-content: center; align-items: center;">
+  <div class="modal" style="background-color: #000; color: #fff; padding: 30px; border-radius: 10px; text-align: center; width: 90%; max-width: 400px;">
+    <p style="font-size: 18px; margin-bottom: 15px;">Quem está fazendo o romaneio?</p>
+    <select id="responsavelSelect" style="margin-bottom: 20px; padding: 10px; font-size: 16px; width: 100%; background-color: #111; color: #fff; border: 1px solid #555;">
       <option value="" disabled selected hidden>Selecione um nome</option>
       <option>Wanderson</option>
       <option>Richard</option>
@@ -1449,9 +1427,9 @@ function confirmarVoltar() {
       <option>Alexsandro</option>
       <option>Marcos</option>
     </select>
-    <div class="modal-footer" style="margin-top: 20px;">
-      <button onclick="confirmarResponsavel()">Confirmar</button>
-      <button onclick="fecharResponsavelModal()">Cancelar</button>
+    <div class="modal-footer" style="display: flex; justify-content: space-between;">
+      <button style="padding: 10px 20px; font-size: 16px; background-color: green; color: white; border: none; border-radius: 4px;" onclick="confirmarResponsavel()">Confirmar</button>
+      <button style="padding: 10px 20px; font-size: 16px; background-color: red; color: white; border: none; border-radius: 4px;" onclick="fecharResponsavelModal()">Cancelar</button>
     </div>
   </div>
 </div>
@@ -1485,7 +1463,8 @@ function confirmarResponsavel() {
 }
 
 function fecharResponsavelModal() {
-  document.getElementById("responsavelModal").style.display = "none";
+  const modal = document.getElementById("responsavelModal");
+  modal.style.display = "none";
 }
 </script>
 
