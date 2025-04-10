@@ -810,7 +810,7 @@ let bloqueado = false;
 canal.onmessage = (event) => {
   if (event.data === "ja_aberta") {
     bloqueado = true;
-    alert("Esta página já está aberta em outra aba.");
+    
     window.close();
   }
 };
@@ -1043,7 +1043,7 @@ async function loadServices() {
         }
     } catch (error) {
         console.error("Erro ao carregar Excel:", error);
-        alert("Não foi possível carregar o arquivo do diretório.");
+        
         document.getElementById("loadingOverlay").style.display = "none";
     }
 }
@@ -1053,13 +1053,13 @@ async function confirmLoadService() {
     const tentativa = prompt("Digite a senha para continuar:");
 
     if (tentativa !== senhaCorreta) {
-        alert("Senha incorreta. Ação cancelada.");
+        
         return;
     }
 
     const selectedServico = document.getElementById("servicoSelect").value;
     if (!selectedServico) {
-        alert("Selecione um serviço da lista para carregar.");
+        
         return;
     }
 
@@ -1098,7 +1098,7 @@ async function confirmLoadService() {
 
 async function renderSelectedServico(manterEdicoes = false) {
     abrirResponsavelModal((nomeSelecionado) => {
-        alert("Responsável: " + nomeSelecionado);
+        
     });
 
     const selectedServico = document.getElementById("servicoSelect").value;
@@ -1108,7 +1108,7 @@ async function renderSelectedServico(manterEdicoes = false) {
         filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
     if (filteredData.length === 0) {
         abrirResponsavelModal((nomeSelecionado) => {
-            alert("Responsável: " + nomeSelecionado);
+            
         });
     }
 
@@ -1196,7 +1196,7 @@ function findColumnIndexes() {
     servicoIndex = headers.findIndex(header => header.trim().toLowerCase() === "serviço");
 
     if (servicoIndex === -1) {
-        alert("Coluna 'SERVIÇO' não encontrada no arquivo. Certifique-se de que existe uma coluna com este nome.");
+        
         return;
     }
 
@@ -1389,19 +1389,19 @@ async function saveEdit() {
         const obsRomaneio = document.getElementById("OBSROMANEIO").value.trim();
 
         if (dataRomaneio && !qtdEnviada) {
-            alert("Informe a Quantidade Enviada antes de salvar.");
+            
             document.getElementById("QTDENVIADA").focus();
             return;
         }
 
         if (qtdEnviada && !dataRomaneio) {
-            alert("Informe a Data do Romaneio antes de salvar.");
+            
             document.getElementById("DATADOROMANEIO").focus();
             return;
         }
 
         if (data[originalIndex][servicoIndex] !== selectedServico) {
-            alert("ERRO: O item não pertence ao serviço selecionado!");
+            
             closeModal();
             return;
         }
@@ -1436,7 +1436,7 @@ async function saveEdit() {
         renderTable();
     } catch(e) { 
         console.error('Erro ao salvar edição:', e); 
-        alert('Erro ao salvar edição'); 
+         
     }
 }
 
@@ -1508,7 +1508,7 @@ function stopQrScanner() {
 
 function downloadExcel() {
     if (!data.length) {
-        alert("Nenhum dado carregado para exportar.");
+        
         return;
     }
 
@@ -1730,7 +1730,7 @@ Por favor, anexe o arquivo .xlsx gerado pelo sistema manualmente antes de enviar
         const mailtoLink = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
         window.location.href = mailtoLink;
     } catch (error) {
-        alert("Erro ao tentar compartilhar via e-mail.");
+        
     } finally {
         closeShareModal();
     }
@@ -1792,7 +1792,7 @@ function confirmarVoltar() {
 <div id="responsavelModal" class="modal-overlay" style="z-index: 3000; display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); justify-content: center; align-items: center;">
   <div class="modal" style="background-color: #000; color: #fff; padding: 30px; border-radius: 10px; text-align: center; width: 90%; max-width: 400px;">
     <p style="font-size: 18px; margin-bottom: 15px;">Quem está fazendo o romaneio?</p>
-    <select id="responsavelSelect" onchange="nomeResponsavelSelecionado = this.value;" style="margin-bottom: 20px; padding: 10px; font-size: 16px; width: 100%; background-color: #111; color: #fff; border: 1px solid #555;">
+    <select id="responsavelSelect" onchange="nomeResponsavelSelecionado = this.value;" style="padding: 10px; font-size: 16px; width: 100%; margin-bottom: 15px;">
       <option value="" disabled selected hidden>Selecione um nome</option>
       <option>Wanderson</option>
       <option>Richard</option>
@@ -1823,7 +1823,7 @@ function confirmarResponsavel() {
   const nome = select.value;
 
   if (!nome) {
-    alert("Selecione um nome.");
+    
     return;
   }
 
