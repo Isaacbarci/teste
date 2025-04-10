@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Suporte</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">atualizarResponsavelNaTela();
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
 
 function atualizarResponsavelNaTela() {
   const info = document.getElementById("nomeResponsavelInfo");
@@ -13,10 +13,10 @@ function atualizarResponsavelNaTela() {
     info.textContent = "Responsável: " + nomeResponsavelSelecionado;
   }
 }
-atualizarResponsavelNaTela();
+
 </script>
 
-<script src="https://unpkg.com/html5-qrcode">atualizarResponsavelNaTela();
+<script src="https://unpkg.com/html5-qrcode">
 </script>
 <style>
     body {
@@ -1790,7 +1790,7 @@ if ('serviceWorker' in navigator) {
 
 localStorage.setItem("suporte_sistemaAberto", "suporte");
     
-atualizarResponsavelNaTela();
+
 </script>
 <div class="loading-overlay" id="loadingOverlay" style="display: none;">
 <div class="loading-text">Carregando sistema...</div>
@@ -1804,7 +1804,7 @@ function confirmarVoltar() {
         window.location.href = "index.html";
     }
 }
-atualizarResponsavelNaTela();
+
 </script>
 <!-- Modal de Seleção de Responsável -->
 
@@ -1836,6 +1836,14 @@ atualizarResponsavelNaTela();
 <script>
 let nomeResponsavelSelecionado = "";
 
+function atualizarResponsavelNaTela() {
+  const info = document.getElementById("nomeResponsavelInfo");
+  if (info && nomeResponsavelSelecionado) {
+    info.textContent = "Responsável: " + nomeResponsavelSelecionado;
+  }
+}
+
+
 function abrirResponsavelModal(callback) {
   const modal = document.getElementById("responsavelModal");
   modal.style.display = "flex";
@@ -1855,7 +1863,8 @@ function confirmarResponsavel() {
   nomeResponsavelSelecionado = nome;
   fecharResponsavelModal();
 
-  if (typeof window._responsavelCallback === "function") {
+  atualizarResponsavelNaTela();
+if (typeof window._responsavelCallback === "function") {
     window._responsavelCallback(nome);
     window._responsavelCallback = null;
   }
@@ -1865,7 +1874,7 @@ function fecharResponsavelModal() {
   const modal = document.getElementById("responsavelModal");
   modal.style.display = "none";
 }
-atualizarResponsavelNaTela();
+
 </script>
 
 
