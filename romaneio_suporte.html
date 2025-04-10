@@ -1098,7 +1098,7 @@ async function confirmLoadService() {
 
 async function renderSelectedServico(manterEdicoes = false) {
     abrirResponsavelModal((nomeSelecionado) => {
-        alert("Responsável: " + nomeSelecionado);
+        
     });
 
     const selectedServico = document.getElementById("servicoSelect").value;
@@ -1108,7 +1108,7 @@ async function renderSelectedServico(manterEdicoes = false) {
         filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
     if (filteredData.length === 0) {
         abrirResponsavelModal((nomeSelecionado) => {
-            alert("Responsável: " + nomeSelecionado);
+            
         });
     }
 
@@ -1814,7 +1814,7 @@ let nomeResponsavelSelecionado = "";
 function abrirResponsavelModal(callback) {
   const modal = document.getElementById("responsavelModal");
   modal.style.display = "flex";
-  document.getElementById("responsavelSelect").selectedIndex = 0;
+  
   window._responsavelCallback = callback;
 }
 
