@@ -1102,6 +1102,12 @@ async function renderSelectedServico(manterEdicoes = false) {
     if (window.originalData) {
         data = JSON.parse(JSON.stringify(window.originalData));
         filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
+    if (filteredData.length === 0) {
+        abrirResponsavelModal((nomeSelecionado) => {
+            alert("Responsável: " + nomeSelecionado);
+        });
+    }
+
     }
 
     if (!manterEdicoes) {
@@ -1770,5 +1776,59 @@ function confirmarVoltar() {
         window.location.href = "index.html";
     }
 }
-</script></body>
+</script>
+<!-- Modal de Seleção de Responsável -->
+<div id="responsavelModal" class="modal-overlay" style="z-index: 3000; display: none;">
+  <div class="modal" style="text-align: center; background-color: white; color: black; padding: 20px; border-radius: 8px;">
+    <p style="font-size: 16px;">Quem está fazendo o romaneio?</p>
+    <select id="responsavelSelect" style="margin-top: 10px; padding: 10px; font-size: 16px; width: 100%;">
+      <option value="" disabled selected hidden>Selecione um nome</option>
+      <option>Wanderson</option>
+      <option>Richard</option>
+      <option>Vinício</option>
+      <option>Cesar</option>
+      <option>Alexsandro</option>
+      <option>Marcos</option>
+    </select>
+    <div class="modal-footer" style="margin-top: 20px;">
+      <button onclick="confirmarResponsavel()">Confirmar</button>
+      <button onclick="fecharResponsavelModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let nomeResponsavelSelecionado = "";
+
+function abrirResponsavelModal(callback) {
+  const modal = document.getElementById("responsavelModal");
+  modal.style.display = "flex";
+  document.getElementById("responsavelSelect").selectedIndex = 0;
+  window._responsavelCallback = callback;
+}
+
+function confirmarResponsavel() {
+  const select = document.getElementById("responsavelSelect");
+  const nome = select.value;
+
+  if (!nome) {
+    alert("Selecione um nome.");
+    return;
+  }
+
+  nomeResponsavelSelecionado = nome;
+  fecharResponsavelModal();
+
+  if (typeof window._responsavelCallback === "function") {
+    window._responsavelCallback(nome);
+    window._responsavelCallback = null;
+  }
+}
+
+function fecharResponsavelModal() {
+  document.getElementById("responsavelModal").style.display = "none";
+}
+</script>
+
+</body>
 </html>
