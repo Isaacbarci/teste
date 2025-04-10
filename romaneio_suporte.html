@@ -5,19 +5,8 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Suporte</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
-
-function atualizarResponsavelNaTela() {
-  const info = document.getElementById("nomeResponsavelInfo");
-  if (info && nomeResponsavelSelecionado) {
-    info.textContent = "Responsável: " + nomeResponsavelSelecionado;
-  }
-}
-
-</script>
-
-<script src="https://unpkg.com/html5-qrcode">
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -1109,7 +1098,7 @@ async function confirmLoadService() {
 
 async function renderSelectedServico(manterEdicoes = false) {
     abrirResponsavelModal((nomeSelecionado) => {
-        
+        alert("Responsável: " + nomeSelecionado);
     });
 
     const selectedServico = document.getElementById("servicoSelect").value;
@@ -1119,7 +1108,7 @@ async function renderSelectedServico(manterEdicoes = false) {
         filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
     if (filteredData.length === 0) {
         abrirResponsavelModal((nomeSelecionado) => {
-            
+            alert("Responsável: " + nomeSelecionado);
         });
     }
 
@@ -1529,18 +1518,6 @@ function downloadExcel() {
         .map(index => data[index])
         .filter(row => row[servicoIndex] === currentServico);
     let dataToExport = [data[0], ...editedOnlyRows.map(row => [...row])];
-    // ===== Adiciona coluna RESPONSÁVEL =====
-    if (nomeResponsavelSelecionado && Array.isArray(dataToExport) && dataToExport.length > 1) {
-        const headers = dataToExport[0];
-        if (!headers.includes("RESPONSÁVEL")) {
-            headers.push("RESPONSÁVEL");
-            for (let i = 1; i < dataToExport.length; i++) {
-                dataToExport[i].push(nomeResponsavelSelecionado);
-            }
-        }
-    }
-    // ========================================
-
 
     // Formatação de dados (original)
     const findColumnIndex = (colName) => {
@@ -1790,7 +1767,6 @@ if ('serviceWorker' in navigator) {
 
 localStorage.setItem("suporte_sistemaAberto", "suporte");
     
-
 </script>
 <div class="loading-overlay" id="loadingOverlay" style="display: none;">
 <div class="loading-text">Carregando sistema...</div>
@@ -1804,7 +1780,6 @@ function confirmarVoltar() {
         window.location.href = "index.html";
     }
 }
-
 </script>
 <!-- Modal de Seleção de Responsável -->
 
@@ -1817,7 +1792,7 @@ function confirmarVoltar() {
 <div id="responsavelModal" class="modal-overlay" style="z-index: 3000; display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); justify-content: center; align-items: center;">
   <div class="modal" style="background-color: #000; color: #fff; padding: 30px; border-radius: 10px; text-align: center; width: 90%; max-width: 400px;">
     <p style="font-size: 18px; margin-bottom: 15px;">Quem está fazendo o romaneio?</p>
-    <select id="responsavelSelect" style="margin-bottom: 20px; padding: 10px; font-size: 16px; width: 100%; background-color: #111; color: #fff; border: 1px solid #555;">
+    <select id="responsavelSelect" onchange="nomeResponsavelSelecionado = this.value;" style="margin-bottom: 20px; padding: 10px; font-size: 16px; width: 100%; background-color: #111; color: #fff; border: 1px solid #555;">
       <option value="" disabled selected hidden>Selecione um nome</option>
       <option>Wanderson</option>
       <option>Richard</option>
@@ -1836,18 +1811,10 @@ function confirmarVoltar() {
 <script>
 let nomeResponsavelSelecionado = "";
 
-function atualizarResponsavelNaTela() {
-  const info = document.getElementById("nomeResponsavelInfo");
-  if (info && nomeResponsavelSelecionado) {
-    info.textContent = "Responsável: " + nomeResponsavelSelecionado;
-  }
-}
-
-
 function abrirResponsavelModal(callback) {
   const modal = document.getElementById("responsavelModal");
   modal.style.display = "flex";
-  
+  document.getElementById("responsavelSelect").selectedIndex = 0;
   window._responsavelCallback = callback;
 }
 
@@ -1863,8 +1830,7 @@ function confirmarResponsavel() {
   nomeResponsavelSelecionado = nome;
   fecharResponsavelModal();
 
-  atualizarResponsavelNaTela();
-if (typeof window._responsavelCallback === "function") {
+  if (typeof window._responsavelCallback === "function") {
     window._responsavelCallback(nome);
     window._responsavelCallback = null;
   }
@@ -1873,17 +1839,6 @@ if (typeof window._responsavelCallback === "function") {
 function fecharResponsavelModal() {
   const modal = document.getElementById("responsavelModal");
   modal.style.display = "none";
-}
-
-</script>
-
-
-<script>
-function atualizarResponsavelNaTela() {
-  const info = document.getElementById("nomeResponsavelInfo");
-  if (info && nomeResponsavelSelecionado) {
-    info.textContent = "Responsável: " + nomeResponsavelSelecionado;
-  }
 }
 </script>
 

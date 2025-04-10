@@ -5,19 +5,8 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Spool</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
-
-function atualizarResponsavelNaTela() {
-  const info = document.getElementById("nomeResponsavelInfo");
-  if (info && nomeResponsavelSelecionado) {
-    info.textContent = "Responsável: " + nomeResponsavelSelecionado;
-  }
-}
-
-</script>
-
-<script src="https://unpkg.com/html5-qrcode">
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -605,7 +594,7 @@ function atualizarResponsavelNaTela() {
 </div>
 <h2 style="margin: 0; font-size: 20px;">ROMANEIO DE SPOOL</h2>
 </div>
-<div style="margin: auto; width: fit-content; text-align: center;"><div class="linha-superior"><div class="linha-servico"><select id="serviceList">
+<div style="margin: auto; width: fit-content; text-align: center;"><div class="linha-superior"><div class="linha-servico"><select id="responsavelSelect" onchange="nomeResponsavelSelecionado = this.value;"  id="serviceList">
 <option disabled="" hidden="" selected="" value="">Selecione um serviço</option>
 </select><button onclick="confirmLoadService()">Carregar Serviço</button></div><div style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px;"><input id="identificacaoFilter" placeholder="Filtrar por ISOMÉTRICO ou QR Code" style=" text-transform: uppercase;" type="text"/><button id="btnClearFilter" onclick="document.getElementById('identificacaoFilter').value = ''; applyFilter();" style="height: 38px; border-radius: 4px; padding: 6px 10px; font-size: 14px; border: none; cursor: pointer; vertical-align: middle; background-color: #6c757d; color: white; min-width: 38px; margin-left: 5px; 2px;" title="Limpar filtro">✕</button></div><button onclick="downloadExcel()">Download Excel</button><button onclick="startQrScanner()">Escanear QR Code</button><button onclick="confirmarVoltar()" style="background-color: #dc3545; color: white; height: 38px; border-radius: 4px; padding: 6px 12px; font-size: 14px; border: none; cursor: pointer;" title="Voltar para o Início">
 <svg fill="white" height="16" style="vertical-align: middle; margin-right: 5px;" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
@@ -900,7 +889,7 @@ async function confirmLoadService() {
 
 async function renderSelectedServico(manterEdicoes = false) {
     abrirResponsavelModal((nomeSelecionado) => {
-        
+        alert("Responsável: " + nomeSelecionado);
     });
 
     const selectedServico = document.getElementById("serviceList").value;
@@ -910,7 +899,7 @@ async function renderSelectedServico(manterEdicoes = false) {
         filteredData = data.slice(1).filter(row => row[servicoIndex] === selectedServico);
     if (filteredData.length === 0) {
         abrirResponsavelModal((nomeSelecionado) => {
-            
+            alert("Responsável: " + nomeSelecionado);
         });
     }
 
@@ -1433,7 +1422,6 @@ if ('serviceWorker' in navigator) {
 }
 
 localStorage.setItem("spool_sistemaAberto", "spool");
-
 </script>
 <div class="loading-overlay" id="loadingOverlay">
 <div class="loading-text">Carregando sistema...</div>
@@ -1447,7 +1435,6 @@ function confirmarVoltar() {
         window.location.href = "index.html";
     }
 }
-
 </script>
 <!-- Modal de Seleção de Responsável -->
 
@@ -1460,7 +1447,7 @@ function confirmarVoltar() {
 <div id="responsavelModal" class="modal-overlay" style="z-index: 3000; display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); justify-content: center; align-items: center;">
   <div class="modal" style="background-color: #000; color: #fff; padding: 30px; border-radius: 10px; text-align: center; width: 90%; max-width: 400px;">
     <p style="font-size: 18px; margin-bottom: 15px;">Quem está fazendo o romaneio?</p>
-    <select id="responsavelSelect" style="margin-bottom: 20px; padding: 10px; font-size: 16px; width: 100%; background-color: #111; color: #fff; border: 1px solid #555;">
+    <select id="responsavelSelect" onchange="nomeResponsavelSelecionado = this.value;" style="margin-bottom: 20px; padding: 10px; font-size: 16px; width: 100%; background-color: #111; color: #fff; border: 1px solid #555;">
       <option value="" disabled selected hidden>Selecione um nome</option>
       <option>Wanderson</option>
       <option>Richard</option>
@@ -1479,18 +1466,10 @@ function confirmarVoltar() {
 <script>
 let nomeResponsavelSelecionado = "";
 
-function atualizarResponsavelNaTela() {
-  const info = document.getElementById("nomeResponsavelInfo");
-  if (info && nomeResponsavelSelecionado) {
-    info.textContent = "Responsável: " + nomeResponsavelSelecionado;
-  }
-}
-
-
 function abrirResponsavelModal(callback) {
   const modal = document.getElementById("responsavelModal");
   modal.style.display = "flex";
-  
+  document.getElementById("responsavelSelect").selectedIndex = 0;
   window._responsavelCallback = callback;
 }
 
@@ -1504,10 +1483,10 @@ function confirmarResponsavel() {
   }
 
   nomeResponsavelSelecionado = nome;
+document.getElementById('responsavelSelect').value = nome;
   fecharResponsavelModal();
 
-  atualizarResponsavelNaTela();
-if (typeof window._responsavelCallback === "function") {
+  if (typeof window._responsavelCallback === "function") {
     window._responsavelCallback(nome);
     window._responsavelCallback = null;
   }
@@ -1516,17 +1495,6 @@ if (typeof window._responsavelCallback === "function") {
 function fecharResponsavelModal() {
   const modal = document.getElementById("responsavelModal");
   modal.style.display = "none";
-}
-
-</script>
-
-
-<script>
-function atualizarResponsavelNaTela() {
-  const info = document.getElementById("nomeResponsavelInfo");
-  if (info && nomeResponsavelSelecionado) {
-    info.textContent = "Responsável: " + nomeResponsavelSelecionado;
-  }
 }
 </script>
 
