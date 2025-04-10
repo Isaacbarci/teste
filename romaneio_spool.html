@@ -6,7 +6,16 @@
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Spool</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">atualizarResponsavelNaTela();
+
+function atualizarResponsavelNaTela() {
+  const info = document.getElementById("nomeResponsavelInfo");
+  if (info && nomeResponsavelSelecionado) {
+    info.textContent = "Responsável: " + nomeResponsavelSelecionado;
+  }
+}
+atualizarResponsavelNaTela();
 </script>
+
 <script src="https://unpkg.com/html5-qrcode">atualizarResponsavelNaTela();
 </script>
 <style>
