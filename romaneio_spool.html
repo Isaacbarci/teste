@@ -811,6 +811,7 @@ async function loadServices() {
         findColumnIndexes();
         mapColumnIndexes();
 
+        findColumnIndexes();
         await populateServicoOptions();
 
         progressBar.style.width = "100%";
@@ -1440,7 +1441,6 @@ function confirmarVoltar() {
 
 </script>
 <!-- Modal de Seleção de Responsável -->
-<!-- Modal de Seleção de Responsável -->
 <div class="modal-overlay" id="responsavelModal" style="z-index: 3000; display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); justify-content: center; align-items: center;">
 <div class="modal" style="background-color: #2c2c2c; color: white; border-radius: 10px; padding: 20px; text-align: center;">
 <p style="font-size: 16px; color: white;">Quem está fazendo o romaneio?</p>
@@ -1502,31 +1502,6 @@ function fecharResponsavelModal() {
 }
 
 </script>
-<script>
-function atualizarResponsavelNaTela() {
-  const info = document.getElementById("nomeResponsavelInfo");
-  if (info && nomeResponsavelSelecionado) {
-    info.textContent = "Responsável: " + nomeResponsavelSelecionado;
-  }
-}
-</script>
-<script>
-async function abrirResponsavelModal(callback) {
-  const salvo = await carregarEdicaoIndexedDB("spool_ultimoResponsavel");
-  const nomeSalvo = salvo?.valor;
-  const modal = document.getElementById("responsavelModal");
-  const select = document.getElementById("responsavelSelect");
 
-  if (nomeSalvo && select) {
-    const opcoes = Array.from(select.options);
-    const existe = opcoes.find(opt => opt.value === nomeSalvo);
-    if (existe) {
-      select.value = nomeSalvo;
-    }
-  }
-
-  modal.style.display = "flex";
-  window._callbackResponsavel = callback;
-}
-</script></body>
+</body>
 </html>
