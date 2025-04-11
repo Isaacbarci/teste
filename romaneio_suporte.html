@@ -1841,7 +1841,8 @@ function atualizarResponsavelNaTela() {
 }
 
 
-function abrirResponsavelModal(callback) {
+function abrirResponsavelModal(
+  carregarResponsavelNoModal();callback) {
   const modal = document.getElementById("responsavelModal");
   modal.style.display = "flex";
   
@@ -1900,7 +1901,7 @@ document.addEventListener("DOMContentLoaded", function () {
 </script><script>
 let nomeResponsavelSelecionado = "";
 
-async function carregarResponsavel() {
+async function carregarResponsavelNoModal() {
   try {
     const db = await abrirIndexedDB();
     const tx = db.transaction("edicoes", "readonly");
@@ -1929,9 +1930,7 @@ async function salvarResponsavel(nome) {
   }
 }
 
-document.addEventListener("DOMContentLoaded", async function () {
-  await carregarResponsavel();
-
+document.addEventListener("DOMContentLoaded", function () {
   const select = document.getElementById("responsavelSelect");
   if (select) {
     select.addEventListener("change", function () {
@@ -1941,5 +1940,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
   }
 });
+
+// Chame essa função dentro da lógica que abre o modal de responsável
+// Ex: carregarResponsavelNoModal();
 </script></body>
 </html>
