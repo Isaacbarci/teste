@@ -14,6 +14,17 @@ function atualizarResponsavelNaTela() {
   }
 }
 
+
+document.addEventListener("change", function(e) {
+  if (e.target && e.target.id === "responsavelSelect") {
+    const nome = e.target.value;
+    const preview = document.getElementById("nomeSelecionadoPreview");
+    if (preview) {
+      preview.textContent = nome ? "Selecionado: " + nome : "";
+    }
+  }
+});
+
 </script>
 
 <script src="https://unpkg.com/html5-qrcode">
@@ -135,7 +146,7 @@ function atualizarResponsavelNaTela() {
     }
     
     .modal {
-        background-color: #1e1e1e;
+        background-color: #000;
         color: #fff;
         padding: 25px;
         border-radius: 8px;
@@ -344,7 +355,7 @@ function atualizarResponsavelNaTela() {
     }
     
     #shareModal > div {
-        background: #333; 
+        background: #000; 
         padding: 25px; 
         border-radius: 10px; 
         text-align: center; 
