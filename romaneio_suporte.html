@@ -1809,7 +1809,7 @@ function confirmarVoltar() {
 <option>Cesar</option>
 <option>Alexsandro</option>
 <option>Marcos</option>
-</select><p id="responsavelSelecionadoExibido" style="margin-top: 8px; font-size: 14px; color: #ccc; text-align: center;"></p>
+</select>
 <div class="modal-footer" style="display: flex; justify-content: space-between;">
 <button onclick="confirmarResponsavel()" style="padding: 10px 20px; font-size: 16px; background-color: green; color: white; border: none; border-radius: 4px;">Confirmar</button>
 <button onclick="fecharResponsavelModal()" style="padding: 10px 20px; font-size: 16px; background-color: red; color: white; border: none; border-radius: 4px;">Cancelar</button>
@@ -1884,28 +1884,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 </script><script>
-document.addEventListener("DOMContentLoaded", function () {
-  const select = document.getElementById("responsavelSelect");
-  const info = document.getElementById("responsavelSelecionadoExibido");
-  if (select && info) {
-    select.addEventListener("change", function () {
-      const nome = select.value;
-      info.textContent = nome ? "Responsável selecionado: " + nome : "";
-    });
-  }
-});
-</script><script>
-document.addEventListener("DOMContentLoaded", function () {
-  const select = document.getElementById("responsavelSelect");
-  const info = document.getElementById("responsavelSelecionadoExibido");
-  if (select && info) {
-    select.addEventListener("change", function () {
-      const nome = select.value;
-      info.textContent = nome ? "Responsável selecionado: " + nome : "";
-    });
-  }
-});
-</script><script>
 let nomeResponsavelSelecionado = "";
 
 async function carregarResponsavel() {
@@ -1917,10 +1895,8 @@ async function carregarResponsavel() {
     request.onsuccess = () => {
       nomeResponsavelSelecionado = request.result?.valor || "";
       const select = document.getElementById("responsavelSelect");
-      const info = document.getElementById("responsavelSelecionadoExibido");
       if (select && nomeResponsavelSelecionado) {
         select.value = nomeResponsavelSelecionado;
-        if (info) info.textContent = "Responsável selecionado: " + nomeResponsavelSelecionado;
       }
     };
   } catch (e) {
@@ -1943,13 +1919,11 @@ document.addEventListener("DOMContentLoaded", async function () {
   await carregarResponsavel();
 
   const select = document.getElementById("responsavelSelect");
-  const info = document.getElementById("responsavelSelecionadoExibido");
-  if (select && info) {
+  if (select) {
     select.addEventListener("change", function () {
       const nome = select.value;
       nomeResponsavelSelecionado = nome;
       salvarResponsavel(nome);
-      info.textContent = nome ? "Responsável selecionado: " + nome : "";
     });
   }
 });
