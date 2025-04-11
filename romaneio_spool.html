@@ -5,16 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Romaneio de Spool</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js">
-
-function atualizarResponsavelNaTela() {
-  const info = document.getElementById("nomeResponsavelInfo");
-  if (info && nomeResponsavelSelecionado) {
-    info.textContent = "Responsável: " + nomeResponsavelSelecionado;
-  }
-}
-
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode">
 </script>
 <style>
@@ -615,7 +606,7 @@ function atualizarResponsavelNaTela() {
 </div>
 <div class="modal-overlay" id="confirmModalOverlay" style="z-index: 2000;">
 <div class="modal" style="background-color: #1e1e1e; color: #fff; padding: 25px; border-radius: 8px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); border: 1px solid #444; text-align: center;">
-<p id="nomeResponsavelInfo" style="text-align: center; font-size: 14px; color: #ccc; margin-top: 10px;"></p><p id="confirmModalMessage" style="font-size: 16px;">
+<p id="confirmModalMessage" style="font-size: 16px;">
             Existem dados salvos para este serviço.<br/>Deseja continuar o Romaneio existente?
         </p>
 <div class="modal-footer">
@@ -1461,7 +1452,7 @@ function confirmarVoltar() {
 <option>Cesar</option>
 <option>Alexsandro</option>
 <option>Marcos</option>
-</select>
+</select><p id="responsavelSelecionadoExibido" style="margin-top: 8px; font-size: 14px; color: #ccc; text-align: center;"></p>
 <div class="modal-footer" style="display: flex; justify-content: space-between;">
 <button onclick="confirmarResponsavel()" style="padding: 10px 20px; font-size: 16px; background-color: green; color: white; border: none; border-radius: 4px;">Confirmar</button>
 <button onclick="fecharResponsavelModal()" style="padding: 10px 20px; font-size: 16px; background-color: red; color: white; border: none; border-radius: 4px;">Cancelar</button>
@@ -1532,6 +1523,76 @@ document.addEventListener("DOMContentLoaded", function () {
       } else {
         info.textContent = "";
       }
+    });
+  }
+});
+</script><script>
+document.addEventListener("DOMContentLoaded", function () {
+  const select = document.getElementById("responsavelSelect");
+  const info = document.getElementById("responsavelSelecionadoExibido");
+  if (select && info) {
+    select.addEventListener("change", function () {
+      const nome = select.value;
+      info.textContent = nome ? "Responsável selecionado: " + nome : "";
+    });
+  }
+});
+</script><script>
+document.addEventListener("DOMContentLoaded", function () {
+  const select = document.getElementById("responsavelSelect");
+  const info = document.getElementById("responsavelSelecionadoExibido");
+  if (select && info) {
+    select.addEventListener("change", function () {
+      const nome = select.value;
+      info.textContent = nome ? "Responsável selecionado: " + nome : "";
+    });
+  }
+});
+</script><script>
+let nomeResponsavelSelecionado = "";
+
+async function carregarResponsavel() {
+  try {
+    const db = await abrirIndexedDB();
+    const tx = db.transaction("edicoes", "readonly");
+    const store = tx.objectStore("edicoes");
+    const request = store.get("nome_responsavel");
+    request.onsuccess = () => {
+      nomeResponsavelSelecionado = request.result?.valor || "";
+      const select = document.getElementById("responsavelSelect");
+      const info = document.getElementById("responsavelSelecionadoExibido");
+      if (select && nomeResponsavelSelecionado) {
+        select.value = nomeResponsavelSelecionado;
+        if (info) info.textContent = "Responsável selecionado: " + nomeResponsavelSelecionado;
+      }
+    };
+  } catch (e) {
+    console.error("Erro ao carregar nome do responsável:", e);
+  }
+}
+
+async function salvarResponsavel(nome) {
+  try {
+    const db = await abrirIndexedDB();
+    const tx = db.transaction("edicoes", "readwrite");
+    const store = tx.objectStore("edicoes");
+    store.put({ id: "nome_responsavel", valor: nome });
+  } catch (e) {
+    console.error("Erro ao salvar nome do responsável:", e);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", async function () {
+  await carregarResponsavel();
+
+  const select = document.getElementById("responsavelSelect");
+  const info = document.getElementById("responsavelSelecionadoExibido");
+  if (select && info) {
+    select.addEventListener("change", function () {
+      const nome = select.value;
+      nomeResponsavelSelecionado = nome;
+      salvarResponsavel(nome);
+      info.textContent = nome ? "Responsável selecionado: " + nome : "";
     });
   }
 });
