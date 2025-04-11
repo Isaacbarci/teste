@@ -505,6 +505,20 @@
     width: 270px !important;
   }
 }
+
+.modal-overlay {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+.modal {
+    width: auto !important;
+    max-width: 90vw !important;
+    min-width: 260px !important;
+    margin: auto !important;
+    box-sizing: border-box !important;
+}
 </style>
 <style>
     .loading-overlay {
@@ -1446,12 +1460,12 @@ function confirmarVoltar() {
 <p style="font-size: 18px; margin-bottom: 15px;">Quem está fazendo o romaneio?</p>
 <select id="responsavelSelect" style="margin-bottom: 20px; padding: 10px; font-size: 16px; width: 100%; background-color: #111; color: #fff; border: 1px solid #555;">
 <option disabled="" hidden="" selected="" value="">Selecione um nome</option>
-<option>Wanderson</option>
-<option>Richard</option>
-<option>Vinício</option>
-<option>Cesar</option>
-<option>Alexsandro</option>
-<option>Marcos</option>
+<option value="Wanderson">Wanderson</option>
+<option value="Richard">Richard</option>
+<option value="Vinício">Vinício</option>
+<option value="Cesar">Cesar</option>
+<option value="Alexsandro">Alexsandro</option>
+<option value="Marcos">Marcos</option>
 </select>
 <div class="modal-footer" style="display: flex; justify-content: space-between;">
 <button onclick="confirmarResponsavel()" style="padding: 10px 20px; font-size: 16px; background-color: green; color: white; border: none; border-radius: 4px;">Confirmar</button>
