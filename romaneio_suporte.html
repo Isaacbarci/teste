@@ -85,11 +85,11 @@ document.addEventListener("change", function(e) {
     }
     
     .close-btn {
-        background-color: #dc3545;
+        background-color: #aa2e3a;
     }
     
     .close-btn:hover {
-        background-color: #c82333;
+        background-color: #992632;
     }
     
     .save-btn {
@@ -334,11 +334,11 @@ document.addEventListener("change", function(e) {
     }
 
     button[onclick*="voltarParaIndex()"] {
-        background-color: #dc3545;
+        background-color: #aa2e3a;
     }
 
     button[onclick*="voltarParaIndex()"]:hover {
-        background-color: #c82333;
+        background-color: #992632;
     }
 
     #shareModal {
@@ -721,7 +721,7 @@ document.addEventListener("change", function(e) {
 <option disabled="" hidden="" selected="" value="">Selecione um serviço</option>
 </select>
 <button onclick="confirmLoadService()">Carregar Serviço</button>
-</div><div style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px;"><input id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação" style="text-transform: uppercase" type="text"/><button id="btnClearFilter" onclick="document.getElementById('identificacaoFilter').value = ''; applyFilter();" style="padding: 6px 10px; font-size: 14px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; height: 38px; min-width: 38px; margin-left: 2px;" title="Limpar filtro">✕</button></div><button onclick="downloadExcel()">Download Excel</button><button onclick="startQrScanner()">Escanear QR Code</button><button onclick="confirmarVoltar()" style="background-color: #dc3545; color: white; height: 38px; border-radius: 4px; padding: 6px 12px; font-size: 14px; border: none; cursor: pointer;" title="Voltar para o Início">
+</div><div style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px;"><input id="identificacaoFilter" placeholder="Filtrar por QR ou Identificação" style="text-transform: uppercase" type="text"/><button id="btnClearFilter" onclick="document.getElementById('identificacaoFilter').value = ''; applyFilter();" style="padding: 6px 10px; font-size: 14px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; height: 38px; min-width: 38px; margin-left: 2px;" title="Limpar filtro">✕</button></div><button onclick="downloadExcel()">Download Excel</button><button onclick="startQrScanner()">Escanear QR Code</button><button onclick="confirmarVoltar()" style="background-color: #aa2e3a; color: white; height: 38px; border-radius: 4px; padding: 6px 12px; font-size: 14px; border: none; cursor: pointer;" title="Voltar para o Início">
 <svg fill="white" height="16" style="vertical-align: middle; margin-right: 5px;" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
 <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
 </svg>
@@ -797,7 +797,7 @@ document.addEventListener("change", function(e) {
 <p>Deseja compartilhar este arquivo agora?</p>
 <div>
 <button onclick="shareLastFile()" style="background-color: #28a745; color: white; border: none; padding: 10px; border-radius: 5px;">Compartilhar</button>
-<button onclick="closeShareModal()" style="background-color: #dc3545; color: white; border: none; padding: 10px; border-radius: 5px;">Fechar</button>
+<button onclick="closeShareModal()" style="background-color: #aa2e3a; color: white; border: none; padding: 10px; border-radius: 5px;">Fechar</button>
 </div>
 </div>
 </div>
